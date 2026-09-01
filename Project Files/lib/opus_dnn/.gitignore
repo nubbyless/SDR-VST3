@@ -1,0 +1,53 @@
+# Vendored opus_dnn (RADE/FreeDV voice codec dependency) - committed subset.
+#
+# We deliberately commit ONLY what the MSBuild-only CI build needs to link
+# ChannelMaster:
+#   - prebuilt/         the opus.lib binaries (Release+Debug), built once via CMake
+#   - include/ dnn/ celt/ silk/  the DSP headers the host/CI compilation references
+#   - commit_pin.txt    provenance + the exact CMake rebuild recipe
+#
+# We do NOT commit the opus / RADE SOURCE (celt/*.c, dnn/*.c, silk/*.c, torch
+# training scripts, docs, build config ...). The prebuilt .lib already contains
+# that compiled code; if a rare source rebuild is ever needed we re-download the
+# pinned commit from upstream + the RADE weight tables (see commit_pin.txt), then
+# regenerate prebuilt/ via CMake. Keeping source out of git keeps this vendored
+# dir small and matches the locked "vendor the built lib, don't build in CI"
+# decision (see FREEDV_HANDOFF.md A6 / B6).
+
+# --- Prebuilt opus.lib (vendored binary, linked by ChannelMaster / CI) ---
+!prebuilt/
+!prebuilt/**/
+!prebuilt/**/*.lib
+!prebuilt/**/*.pdb
+
+# --- SIMD headers under x86/ arm/ (repo-root .gitignore global x86/arm rules
+#     would otherwise drop these DSP headers we DO commit) ---
+!celt/x86/
+!celt/x86/**/
+!celt/arm/
+!celt/arm/**/
+!dnn/x86/
+!dnn/x86/**/
+!dnn/arm/
+!dnn/arm/**/
+!silk/x86/
+!silk/x86/**/
+!silk/arm/
+!silk/arm/**/
+!silk/fixed/x86/
+!silk/fixed/x86/**/
+!silk/fixed/arm/
+!silk/fixed/arm/**/
+!silk/float/x86/
+!silk/float/x86/**/
+
+# --- CMake scratch output (never commit generated build dir) ---
+build/
+
+# --- Anything not explicitly re-included above stays ignored (source, docs) ---
+*.c
+dnn/torch/
+dnn/training_tf2/
+tests/
+src/
+celt/dump_modes/

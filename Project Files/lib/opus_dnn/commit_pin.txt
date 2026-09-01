@@ -1,0 +1,74 @@
+# opus_dnn (VENDORED) — build provenance
+
+upstream:     https://github.com/xiph/opus
+commit_sha:   940d4e5af64351ca8ba8390df3f555484c567fbb
+license:      BSD 3-Clause (see COPYING)
+
+## What this directory is
+
+A COMPLETE vendored copy of the Opus source at the pinned commit, **merged with
+the RADE neural-weight data files** that upstream does not ship but the RADE
+modem requires. It provides the FARGAN decoder, LPCNet feature extractor and
+DRED/OSCE code needed by the RADE (Radio AutoEncoder) / FreeDV voice mode.
+
+Do NOT use the incomplete `opus_dnn` from the Thetis-RADE fork directly — its
+checkout was missing every `*/x86/` and `*/arm/` SIMD source (it would not
+build). This tree fixes that by starting from the full upstream archive at
+`940d4e5` and overlaying the fork's added data tables.
+
+## Merged sources (fork-only files added on top of upstream 940d4e5)
+
+These are the RADE neural-network weight / data tables and a helper header that
+are NOT present in the upstream commit (generated/downloaded separately by the
+RADE project). All under `dnn/`:
+
+  bbwenet_data.c            bbwenet_data.h
+  dred_rdovae_constants.h
+  dred_rdovae_dec_data.c    dred_rdovae_dec_data.h
+  dred_rdovae_enc_data.c    dred_rdovae_enc_data.h
+  dred_rdovae_stats_data.c  dred_rdovae_stats_data.h
+  fargan_data.c             fargan_data.h
+  lace_data.c               lace_data.h
+  lossgen_data.c            lossgen_data.h
+  nolace_data.c             nolace_data.h
+  pitchdnn_data.c           pitchdnn_data.h
+  plc_data.c                plc_data.h
+
+## Required CMake features
+
+  -DOPUS_DEEP_PLC=ON   (FARGAN decoder, LPCNet encoder, nnet primitive layer)
+  -DOPUS_DRED=ON       (DRED encoder/decoder)
+  -DOPUS_OSCE=ON       (Open Source Coder Enhancement; required by FARGAN)
+
+Compiles with preprocessor defines ENABLE_DEEP_PLC / ENABLE_DRED / ENABLE_OSCE.
+
+## Vendored prebuilt binaries
+
+  prebuilt/Release/opus.lib   (~7.2 MB, Release x64, /O2 /Ob2 /DNDEBUG)
+  prebuilt/Debug/opus.lib     (~9.4 MB, Debug   x64)
+
+Built once from THIS tree with the VS18-bundled CMake 4.3.1, generator
+`Visual Studio 18 2026`, `-A x64`, options above, intrinsics ON (SIMD enabled).
+ChannelMaster links `opus.lib` from `lib/opus_dnn/prebuilt/$(Configuration)`.
+
+## Why vendored and not built in CI
+
+`.github/workflows/release.yml` is an MSBuild-only pipeline (no CMake step). To
+keep GitHub CI building releases unchanged, opus is built locally once and the
+resulting `.lib` committed. opus is pinned to a fixed commit and never changes,
+so the vendor-once build is reproducible with zero workflow edits. See
+FREEDV_HANDOFF.md §6 for the full decision.
+
+## Regenerating the prebuilt lib (rare)
+
+  cmake -S . -B build/x64 -G "Visual Studio 18 2026" -A x64 `
+        -DOPUS_DEEP_PLC=ON -DOPUS_DRED=ON -DOPUS_OSCE=ON `
+        -DOPUS_BUILD_PROGRAMS=OFF -DOPUS_BUILD_TESTING=OFF
+  cmake --build build/x64 --config Release --target opus
+  cmake --build build/x64 --config Debug   --target opus
+  # copy build/x64/Release/opus.lib -> prebuilt/Release/opus.lib
+  # copy build/x64/Debug/opus.lib     -> prebuilt/Debug/opus.lib
+
+Note: a scoped `.gitignore` in this directory re-includes the SIMD sources
+(`*/x86/`, `*/arm/`) and `prebuilt/`, which the repo-root `.gitignore` global
+`x86/`/`arm/`/`Release/`/`Debug/` rules would otherwise drop.
