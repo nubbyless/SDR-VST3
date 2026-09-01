@@ -1,0 +1,47 @@
+radae_c - RADE modem / neural autoencoder C library (vendored build dep)
+======================================================================
+
+Purpose
+-------
+The RADE (Radio AutoEncoder) digital-voice modem library.  Provides the
+`rade_open/rade_tx/rade_rx/...` API consumed by the ChannelMaster wrapper
+(`Source/ChannelMaster/radae.c`) and linked as a STATIC lib (`rade.lib`).
+
+What we commit vs not (lean strategy)
+-------------------------------------
+We commit ONLY:
+  - src/*.h                        the public RADE API headers the wrapper
+                                   compile references (`rade_api.h` etc.)
+  - build/x64/Release/rade.lib     the prebuilt static library (linked by
+                                   ChannelMaster / CI)
+  - commit_pin.txt                 this file (provenance + rebuild recipe)
+  - LICENSE / NOTICE               upstream license texts
+
+We deliberately do NOT commit the radae_c SOURCE (.c files), because the
+bulk of it is the huge neural-network weight tables (`rade_*.c`, each
+~24-39 MB) that are compiled-in data.  The prebuilt rade.lib already
+contains that code.  If a source rebuild is ever required, re-obtain the
+source + weights per the pin below and rebuild rade.lib.
+
+Where the vendored source came from (pin)
+-----------------------------------------
+Origin: the sv1eia/Thetis-RADE fork's vendored `Project Files/lib/radae_c`
+(local clone: C:\Users\W4YNY\AppData\Local\Temp\opencode\thetis-rade).
+The fork itself ports radae_nopy (Peter B Marks) upstream; the `.c`
+sources and the model weight tables (rade_*_v1/v2, enc/dec/sync) came
+verbatim from that fork checkout.
+
+Expected source file set (not committed, re-obtainable from the fork):
+  src/:  rade_api.c, rade_app_*.c (if present), rade_*_v1_enc_*.c,
+         rade_*_v1_dec_*.c, rade_*_v2_enc_*.c, rade_*_v2_dec_*.c,
+         rade_sync_*.c, and the other 24 .c files + 32 .h files.
+
+Rebuild recipe (rade.lib)
+-------------------------
+The fork builds it with `radae_c/msvc/build_radae_c.bat` (MSVC v145, x64,
+Release) => `msvc/radae_c.vcxproj` produces `build/x64/Release/rade.lib`.
+Link the deps with /MD /LTCG to match the vendored libs' CRT.
+
+License
+-------
+BSD 2-clause (radae_c upstream / Peter B Marks).

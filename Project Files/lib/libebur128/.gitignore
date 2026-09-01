@@ -1,0 +1,27 @@
+# Vendored libebur128 (EBU R128 loudness) - lean committed subset.
+#
+# We commit ONLY what the ChannelMaster link needs:
+#   - ebur128/ebur128.h + queue/sys/queue.h   the public headers
+#   - build/x64/Release/ebur128.lib           the prebuilt static library
+#   - commit_pin.txt, COPYING                 provenance + license
+# The .c source is compiled into ebur128.lib already; not committed.
+
+# Ignore source and everything by default.
+*
+!.gitignore
+!commit_pin.txt
+!COPYING
+!README.md
+
+# Re-include the public headers under ebur128/ (and its queue helper).
+!ebur128/
+!ebur128/**/
+!ebur128/**/*.h
+
+# Re-include the prebuilt static lib under build/ (negate global build/
+# x64/ Release/ ignores, as the opus_dnn committed subset does).
+!build/
+!build/**/
+!build/**/*.lib
+!build/**/*.exp
+!build/**/*.pdb

@@ -37384,6 +37384,69 @@ namespace Thetis
             return _theConsole;
         }
 
+        #region RADE (FreeDV/RADEV1 digital voice)
+
+        // RADE enable state is owned by the C side (cmaster.GetRadaeRxEnabled /
+        // GetRadaeTxEnabled); these are live proxies so the UI stays in sync
+        // with the audio-thread gate (audio.cs MOX setter).
+        public bool RadaeRx1Enabled
+        {
+            get { return cmaster.GetRadaeRxEnabled(0) != 0; }
+        }
+        public bool RadaeRx2Enabled
+        {
+            get { return cmaster.GetRadaeRxEnabled(1) != 0; }
+        }
+        public bool RadaeEnabled
+        {
+            get { return RadaeRx1Enabled || RadaeRx2Enabled || cmaster.GetRadaeTxEnabled() != 0; }
+        }
+
+        // RADE on-screen metrics overlay enables.  Driven from
+        // Setup -> DSP -> RADE (chkRX1Measure / chkRX2Measure /
+        // chkTXMeasure).
+        private bool _rade_measure_rx1 = false;
+        private bool _rade_measure_rx2 = false;
+        private bool _rade_measure_tx  = false;
+        public bool RadeMeasureRx1 { get { return _rade_measure_rx1; } set { _rade_measure_rx1 = value; } }
+        public bool RadeMeasureRx2 { get { return _rade_measure_rx2; } set { _rade_measure_rx2 = value; } }
+        public bool RadeMeasureTx  { get { return _rade_measure_tx;  } set { _rade_measure_tx  = value; } }
+
+        // When ticked in Setup -> DSP -> RADE, the FreeDV Reporter form
+        // suppresses the popup for inbound qsy_request packets.  The
+        // event is still logged to NetErrorLog.txt either way.
+        private bool _rade_ignore_qsy_request = false;
+        public bool RadeIgnoreQsyRequest { get { return _rade_ignore_qsy_request; } set { _rade_ignore_qsy_request = value; } }
+
+        // FreeDV Reporter "Last TX"/"Updated" columns: true = show UTC, false = show local time. Default UTC.
+        private bool _rade_reporter_times_utc = true;
+        public bool RadeReporterTimesUtc { get { return _rade_reporter_times_utc; } set { _rade_reporter_times_utc = value; } }
+
+        // Operator callsign carried in the RADE EOO frame.  Cached here (UI thread) from
+        // Setup's txtRadaeReporterCallsign; pushed to the encoder at begin-over (audio.cs MOX
+        // 0->1) so g_tx_own_callsign is loaded before each over's EOO is generated.
+        private volatile string _radae_eoo_callsign = "";
+        public string RadaeEooCallsign
+        {
+            get { return _radae_eoo_callsign; }
+            set { _radae_eoo_callsign = value ?? ""; }
+        }
+
+        public delegate void RadaeEnabledChanged(int rx, bool enabled); // rx: 1 or 2
+        public RadaeEnabledChanged RadaeEnabledChangedHandlers;
+
+        /* Fired by the Setup RADE enable handlers (chkRADAE / chkRADAERX2)
+         * after the C-side enable flag flips, so listeners such as the
+         * Meters/Gadgets manager can re-evaluate per-RX container
+         * visibility ("Hide if RADE not enabled").  rx is 1 or 2. */
+        public void NotifyRadaeEnabledChanged(int rx, bool enabled)
+        {
+            try { RadaeEnabledChangedHandlers?.Invoke(rx, enabled); }
+            catch { }
+        }
+
+        #endregion
+
         protected override void WndProc(ref Message m)
         {
             const int WM_QUERYENDSESSION = 0x0011;

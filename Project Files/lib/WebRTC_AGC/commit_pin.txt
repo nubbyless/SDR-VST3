@@ -1,0 +1,36 @@
+WebRTC_AGC - Google WebRTC AGC (single-channel) vendored build dep
+===================================================================
+
+Purpose
+-------
+Automatic gain control for the RADE TX mic DSP path inside the
+ChannelMaster wrapper.  Linked as a STATIC lib (`WebRTC_AGC.lib`).
+
+What we commit vs not (lean strategy)
+-------------------------------------
+We commit ONLY:
+  - agc.h, dr_wav.h            the public headers used by the build
+  - build/x64/Release/WebRTC_AGC.lib  the prebuilt static library
+  - commit_pin.txt             this file (provenance + rebuild recipe)
+  - LICENSE                    upstream license text
+
+We deliberately do NOT commit the `.c` sources (agc.c, main.c) or the
+CMake build files - the prebuilt WebRTC_AGC.lib already contains them.
+
+Where the vendored source came from (pin)
+-----------------------------------------
+Origin: the sv1eia/Thetis-RADE fork's vendored
+`Project Files/lib/WebRTC_AGC` (local clone:
+C:\Users\W4YNY\AppData\Local\Temp\opencode\thetis-rade).
+A slim single-channel extraction of Google's WebRTC AGC.
+
+Rebuild recipe (WebRTC_AGC.lib)
+-------------------------------
+The fork builds it via `WebRTC_AGC/CMakeLists.txt` / the
+`build/WebRTC_AGC.vcxproj` (MSVC, x64, Release)
+=> `build/x64/Release/WebRTC_AGC.lib`.  Link with /MD /LTCG to match the
+vendored libs' CRT.
+
+License
+-------
+BSD 3-clause (Google WebRTC AGC as vendored by the fork).

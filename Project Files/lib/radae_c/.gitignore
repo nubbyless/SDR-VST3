@@ -1,0 +1,48 @@
+# Vendored radae_c (RADE modem library) - lean committed subset.
+#
+# We commit ONLY what ChannelMaster needs to LINK, NOT the source:
+#   - src/*.h                      the public RADE API headers the wrapper
+#                                  compile references
+#   - build/x64/Release/rade.lib   the prebuilt static library (linked by
+#                                  ChannelMaster.vcxproj - see its
+#                                  AdditionalLibraryDirectories/AdditionalDependencies)
+#   - commit_pin.txt               provenance + source rebuild recipe
+#   - LICENSE, NOTICE              upstream license texts
+#
+# The bulk of the .c files here are the huge neural weight tables
+# (rade_*_c, ~24-39 MB each); they are compiled-in data already baked into
+# rade.lib, so we do not commit them.  If a rare source rebuild is needed,
+# re-obtain the pinned source/weights (see commit_pin.txt) and rebuild.
+
+# Ignore all source files by default.
+*.c
+*.cpp
+*.cc
+
+# Re-include the public headers the wrapper needs.
+!src/
+!src/**/
+!src/**/*.h
+
+# Re-include the prebuilt static lib (and its import/PDB sidecars) under
+# build/.  The global root .gitignore ignores build/ x64/ Release/ dirs, so we
+# must negate the whole directory chain to make the .lib reachable again
+# (same pattern as the opus_dnn/ committed subset).  Only binary artifacts are
+# wanted; re-ignore the MSBuild scratch (.recipe, .tlog, .lastbuildstate).
+!build/
+!build/**/
+!build/**/*.lib
+!build/**/*.exp
+!build/**/*.pdb
+build/**/*.recipe
+build/**/*.lastbuildstate
+build/**/*.tlog
+build/**/*.tlog/
+
+# Re-include provenance + license files.
+!commit_pin.txt
+!LICENSE
+!NOTICE
+
+# Vendored msvc build project files are source/scratch - not committed.
+msvc/

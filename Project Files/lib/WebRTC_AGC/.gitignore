@@ -1,0 +1,27 @@
+# Vendored WebRTC_AGC (Google AGC) - lean committed subset.
+#
+# We commit ONLY what the ChannelMaster link needs:
+#   - agc.h, dr_wav.h                  the public headers
+#   - build/x64/Release/WebRTC_AGC.lib the prebuilt static library
+#   - commit_pin.txt, LICENSE          provenance + license
+# The .c sources / CMake files are compiled into the .lib already; not
+# committed.
+
+# Ignore source and everything by default.
+*
+!.gitignore
+!commit_pin.txt
+!LICENSE
+!README.md
+
+# Re-include the public headers.
+!agc.h
+!dr_wav.h
+
+# Re-include the prebuilt static lib under build/ (negate global build/
+# x64/ Release/ ignores, as the opus_dnn committed subset does).
+!build/
+!build/**/
+!build/**/*.lib
+!build/**/*.exp
+!build/**/*.pdb

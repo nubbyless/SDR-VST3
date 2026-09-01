@@ -2812,6 +2812,14 @@
             this.udSCFLowCut = new System.Windows.Forms.NumericUpDownTS();
             this.chkSCFEnable = new System.Windows.Forms.CheckBoxTS();
             this.tpDSPCFC = new System.Windows.Forms.TabPage();
+            this.tpDSPRADE = new System.Windows.Forms.TabPage();
+            this.chkRADAE = new System.Windows.Forms.CheckBoxTS();
+            this.chkRADAERX2 = new System.Windows.Forms.CheckBoxTS();
+            this.chkRADAELoopback = new System.Windows.Forms.CheckBoxTS();
+            this.cmbRX1RADEVersion = new System.Windows.Forms.ComboBoxTS();
+            this.cmbRX2RADEVersion = new System.Windows.Forms.ComboBoxTS();
+            this.lblRadaeReporterCallsign = new System.Windows.Forms.LabelTS();
+            this.txtRadaeReporterCallsign = new System.Windows.Forms.TextBoxTS();
             this.pnlCFC = new System.Windows.Forms.PanelTS();
             this.picCFC = new System.Windows.Forms.PictureBox();
             this.udCFCPicDBPerLine = new System.Windows.Forms.NumericUpDownTS();
@@ -5197,6 +5205,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.udSCFHighCut)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udSCFLowCut)).BeginInit();
             this.tpDSPCFC.SuspendLayout();
+            this.tpDSPRADE.SuspendLayout();
             this.pnlCFC.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picCFC)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udCFCPicDBPerLine)).BeginInit();
@@ -37719,6 +37728,7 @@
             this.tcDSP.Controls.Add(this.tpDSPNB);
             this.tcDSP.Controls.Add(this.tpDSPVOXDE);
             this.tcDSP.Controls.Add(this.tpDSPCFC);
+            this.tcDSP.Controls.Add(this.tpDSPRADE);
             this.tcDSP.Location = new System.Drawing.Point(0, 0);
             this.tcDSP.Name = "tcDSP";
             this.tcDSP.SelectedIndex = 0;
@@ -46011,6 +46021,106 @@
             this.tpDSPCFC.Size = new System.Drawing.Size(724, 414);
             this.tpDSPCFC.TabIndex = 12;
             this.tpDSPCFC.Text = "CFC";
+            // 
+            // tpDSPRADE
+            // 
+            this.tpDSPRADE.BackColor = System.Drawing.SystemColors.Control;
+            this.tpDSPRADE.Controls.Add(this.chkRADAE);
+            this.tpDSPRADE.Controls.Add(this.chkRADAERX2);
+            this.tpDSPRADE.Controls.Add(this.chkRADAELoopback);
+            this.tpDSPRADE.Controls.Add(this.cmbRX1RADEVersion);
+            this.tpDSPRADE.Controls.Add(this.cmbRX2RADEVersion);
+            this.tpDSPRADE.Controls.Add(this.lblRadaeReporterCallsign);
+            this.tpDSPRADE.Controls.Add(this.txtRadaeReporterCallsign);
+            this.tpDSPRADE.Location = new System.Drawing.Point(4, 22);
+            this.tpDSPRADE.Name = "tpDSPRADE";
+            this.tpDSPRADE.Padding = new System.Windows.Forms.Padding(3);
+            this.tpDSPRADE.Size = new System.Drawing.Size(724, 414);
+            this.tpDSPRADE.TabIndex = 13;
+            this.tpDSPRADE.Text = "RADE";
+            // 
+            // chkRADAE
+            // 
+            this.chkRADAE.AutoSize = true;
+            this.chkRADAE.Image = null;
+            this.chkRADAE.Location = new System.Drawing.Point(10, 33);
+            this.chkRADAE.Name = "chkRADAE";
+            this.chkRADAE.Size = new System.Drawing.Size(92, 17);
+            this.chkRADAE.TabIndex = 0;
+            this.chkRADAE.Text = "RX1RADE enable";
+            this.toolTip1.SetToolTip(this.chkRADAE, "Enable built-in FreeDV RADEV1 digital voice. RX audio is fed to the RADE decoder before reaching the speakers; mic audio is fed to the RADE encoder.");
+            this.chkRADAE.UseVisualStyleBackColor = true;
+            this.chkRADAE.CheckedChanged += new System.EventHandler(this.chkRADAE_CheckedChanged);
+            // 
+            // chkRADAERX2
+            // 
+            this.chkRADAERX2.AutoSize = true;
+            this.chkRADAERX2.Image = null;
+            this.chkRADAERX2.Location = new System.Drawing.Point(370, 33);
+            this.chkRADAERX2.Name = "chkRADAERX2";
+            this.chkRADAERX2.Size = new System.Drawing.Size(92, 17);
+            this.chkRADAERX2.TabIndex = 60;
+            this.chkRADAERX2.Text = "RX2RADE enable";
+            this.toolTip1.SetToolTip(this.chkRADAERX2, "Enable built-in FreeDV RADEV1 digital voice on RX2. Concurrent with RX1 RADE.");
+            this.chkRADAERX2.UseVisualStyleBackColor = true;
+            this.chkRADAERX2.CheckedChanged += new System.EventHandler(this.chkRADAERX2_CheckedChanged);
+            // 
+            // chkRADAELoopback
+            // 
+            this.chkRADAELoopback.AutoSize = true;
+            this.chkRADAELoopback.Image = null;
+            this.chkRADAELoopback.Location = new System.Drawing.Point(10, 56);
+            this.chkRADAELoopback.Name = "chkRADAELoopback";
+            this.chkRADAELoopback.Size = new System.Drawing.Size(210, 17);
+            this.chkRADAELoopback.TabIndex = 1;
+            this.chkRADAELoopback.Text = "RX1RADE Loopback Test enable/disable";
+            this.toolTip1.SetToolTip(this.chkRADAELoopback, "Diagnostic loopback. When this AND 'RX1RADE enable' are both ON, the encoder's modem audio is diverted into the decoder's input, bypassing the radio. mic_io is silenced so no RF is produced.");
+            this.chkRADAELoopback.UseVisualStyleBackColor = true;
+            this.chkRADAELoopback.CheckedChanged += new System.EventHandler(this.chkRADAELoopback_CheckedChanged);
+            // 
+            // cmbRX1RADEVersion
+            // 
+            this.cmbRX1RADEVersion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbRX1RADEVersion.Items.AddRange(new object[] { "V1", "V2" });
+            this.cmbRX1RADEVersion.Location = new System.Drawing.Point(155, 31);
+            this.cmbRX1RADEVersion.Name = "cmbRX1RADEVersion";
+            this.cmbRX1RADEVersion.Size = new System.Drawing.Size(55, 21);
+            this.cmbRX1RADEVersion.TabIndex = 61;
+            this.cmbRX1RADEVersion.Text = "V1";
+            this.toolTip1.SetToolTip(this.cmbRX1RADEVersion, "Select the RADE version");
+            this.cmbRX1RADEVersion.SelectedIndexChanged += new System.EventHandler(this.cmbRX1RADEVersion_SelectedIndexChanged);
+            // 
+            // cmbRX2RADEVersion
+            // 
+            this.cmbRX2RADEVersion.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbRX2RADEVersion.Items.AddRange(new object[] { "V1", "V2" });
+            this.cmbRX2RADEVersion.Location = new System.Drawing.Point(515, 31);
+            this.cmbRX2RADEVersion.Name = "cmbRX2RADEVersion";
+            this.cmbRX2RADEVersion.Size = new System.Drawing.Size(55, 21);
+            this.cmbRX2RADEVersion.TabIndex = 62;
+            this.cmbRX2RADEVersion.Text = "V1";
+            this.toolTip1.SetToolTip(this.cmbRX2RADEVersion, "Select the RADE version");
+            this.cmbRX2RADEVersion.SelectedIndexChanged += new System.EventHandler(this.cmbRX2RADEVersion_SelectedIndexChanged);
+            // 
+            // lblRadaeReporterCallsign
+            // 
+            this.lblRadaeReporterCallsign.AutoSize = true;
+            this.lblRadaeReporterCallsign.Location = new System.Drawing.Point(10, 344);
+            this.lblRadaeReporterCallsign.Name = "lblRadaeReporterCallsign";
+            this.lblRadaeReporterCallsign.Size = new System.Drawing.Size(31, 13);
+            this.lblRadaeReporterCallsign.TabIndex = 24;
+            this.lblRadaeReporterCallsign.Text = "Call:";
+            // 
+            // txtRadaeReporterCallsign
+            // 
+            this.txtRadaeReporterCallsign.Location = new System.Drawing.Point(45, 341);
+            this.txtRadaeReporterCallsign.MaxLength = 16;
+            this.txtRadaeReporterCallsign.Name = "txtRadaeReporterCallsign";
+            this.txtRadaeReporterCallsign.Size = new System.Drawing.Size(100, 20);
+            this.txtRadaeReporterCallsign.TabIndex = 25;
+            this.toolTip1.SetToolTip(this.txtRadaeReporterCallsign, "Your station callsign carried in the EOO frame. Only alphanumeric characters and '/'.");
+            this.txtRadaeReporterCallsign.TextChanged += new System.EventHandler(this.txtRadaeReporterCallsign_TextChanged);
+            this.txtRadaeReporterCallsign.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.txtRadaeReporterCallsign_KeyPress);
             // 
             // pnlCFC
             // 
@@ -72698,6 +72808,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.udSCFLowCut)).EndInit();
             this.tpDSPCFC.ResumeLayout(false);
             this.tpDSPCFC.PerformLayout();
+            this.tpDSPRADE.ResumeLayout(false);
+            this.tpDSPRADE.PerformLayout();
             this.pnlCFC.ResumeLayout(false);
             this.pnlCFC.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picCFC)).EndInit();
@@ -75421,6 +75533,14 @@
         public TextBoxTS textCaldFwdPower;
         private LabelTS labelTS255;
         private TabPage tpDSPCFC;
+        private TabPage tpDSPRADE;
+        private CheckBoxTS chkRADAE;
+        private CheckBoxTS chkRADAERX2;
+        private CheckBoxTS chkRADAELoopback;
+        private ComboBoxTS cmbRX1RADEVersion;
+        private ComboBoxTS cmbRX2RADEVersion;
+        private LabelTS lblRadaeReporterCallsign;
+        private TextBoxTS txtRadaeReporterCallsign;
         private LabelTS lblCFCPEG;
         private LabelTS lblCFCPEG15;
         private LabelTS lblCFCPEG0;

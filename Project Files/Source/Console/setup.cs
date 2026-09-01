@@ -33755,6 +33755,71 @@ namespace Thetis
             updateMeterType();
         }
 
+        #region RADE (FreeDV/RADEV1 digital voice) - essential enable path
+
+        private void chkRADAE_CheckedChanged(object sender, EventArgs e)
+        {
+            int active = chkRADAE.Checked ? 1 : 0;
+            if (initializing) return;
+            cmaster.SetRadaeRxEnabled(0, active);
+            // TX-side enable mirrors "any RX RADE on".
+            int txActive = (chkRADAE.Checked || (chkRADAERX2 != null && chkRADAERX2.Checked)) ? 1 : 0;
+            cmaster.SetRadaeTxEnabled(txActive);
+            // Reset the RX1 decoder input scale to unity on each enable edge.
+            try { cmaster.SetRadaeRxScale(0, 1.0); } catch { }
+            try { if (console != null) console.NotifyRadaeEnabledChanged(1, chkRADAE.Checked); } catch { }
+        }
+
+        private void chkRADAERX2_CheckedChanged(object sender, EventArgs e)
+        {
+            int active = chkRADAERX2.Checked ? 1 : 0;
+            if (initializing) return;
+            cmaster.SetRadaeRxEnabled(1, active);
+            // TX-side enable is the OR of the two RX RADE enables.
+            int txActive = (chkRADAE.Checked || chkRADAERX2.Checked) ? 1 : 0;
+            cmaster.SetRadaeTxEnabled(txActive);
+            try { cmaster.SetRadaeRxScale(1, 1.0); } catch { }
+            try { if (console != null) console.NotifyRadaeEnabledChanged(2, chkRADAERX2.Checked); } catch { }
+        }
+
+        private void chkRADAELoopback_CheckedChanged(object sender, EventArgs e)
+        {
+            int active = chkRADAELoopback.Checked ? 1 : 0;
+            if (initializing) return;
+            cmaster.SetRadaeLoopbackEnabled(0, active);
+        }
+
+        private void cmbRX1RADEVersion_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int v2 = (cmbRX1RADEVersion != null && cmbRX1RADEVersion.SelectedIndex == 1) ? 1 : 0;
+            if (initializing) return;
+            try { cmaster.SetRadaeProtocolV2(0, v2); } catch { }
+        }
+
+        private void cmbRX2RADEVersion_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            int v2 = (cmbRX2RADEVersion != null && cmbRX2RADEVersion.SelectedIndex == 1) ? 1 : 0;
+            if (initializing) return;
+            try { cmaster.SetRadaeProtocolV2(1, v2); } catch { }
+        }
+
+        private void txtRadaeReporterCallsign_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            char c = e.KeyChar;
+            if (char.IsControl(c)) return;
+            if (char.IsLetterOrDigit(c) || c == '/') return;
+            e.Handled = true;
+        }
+
+        private void txtRadaeReporterCallsign_TextChanged(object sender, EventArgs e)
+        {
+            // Cache the (sanitised) callsign on the console for the RADE EOO
+            // frame.  The C-side push happens at begin-over (audio.cs MOX 0->1).
+            if (console != null) console.RadaeEooCallsign = txtRadaeReporterCallsign.Text;
+        }
+
+        #endregion
+
         private void clrbtnFilter_data_line_Changed(object sender, EventArgs e)
         {
             updateMeterType();

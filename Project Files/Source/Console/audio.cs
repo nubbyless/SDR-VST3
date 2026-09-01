@@ -413,12 +413,94 @@ namespace Thetis
         #region Local Copies of External Properties
 
         private static bool mox = false;
+        // Per-over capture: true if this over should drive the RADE encoder.
+        // Decided once at the MOX 0 -> 1 edge from RadaeEnabled + RX2Enabled +
+        // VFOBTX, then read again at the matching 1 -> 0 edge so the EOO
+        // notify and the C-side state push stay symmetric.  Plain bool -- only
+        // the audio-thread MOX setter writes it, and reads on the same thread
+        // are atomic for word-sized types.
+        private static bool radae_active_this_over = false;
+        // One-shot: set by the PTTRADE arbiter when it has already emitted the
+        // EOO while the radio was held keyed, so the real MOX 1->0 edge here
+        // does NOT emit a second EOO.  Consumed (cleared) on that edge.
+        private static bool radae_eoo_emitted_externally = false;
+        public static bool RadaeEooEmittedExternally
+        {
+            get { return radae_eoo_emitted_externally; }
+            set { radae_eoo_emitted_externally = value; }
+        }
         public static bool MOX
         {
             get { return mox; }
             set
             {
+                bool was_mox = mox;
                 mox = value;
+
+                // RADE per-over gate.  Use the encoder unless the user is
+                // transmitting on VFO B WITH RX2 enabled -- in that case VFO B
+                // represents RX2's RF path which is not on the RADE chain, so
+                // the over should be a plain SSB/voice transmission with the
+                // current mode on RX2.  When chkRADAE is off the predicate is
+                // simply false and the C-side gates fall through to today's
+                // pass-through behaviour.
+                if (was_mox && !mox)               // 1 -> 0 edge
+                {
+                    // Skip the emit if the PTTRADE arbiter already emitted the EOO
+                    // while holding the radio keyed (Option B); otherwise this is
+                    // the normal coupled emit on the un-key edge.
+                    if (radae_active_this_over && !radae_eoo_emitted_externally)
+                        cmaster.RadaeNotifyEndOfOver();    // sets eoo_pending
+                    radae_eoo_emitted_externally = false;  // one-shot
+                    radae_active_this_over = false;
+                }
+                if (!was_mox && mox)               // 0 -> 1 edge
+                {
+                    Console c = Console.getConsole();
+                    // Dual-RX predicate:
+                    //   (a) RX1 RADE armed AND the over is NOT a VFO-B-on-RX2 over
+                    //       -> RX1 RADE over (the prior single-RX behaviour); or
+                    //   (b) RX2 RADE armed AND the over IS a VFO-B-on-RX2 over
+                    //       -> RX2 RADE over (the new dual-RX path).
+                    // Use the PURE RX1 RADE decode enable, not RadaeRx1Enabled: the latter
+                    // ORs in GetRadaeTxEnabled(), which is on whenever EITHER RX1 or RX2 RADE
+                    // is enabled (the encoder is shared), so RX2 RADE alone would wrongly make
+                    // a VFO-A / RX2-disabled over transmit RADE.  RX2 RADE drives TX only on a
+                    // genuine RX2 over (RX2 enabled + VFO B TX); a VFO-B-on-RX2 over does NOT
+                    // require RX1 RADE.
+                    bool rade_rx1 = c != null && cmaster.GetRadaeRxEnabled(0) != 0;
+                    bool rade_rx2 = c != null && cmaster.GetRadaeRxEnabled(1) != 0;
+                    bool rx2_overFlag = rx2_enabled && vfob_tx;
+                    // TUN / 2-TONE are carrier/tone tests -- never RADE-encode them (and so never
+                    // emit an EOO on their un-key).
+                    bool tune_or_test = c != null && (c.TUN || c.TwoTone);
+                    radae_active_this_over = !tune_or_test &&
+                        ((rade_rx1 && !rx2_overFlag) ||
+                         (rade_rx2 &&  rx2_overFlag));
+                    // Tell the single RADE encoder which receiver this over
+                    // transmits on, so it uses that RX's handle + protocol
+                    // (V1/V2).  0 = RX1/VFO-A path, 1 = RX2/VFO-B path.
+                    try { cmaster.SetRadaeTxRx(rx2_overFlag ? 1 : 0); } catch { }
+                    if (radae_active_this_over)
+                    {
+                        // Load the operator callsign into the encoder before this
+                        // over's EOO is generated.  Safe here: RADE is active so
+                        // create_radae() (g_radae_cs) has run.
+                        if (c != null)
+                            try { cmaster.SetRadaeEooCallsign(c.RadaeEooCallsign); } catch { }
+                        cmaster.RadaeNotifyBeginOver();
+                    }
+                }
+
+                // Push the per-over decision to the C-side gate.  Only raise
+                // mox_state when this over is RADE-active; for a bypassed
+                // over the gate stays at 0 so xradae_tx returns at the MOX
+                // gate and the mic audio passes through to TXA untouched.
+                // Order matters at the 1 -> 0 edge for a RADE-active over:
+                // RadaeNotifyEndOfOver above must raise eoo_pending BEFORE
+                // we drop mox_state, so the next xradae_tx call still passes
+                // the gate (via the eoo branch) and emits the EOO frame.
+                try { cmaster.SetRadaeMoxState(radae_active_this_over ? 1 : 0); } catch { }
 
                 if (mox)
                 {

@@ -1,0 +1,37 @@
+libebur128 - EBU R128 loudness meter library (vendored build dep)
+=================================================================
+
+Purpose
+-------
+Loudness metering (EBU R128) used by the RADE TX mic DSP (AGC target LUFS)
+inside the ChannelMaster wrapper.  Linked as a STATIC lib (`ebur128.lib`).
+
+What we commit vs not (lean strategy)
+-------------------------------------
+We commit ONLY:
+  - ebur128/ebur128.h            the public header referenced by the
+                                 AdditionalIncludeDirectories in the build
+  - ebur128/queue/sys/queue.h    sys/queue helper header it includes
+  - build/x64/Release/ebur128.lib  the prebuilt static library
+  - commit_pin.txt               this file (provenance + rebuild recipe)
+  - COPYING                      upstream license text
+
+We deliberately do NOT commit the `.c` source (ebur128/ebur128.c and the
+example/CLI sources) - the prebuilt ebur128.lib already contains it.
+
+Where the vendored source came from (pin)
+-----------------------------------------
+Origin: the sv1eia/Thetis-RADE fork's vendored
+`Project Files/lib/libebur128` (local clone:
+C:\Users\W4YNY\AppData\Local\Temp\opencode\thetis-rade).
+Upstream: https://github.com/jiixyj/libebur128
+
+Rebuild recipe (ebur128.lib)
+----------------------------
+The fork builds it via `libebur128/build/libebur128.vcxproj` (MSVC v145,
+x64, Release) => `build/x64/Release/ebur128.lib`.  Link with /MD /LTCG to
+match the vendored libs' CRT.
+
+License
+-------
+MIT (libebur128 upstream).

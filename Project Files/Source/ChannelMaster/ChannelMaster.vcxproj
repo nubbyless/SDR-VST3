@@ -57,8 +57,8 @@
       </PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;CHANNELMASTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\wdsp;.;../../lib/portaudio-19.7.0/include;%(AdditionalIncludeDirectories);../../lib/NR_Algorithms_$(HPSDR_PLATFORM)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;CHANNELMASTER_EXPORTS;PFFFT_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\wdsp;.;../../lib/portaudio-19.7.0/include;../../lib/radae_c/src;../../lib/opus_dnn/include;../../lib/opus_dnn/dnn;../../lib/opus_dnn/celt;../../lib/r8brain;../../lib/r8brain/fft;../../lib/freedv_text/src;../../lib/freedv_text/codec2;../../lib/libebur128/ebur128;../../lib/libebur128/ebur128/queue;../../lib/WebRTC_AGC;%(AdditionalIncludeDirectories);../../lib/NR_Algorithms_$(HPSDR_PLATFORM)</AdditionalIncludeDirectories>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
       <CompileAs>CompileAsC</CompileAs>
@@ -71,8 +71,8 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <OutputFile>$(SolutionDir)..\bin\$(HPSDR_PLATFORM)\$(Configuration)\ChannelMaster.dll</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\build\$(HPSDR_PLATFORM)\$(Configuration)\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wdsp.lib;PA19.lib;cmASIO.lib;avrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\build\$(HPSDR_PLATFORM)\$(Configuration)\;$(SolutionDir)..\lib\radae_c\build\$(Platform)\$(Configuration)\;$(SolutionDir)..\lib\libebur128\build\$(Platform)\$(Configuration)\;$(SolutionDir)..\lib\WebRTC_AGC\build\$(Platform)\$(Configuration)\;$(SolutionDir)..\lib\opus_dnn\prebuilt\$(Configuration)\;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wdsp.lib;PA19.lib;cmASIO.lib;rade.lib;opus.lib;ebur128.lib;WebRTC_AGC.lib;../../lib/NR_Algorithms_$(HPSDR_PLATFORM)/rnnoise.lib;avrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -83,8 +83,8 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;CHANNELMASTER_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>..\wdsp;.;../../lib/portaudio-19.7.0/include;%(AdditionalIncludeDirectories);../../lib/NR_Algorithms_$(HPSDR_PLATFORM)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;CHANNELMASTER_EXPORTS;PFFFT_STATIC_DEFINE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\wdsp;.;../../lib/portaudio-19.7.0/include;../../lib/radae_c/src;../../lib/opus_dnn/include;../../lib/opus_dnn/dnn;../../lib/opus_dnn/celt;../../lib/r8brain;../../lib/r8brain/fft;../../lib/freedv_text/src;../../lib/freedv_text/codec2;../../lib/libebur128/ebur128;../../lib/libebur128/ebur128/queue;../../lib/WebRTC_AGC;%(AdditionalIncludeDirectories);../../lib/NR_Algorithms_$(HPSDR_PLATFORM)</AdditionalIncludeDirectories>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
       <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
@@ -100,8 +100,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <OutputFile>$(SolutionDir)..\bin\$(HPSDR_PLATFORM)\$(Configuration)\ChannelMaster.dll</OutputFile>
-      <AdditionalLibraryDirectories>$(SolutionDir)..\build\$(HPSDR_PLATFORM)\$(Configuration)\;</AdditionalLibraryDirectories>
-      <AdditionalDependencies>wdsp.lib;PA19.lib;cmASIO.lib;avrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SolutionDir)..\build\$(HPSDR_PLATFORM)\$(Configuration)\;$(SolutionDir)..\lib\radae_c\build\$(Platform)\$(Configuration)\;$(SolutionDir)..\lib\libebur128\build\$(Platform)\$(Configuration)\;$(SolutionDir)..\lib\WebRTC_AGC\build\$(Platform)\$(Configuration)\;$(SolutionDir)..\lib\opus_dnn\prebuilt\$(Configuration)\;</AdditionalLibraryDirectories>
+      <AdditionalDependencies>wdsp.lib;PA19.lib;cmASIO.lib;rade.lib;opus.lib;ebur128.lib;WebRTC_AGC.lib;../../lib/NR_Algorithms_$(HPSDR_PLATFORM)/rnnoise.lib;avrt.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkErrorReporting>QueueForNextLogin</LinkErrorReporting>
       <Version>
       </Version>
@@ -143,6 +143,9 @@
     <ClInclude Include="vox.h" />
     <ClInclude Include="znob.h" />
     <ClInclude Include="znobII.h" />
+    <ClInclude Include="radae.h" />
+    <ClInclude Include="radae_micdsp.h" />
+    <ClInclude Include="r8brain_wrap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="aamix.c" />
@@ -174,6 +177,21 @@
     <ClCompile Include="zeer.c" />
     <ClCompile Include="znob.c" />
     <ClCompile Include="znobII.c" />
+    <ClCompile Include="radae.c" />
+    <ClCompile Include="radae_micdsp.c" />
+    <ClCompile Include="r8brain_wrap.cpp">
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
+      <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>
+    </ClCompile>
+    <ClCompile Include="..\..\lib\r8brain\fft\pffft.c" />
+    <ClCompile Include="..\..\lib\r8brain\fft\pffft_double.c" />
+    <ClCompile Include="..\..\lib\r8brain\fft\pffft_common.c" />
+    <ClCompile Include="..\..\lib\freedv_text\src\rade_text.c" />
+    <ClCompile Include="..\..\lib\freedv_text\codec2\mpdecode_core.c" />
+    <ClCompile Include="..\..\lib\freedv_text\codec2\gp_interleaver.c" />
+    <ClCompile Include="..\..\lib\freedv_text\codec2\HRA_56_56.c" />
+    <ClCompile Include="..\..\lib\freedv_text\codec2\ldpc_codes.c" />
+    <ClCompile Include="..\..\lib\freedv_text\codec2\phi0.c" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="ChannelMaster.rc" />
