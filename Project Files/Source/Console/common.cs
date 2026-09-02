@@ -658,6 +658,28 @@ namespace Thetis
         }
 
         /// <summary>
+        /// Subsystem gate for the FreeDV Reporter client (qso.freedv.org
+        /// connections, QSY requests).  Reporter events are written to
+        /// ErrorLog.txt only when BOTH this master flag and the per-subsystem
+        /// ReporterLogEnabled gate are set.  Master defaults true; the
+        /// subsystem gate defaults off so shipped builds stay quiet until the
+        /// user opts in (mirrors the fork's shipped default).
+        /// </summary>
+        public static volatile bool LogEnabled = true;
+        public static volatile bool ReporterLogEnabled = false;
+
+        /// <summary>
+        /// Gated wrapper for FreeDV Reporter-specific events.  Behaves like
+        /// LogString but also requires ReporterLogEnabled.  Reporter call
+        /// sites use this; non-reporter sites stay on LogString.
+        /// </summary>
+        public static void LogReporter(string entry)
+        {
+            if (!LogEnabled || !ReporterLogEnabled) return;
+            LogString(entry);
+        }
+
+        /// <summary>
         /// Shows an error MessageBox AND writes a structured entry to ErrorLog.txt.
         /// Always logs — no toggle. Catches startup errors where no UI state exists yet.
         /// </summary>

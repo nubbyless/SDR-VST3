@@ -136,6 +136,10 @@
         private System.Windows.Forms.NumericUpDownTS udCWBreakInDelay;
         private System.Windows.Forms.CheckBoxTS chkVAC1;
         private System.Windows.Forms.ComboBoxTS comboDigTXProfile;
+        private System.Windows.Forms.CheckBoxTS chkRADE;
+        private System.Windows.Forms.CheckBoxTS chkREPR;
+        private System.Windows.Forms.CheckBoxTS chkVIS;
+        private System.Windows.Forms.ComboBoxTS cmbRadeVersionRX1;
         private System.Windows.Forms.LabelTS lblDigTXProfile;
         private System.Windows.Forms.CheckBoxTS chkRXEQ;
         private System.Windows.Forms.CheckBoxTS chkTXEQ;
@@ -639,6 +643,10 @@
             this.lblRF = new System.Windows.Forms.LabelTS();
             this.chkVAC1 = new System.Windows.Forms.CheckBoxTS();
             this.comboDigTXProfile = new System.Windows.Forms.ComboBoxTS();
+            this.chkRADE = new System.Windows.Forms.CheckBoxTS();
+            this.chkREPR = new System.Windows.Forms.CheckBoxTS();
+            this.chkVIS = new System.Windows.Forms.CheckBoxTS();
+            this.cmbRadeVersionRX1 = new System.Windows.Forms.ComboBoxTS();
             this.chkVACStereo = new System.Windows.Forms.CheckBoxTS();
             this.comboVACSampleRate = new System.Windows.Forms.ComboBoxTS();
             this.radModeAM = new System.Windows.Forms.RadioButtonTS();
@@ -6999,6 +7007,11 @@
             this.panelModeSpecificDigital.Controls.Add(this.grpVACStereo);
             this.panelModeSpecificDigital.Controls.Add(this.lblTXGain);
             this.panelModeSpecificDigital.Controls.Add(this.grpDIGSampleRate);
+            // Vertical RX1 RADE stack: version combo on top, then RADE / REPR / VIS.
+            this.panelModeSpecificDigital.Controls.Add(this.chkRADE);
+            this.panelModeSpecificDigital.Controls.Add(this.chkREPR);
+            this.panelModeSpecificDigital.Controls.Add(this.chkVIS);
+            this.panelModeSpecificDigital.Controls.Add(this.cmbRadeVersionRX1);
             this.panelModeSpecificDigital.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.panelModeSpecificDigital.Name = "panelModeSpecificDigital";
             // 
@@ -7047,6 +7060,64 @@
             resources.ApplyResources(this.grpDIGSampleRate, "grpDIGSampleRate");
             this.grpDIGSampleRate.Name = "grpDIGSampleRate";
             this.grpDIGSampleRate.TabStop = false;
+            // 
+            // chkRADE  [v2.10.3.16] console-side mirror of Setup -> DSP -> RADE chkRADAE
+            // 
+            this.chkRADE.AutoSize = true;
+            this.chkRADE.BackColor = System.Drawing.Color.Transparent;
+            this.chkRADE.ForeColor = System.Drawing.Color.White;
+            this.chkRADE.Image = null;
+            this.chkRADE.Location = new System.Drawing.Point(150, 55);
+            this.chkRADE.Name = "chkRADE";
+            this.chkRADE.Size = new System.Drawing.Size(56, 17);
+            this.chkRADE.TabIndex = 200;
+            this.chkRADE.Text = "RADE";
+            this.toolTip1.SetToolTip(this.chkRADE, "Master enable for the RADE V1 digital-voice modem.  Mirrors the chkRADAE state on Setup -> DSP -> RADE.  Toggling either control sets both.");
+            this.chkRADE.UseVisualStyleBackColor = false;
+            this.chkRADE.CheckedChanged += new System.EventHandler(this.chkRADE_CheckedChanged);
+            // 
+            // chkREPR  [v2.10.3.16] console-side mirror of Setup chkRADAEReporter
+            // 
+            this.chkREPR.AutoSize = true;
+            this.chkREPR.BackColor = System.Drawing.Color.Transparent;
+            this.chkREPR.ForeColor = System.Drawing.Color.White;
+            this.chkREPR.Image = null;
+            this.chkREPR.Location = new System.Drawing.Point(150, 79);
+            this.chkREPR.Name = "chkREPR";
+            this.chkREPR.Size = new System.Drawing.Size(56, 17);
+            this.chkREPR.TabIndex = 201;
+            this.chkREPR.Text = "REPR";
+            this.toolTip1.SetToolTip(this.chkREPR, "Mirror of Setup -> DSP -> RADE -> 'RADE Reporter (qso.freedv.org)'.  When ticked, enables the reporter; grey-arms the VIS checkboxes.");
+            this.chkREPR.UseVisualStyleBackColor = false;
+            this.chkREPR.CheckedChanged += new System.EventHandler(this.chkREPR_CheckedChanged);
+            // 
+            // chkVIS  [v2.10.3.16] console-side mirror of Setup chkRADAEReporting
+            // 
+            this.chkVIS.AutoSize = true;
+            this.chkVIS.BackColor = System.Drawing.Color.Transparent;
+            this.chkVIS.ForeColor = System.Drawing.Color.White;
+            this.chkVIS.Image = null;
+            this.chkVIS.Location = new System.Drawing.Point(150, 103);
+            this.chkVIS.Name = "chkVIS";
+            this.chkVIS.Size = new System.Drawing.Size(48, 17);
+            this.chkVIS.TabIndex = 202;
+            this.chkVIS.Text = "VIS";
+            this.toolTip1.SetToolTip(this.chkVIS, "Mirror of Setup -> DSP -> RADE -> 'RADE enable reporting'.  When ticked, Thetis publishes its data to qso.freedv.org as a 'report' client.  Greyed when REPR is unchecked.");
+            this.chkVIS.UseVisualStyleBackColor = false;
+            this.chkVIS.CheckedChanged += new System.EventHandler(this.chkVIS_CheckedChanged);
+            // 
+            // cmbRadeVersionRX1  console-side RX1 RADE version (V1/V2) mirror.
+            // Sits directly above the RADE / REPR / VIS stack.
+            // 
+            this.cmbRadeVersionRX1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbRadeVersionRX1.Items.AddRange(new object[] { "V1", "V2" });
+            this.cmbRadeVersionRX1.Location = new System.Drawing.Point(150, 30);
+            this.cmbRadeVersionRX1.Name = "cmbRadeVersionRX1";
+            this.cmbRadeVersionRX1.Size = new System.Drawing.Size(55, 21);
+            this.cmbRadeVersionRX1.TabIndex = 199;
+            this.cmbRadeVersionRX1.Text = "V1";
+            this.toolTip1.SetToolTip(this.cmbRadeVersionRX1, "Select the RADE version");
+            this.cmbRadeVersionRX1.SelectedIndexChanged += new System.EventHandler(this.cmbRadeVersionRX1_SelectedIndexChanged);
             // 
             // panelMode
             // 

@@ -1319,6 +1319,18 @@ namespace Thetis
         }
 
         #region VST Callbacks
+        // RADE engages the whole audio path (modem RX decoder input and TX
+        // encoder chain).  When any RADE RX/TX is enabled we bypass the VST
+        // host on BOTH directions so plugins never process RADE audio.
+        private static bool RadeActive
+        {
+            get
+            {
+                Console c = Console.getConsole();
+                return c != null && c.RadaeEnabled;
+            }
+        }
+
         unsafe public delegate void VstProcessCallback(double* buffer, int frames);
         public delegate void VstLifecycleCallback();
         public delegate void VstCreateChainCallback(int sampleRate, int blockSize);
@@ -1340,7 +1352,11 @@ namespace Thetis
 
         private static unsafe void OnVstRxProcess(double* buffer, int frames)
         {
-            VstHost.ProcessRxAudio(buffer, frames);
+            // RADE uses its own decoder on the RX path; bypass the VST host
+            // for the whole RADE chain (RX and TX) so plugins never alter
+            // the RADE-encoded audio the modem receives.
+            if (!RadeActive)
+                VstHost.ProcessRxAudio(buffer, frames);
             NativeFeedIVACPostRxAudio(frames, buffer);
             NativeFeedTCIPostRxAudio(frames, buffer);
             try
@@ -1352,7 +1368,8 @@ namespace Thetis
 
         private static unsafe void OnVstTxProcess(double* buffer, int frames)
         {
-            VstHost.ProcessTxAudio(buffer, frames);
+            if (!RadeActive)
+                VstHost.ProcessTxAudio(buffer, frames);
             try
             {
                 AudioStreamOut.FeedTx(buffer, frames, cmaster.GetInputRate(1, 0));

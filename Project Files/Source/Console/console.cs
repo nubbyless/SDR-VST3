@@ -2793,6 +2793,15 @@ namespace Thetis
             always_save.Add(chkVFOLock.Name);
             always_save.Add(chkVFOBLock.Name);
             always_save.Add(chkVFOSync.Name);
+            // chkVIS is greyed out whenever chkREPR is unchecked.  Without
+            // this addition, addControlState skips it when disabled and the
+            // value never makes it to the DB, so on next launch the
+            // Setup-side mirror (chkRADAEReporting -> chkVIS) sets it to
+            // whatever chkRADAEReporting last persisted -- typically true
+            // -- regardless of what the user actually wanted.  Forcing
+            // save here lets GetState restore the user's chosen value even
+            // when REPR is off across restarts.
+            always_save.Add(chkVIS.Name);
 
             List<string> a = new List<string>();
 
@@ -37399,7 +37408,15 @@ namespace Thetis
         }
         public bool RadaeEnabled
         {
-            get { return RadaeRx1Enabled || RadaeRx2Enabled || cmaster.GetRadaeTxEnabled() != 0; }
+            get
+            {
+                // Loopback drives the full encoder->RX1 decoder loop without
+                // MOX, so it must bypass the VST host in both directions too,
+                // exactly like an RX/TX RADE enable.
+                return RadaeRx1Enabled || RadaeRx2Enabled ||
+                       cmaster.GetRadaeLoopbackEnabled(0) != 0 ||
+                       cmaster.GetRadaeTxEnabled() != 0;
+            }
         }
 
         // RADE on-screen metrics overlay enables.  Driven from
@@ -37430,6 +37447,73 @@ namespace Thetis
         {
             get { return _radae_eoo_callsign; }
             set { _radae_eoo_callsign = value ?? ""; }
+        }
+
+        // Console-side RX1 RADE mirrors -- the "RADE / REPR / VIS" stack on
+        // panelModeSpecificDigital (shown in digital modes).  These mirror the
+        // Setup -> DSP -> RADE controls; the canonical state lives on the Setup
+        // checkboxes, so these handlers push into SetupForm.* below, and the
+        // Setup handlers push back the other way via the chk*Mirror accessors.
+        public System.Windows.Forms.CheckBoxTS chkRADEMirror { get { return chkRADE; } }
+        public System.Windows.Forms.CheckBoxTS chkREPRMirror { get { return chkREPR; } }
+        public System.Windows.Forms.CheckBoxTS chkVISMirror  { get { return chkVIS;  } }
+        public System.Windows.Forms.ComboBoxTS cmbRadeVersionRX1Mirror { get { return cmbRadeVersionRX1; } }
+
+        /* Master experimental switch for the RX1 RADE feature, driven
+         * by chkRX1RadeControl on Setup -> DSP -> RADE.  When OFF the
+         * three console-side RX1 mirrors (RADE / REPR / VIS on the main
+         * face) are hidden and disabled. */
+        public void SetRx1RadeControlVisible(bool visible)
+        {
+            try
+            {
+                if (chkRADE != null) { chkRADE.Visible = visible; chkRADE.Enabled = visible; }
+                if (chkREPR != null) { chkREPR.Visible = visible; chkREPR.Enabled = visible; }
+                if (chkVIS  != null) { chkVIS.Visible  = visible; chkVIS.Enabled  = visible; }
+                // Version combo: visibility follows the master; always enabled.
+                if (cmbRadeVersionRX1 != null) cmbRadeVersionRX1.Visible = visible;
+            }
+            catch { }
+        }
+
+        private void chkRADE_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!IsSetupFormNull && SetupForm.RADAE != chkRADE.Checked)
+                    SetupForm.RADAE = chkRADE.Checked;
+            }
+            catch { }
+        }
+        private void chkREPR_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!IsSetupFormNull && SetupForm.RADAEReporter != chkREPR.Checked)
+                    SetupForm.RADAEReporter = chkREPR.Checked;
+                // Local greyed-out: VIS is meaningful only when REPR is on.
+                if (chkVIS.Enabled != chkREPR.Checked)
+                    chkVIS.Enabled = chkREPR.Checked;
+            }
+            catch { }
+        }
+        private void chkVIS_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!IsSetupFormNull && SetupForm.RADAEReporting != chkVIS.Checked)
+                    SetupForm.RADAEReporting = chkVIS.Checked;
+            }
+            catch { }
+        }
+        private void cmbRadeVersionRX1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (!IsSetupFormNull && SetupForm.RADAEVersionRX1 != cmbRadeVersionRX1.SelectedIndex)
+                    SetupForm.RADAEVersionRX1 = cmbRadeVersionRX1.SelectedIndex;
+            }
+            catch { }
         }
 
         public delegate void RadaeEnabledChanged(int rx, bool enabled); // rx: 1 or 2
@@ -47865,6 +47949,19 @@ namespace Thetis
                             _RX1MeterValues[Reading.ESTIMATED_PBSNR] = 0f;
                     }
 
+                    // [v2.10.3.16] RADE V1 modem readings.  Cheap C-side getters,
+                    // safe to poll every meter tick.
+                    if (MeterManager.RequiresUpdate(1, Reading.RADAE_SYNC))
+                        _RX1MeterValues[Reading.RADAE_SYNC] = (float)cmaster.GetRadaeSync(0);
+                    if (MeterManager.RequiresUpdate(1, Reading.RADAE_SNR_DB))
+                        _RX1MeterValues[Reading.RADAE_SNR_DB] = (float)cmaster.GetRadaeSnrDb(0);
+                    if (MeterManager.RequiresUpdate(1, Reading.RADAE_RX_LEVEL_DB))
+                        _RX1MeterValues[Reading.RADAE_RX_LEVEL_DB] = (float)cmaster.GetRadaeRxLevelDb(0);
+                    if (MeterManager.RequiresUpdate(1, Reading.RADAE_CLIP))
+                        _RX1MeterValues[Reading.RADAE_CLIP] = (float)cmaster.GetRadaeClip(0);
+                    if (MeterManager.RequiresUpdate(1, Reading.RADAE_EOO_DECODE))
+                        _RX1MeterValues[Reading.RADAE_EOO_DECODE] = (float)cmaster.GetRadaeEooDecodePulse(0);
+
                     ////[2.10.3.9]MW0LGE sub rx (future)
                     //if (SubRXEnabled)
                     //{
@@ -47908,6 +48005,10 @@ namespace Thetis
                 {
                     updateMetersReading(Reading.MIC, (float)Math.Max(-195.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.MIC)), 0);
                     updateMetersReading(Reading.MIC_PK, (float)Math.Max(-195.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.MIC_PK)), 0);
+                    // [v2.10.3.16] RADE post-VAC1-TXGain mic level + clip.
+                    // Tap matches FreeDV-GUI's "Frm Mic" scope point.
+                    updateMetersReading(Reading.RADAE_TX_MIC_LEVEL_DB, (float)cmaster.GetRadaeTxMicLevelDb(), 0);
+                    updateMetersReading(Reading.RADAE_TX_MIC_CLIP, (float)cmaster.GetRadaeTxMicClip(), 0);
                     updateMetersReading(Reading.EQ, (float)Math.Max(-30.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.EQ)), 0);
                     updateMetersReading(Reading.EQ_PK, (float)Math.Max(-30.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.EQ_PK)), 0);
                     updateMetersReading(Reading.LEVELER, (float)Math.Max(-30.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.LEVELER)), 0);
@@ -48070,6 +48171,25 @@ namespace Thetis
                             _RX2MeterValues[Reading.ESTIMATED_PBSNR] = 0f;
                     }
 
+                    // [v2.10.3.16] RX2 RADE meters use the SAME Reading enum values
+                    // as RX1; the per-RX dispatch is the container's RX index
+                    // ("RX1 data" / "RX2 data" radio button in Setup →
+                    // Display → Meters).  We populate _RX2MeterValues so
+                    // a container bound to RX2 sees RX2's RADE state.
+                    if (RadaeRx2Enabled)
+                    {
+                        if (MeterManager.RequiresUpdate(2, Reading.RADAE_SYNC))
+                            _RX2MeterValues[Reading.RADAE_SYNC] = (float)cmaster.GetRadaeSync(1);
+                        if (MeterManager.RequiresUpdate(2, Reading.RADAE_SNR_DB))
+                            _RX2MeterValues[Reading.RADAE_SNR_DB] = (float)cmaster.GetRadaeSnrDb(1);
+                        if (MeterManager.RequiresUpdate(2, Reading.RADAE_RX_LEVEL_DB))
+                            _RX2MeterValues[Reading.RADAE_RX_LEVEL_DB] = (float)cmaster.GetRadaeRxLevelDb(1);
+                        if (MeterManager.RequiresUpdate(2, Reading.RADAE_CLIP))
+                            _RX2MeterValues[Reading.RADAE_CLIP] = (float)cmaster.GetRadaeClip(1);
+                        if (MeterManager.RequiresUpdate(2, Reading.RADAE_EOO_DECODE))
+                            _RX2MeterValues[Reading.RADAE_EOO_DECODE] = (float)cmaster.GetRadaeEooDecodePulse(1);
+                    }
+
                     if(MeterManager.RequiresUpdate(2, Reading.SIGNAL_MAX_BIN) || (TCIServer != null && TCIServer.SensorRequiresUpdate(2, Reading.SIGNAL_MAX_BIN)))
                     {
                         if (!_display_max_bin_enabled[1]) setupDisplayMaxBinDetect(2, false, true);
@@ -48085,6 +48205,10 @@ namespace Thetis
                 {
                     updateMetersReading(Reading.MIC, (float)Math.Max(-195.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.MIC)), 0);
                     updateMetersReading(Reading.MIC_PK, (float)Math.Max(-195.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.MIC_PK)), 0);
+                    // [v2.10.3.16] RADE post-VAC1-TXGain mic level + clip.
+                    // Tap matches FreeDV-GUI's "Frm Mic" scope point.
+                    updateMetersReading(Reading.RADAE_TX_MIC_LEVEL_DB, (float)cmaster.GetRadaeTxMicLevelDb(), 0);
+                    updateMetersReading(Reading.RADAE_TX_MIC_CLIP, (float)cmaster.GetRadaeTxMicClip(), 0);
                     updateMetersReading(Reading.EQ, (float)Math.Max(-30.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.EQ)), 0);
                     updateMetersReading(Reading.EQ_PK, (float)Math.Max(-30.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.EQ_PK)), 0);
                     updateMetersReading(Reading.LEVELER, (float)Math.Max(-30.0f, -WDSP.CalculateTXMeter(1, WDSP.MeterType.LEVELER)), 0);

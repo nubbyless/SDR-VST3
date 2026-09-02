@@ -2487,6 +2487,35 @@ namespace Thetis
             chkVAC1WillMute_CheckedChanged(this, e);
             chkVAC2WillMute_CheckedChanged(this, e);
 
+            // RADE (Setup -> DSP -> RADE) rehydrate.  The per-RX master
+            // switches fire FIRST so the children inherit the correct
+            // visibility/enabled state before their own handlers run.  When a
+            // master is off, its force-uncheck loop makes the subsequent
+            // rehydrate handlers see the dependents as already off, so the
+            // RADE block boots hidden/disabled until the user opts in.
+            chkRX1RadeControl_CheckedChanged(this, e);
+            chkRADAE_CheckedChanged(this, e);
+            cmbRX1RADEVersion_SelectedIndexChanged(this, e);
+            chkRADAELoopback_CheckedChanged(this, e);
+            udRadaeMicLevel_ValueChanged(this, e);
+            udRadaeRxLevel_ValueChanged(this, e);
+            chkRadaeMicRNNoise_CheckedChanged(this, e);
+            chkRadaeMicAGC_CheckedChanged(this, e);
+            udRadaeMicAGCTarget_ValueChanged(this, e);
+            chkRadaeMicEQ_CheckedChanged(this, e);
+            udRadaeMicEQBass_ValueChanged(this, e);
+            udRadaeMicEQMid_ValueChanged(this, e);
+            udRadaeMicEQTreble_ValueChanged(this, e);
+            udRadaeMicEQVol_ValueChanged(this, e);
+            chkRADAEReporter_CheckedChanged(this, e);
+            chkRADAEReporting_CheckedChanged(this, e);
+            chkRX2RadeControl_CheckedChanged(this, e);
+            chkRADAERX2_CheckedChanged(this, e);
+            cmbRX2RADEVersion_SelectedIndexChanged(this, e);
+            udRadaeRxLevelRX2_ValueChanged(this, e);
+            txtRadaeReporterMsgRX2_TextChanged(this, e);
+            chkRADAEReportingRX2_CheckedChanged(this, e);
+
             chkLinkMaster_CheckedChanged(this, e);
             chkLinkRX0AF_CheckedChanged(this, e);
             chkLinkRX1AF_CheckedChanged(this, e);
@@ -25139,6 +25168,7 @@ namespace Thetis
             radContainer_rx2_data.Enabled = bEnableControls;
 
             chkContainer_hidewhennotused.Enabled = bEnableControls;
+            chkContainer_hideRADEnotenabled.Enabled = bEnableControls;
 
             if (!bEnableControls) txtContainerNotes.Text = "";
             if (!bEnableControls) comboContainerSelect.Text = "";
@@ -25278,6 +25308,7 @@ namespace Thetis
             chkLockContainer_CheckedChanged(this, EventArgs.Empty); // force it
 
             chkContainer_hidewhennotused.Checked = MeterManager.ContainerHidesWhenRXNotUsed(cci.ID); //needs to be before the rx2/rx1 data radios below
+            chkContainer_hideRADEnotenabled.Checked = MeterManager.ContainerHidesWhenRADENotEnabled(cci.ID);
 
             int rx = MeterManager.GetContainerRX(cci.ID);
             switch (rx)
@@ -33755,7 +33786,7 @@ namespace Thetis
             updateMeterType();
         }
 
-        #region RADE (FreeDV/RADEV1 digital voice) - essential enable path
+        #region RADE (FreeDV/RADEV1 digital voice) - full Setup tab UI
 
         private void chkRADAE_CheckedChanged(object sender, EventArgs e)
         {
@@ -33767,6 +33798,16 @@ namespace Thetis
             cmaster.SetRadaeTxEnabled(txActive);
             // Reset the RX1 decoder input scale to unity on each enable edge.
             try { cmaster.SetRadaeRxScale(0, 1.0); } catch { }
+            // Mirror to the console-side chkRADE so both controls stay in
+            // lockstep.  Setting Checked to the same value is a WinForms
+            // no-op (CheckedChanged only fires on real state change).
+            try
+            {
+                if (console != null && console.chkRADEMirror != null &&
+                    console.chkRADEMirror.Checked != chkRADAE.Checked)
+                    console.chkRADEMirror.Checked = chkRADAE.Checked;
+            }
+            catch { }
             try { if (console != null) console.NotifyRadaeEnabledChanged(1, chkRADAE.Checked); } catch { }
         }
 
@@ -33787,6 +33828,27 @@ namespace Thetis
             int active = chkRADAELoopback.Checked ? 1 : 0;
             if (initializing) return;
             cmaster.SetRadaeLoopbackEnabled(0, active);
+
+            // Loopback <-> MOX interlock: while Loopback is checked the radio
+            // must not key (the encoder->RX1 decode loop runs without MOX), so
+            // drop any active MOX and disable the button; re-enable on uncheck.
+            bool loopback_on = chkRADAELoopback.Checked;
+            try
+            {
+                if (console != null)
+                {
+                    if (loopback_on) console.MOX = false;
+                    console.MOXEnabled = !loopback_on;
+                }
+            }
+            catch { }
+
+            // When loopback is enabled, also uncheck the RADE reporting
+            // checkbox so nothing is sent to qso.freedv.org.  Disabling
+            // loopback does not auto-re-check reporting -- the user
+            // re-enables it manually if/when desired.
+            if (chkRADAELoopback.Checked && chkRADAEReporting != null && chkRADAEReporting.Checked)
+                chkRADAEReporting.Checked = false;
         }
 
         private void cmbRX1RADEVersion_SelectedIndexChanged(object sender, EventArgs e)
@@ -33794,6 +33856,16 @@ namespace Thetis
             int v2 = (cmbRX1RADEVersion != null && cmbRX1RADEVersion.SelectedIndex == 1) ? 1 : 0;
             if (initializing) return;
             try { cmaster.SetRadaeProtocolV2(0, v2); } catch { }
+            try
+            {
+                if (console != null && console.cmbRadeVersionRX1Mirror != null &&
+                    console.cmbRadeVersionRX1Mirror.SelectedIndex != cmbRX1RADEVersion.SelectedIndex)
+                    console.cmbRadeVersionRX1Mirror.SelectedIndex = cmbRX1RADEVersion.SelectedIndex;
+            }
+            catch { }
+            // Report the new RX1 protocol to qso.freedv.org immediately (and
+            // show it locally when reporting/VIS is on).
+            try { Thetis.FreeDVReporter.FreeDVReporterManager.NotifyProtocolChanged(0); } catch { }
         }
 
         private void cmbRX2RADEVersion_SelectedIndexChanged(object sender, EventArgs e)
@@ -33801,6 +33873,7 @@ namespace Thetis
             int v2 = (cmbRX2RADEVersion != null && cmbRX2RADEVersion.SelectedIndex == 1) ? 1 : 0;
             if (initializing) return;
             try { cmaster.SetRadaeProtocolV2(1, v2); } catch { }
+            try { Thetis.FreeDVReporter.FreeDVReporterManager.NotifyProtocolChanged(1); } catch { }
         }
 
         private void txtRadaeReporterCallsign_KeyPress(object sender, KeyPressEventArgs e)
@@ -33813,9 +33886,759 @@ namespace Thetis
 
         private void txtRadaeReporterCallsign_TextChanged(object sender, EventArgs e)
         {
+            // Paste / programmatic-set safety: sanitise the entire string in
+            // case anything bypassed the per-key filter.
+            if (!m_radaeCallUpdating)
+            {
+                string raw = txtRadaeReporterCallsign.Text;
+                string clean = SanitizeRadaeCallsign(raw);
+                if (clean != raw)
+                {
+                    int caret = txtRadaeReporterCallsign.SelectionStart;
+                    m_radaeCallUpdating = true;
+                    try
+                    {
+                        txtRadaeReporterCallsign.Text = clean;
+                        txtRadaeReporterCallsign.SelectionStart = Math.Min(caret, clean.Length);
+                    }
+                    finally { m_radaeCallUpdating = false; }
+                }
+            }
+
             // Cache the (sanitised) callsign on the console for the RADE EOO
             // frame.  The C-side push happens at begin-over (audio.cs MOX 0->1).
             if (console != null) console.RadaeEooCallsign = txtRadaeReporterCallsign.Text;
+
+            if (initializing) return;
+            Thetis.FreeDVReporter.FreeDVReporterManager.ApplyIdentity(
+                txtRadaeReporterCallsign.Text,
+                txtRadaeReporterGrid.Text,
+                txtRadaeReporterMsg.Text);
+        }
+
+        // Per-keystroke filter for the 6-char Maidenhead grid.  Drops chars
+        // that don't match the position's class, force-converts alpha to the
+        // position's required case, and refuses any input once the box is full
+        // at 6 chars.  Selection is honoured -- if the user has chars 0..5
+        // selected and types 'k', the selection is replaced and we start at
+        // position 0.
+        private void txtRadaeReporterGrid_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            char c = e.KeyChar;
+            if (char.IsControl(c)) return;
+
+            int sel = txtRadaeReporterGrid.SelectionStart;
+            int len = txtRadaeReporterGrid.SelectionLength;
+
+            // After insertion, the new char ends up at `sel`.  If the
+            // resulting text would exceed 6 chars, drop.
+            int afterLen = txtRadaeReporterGrid.TextLength - len + 1;
+            if (afterLen > 6) { e.Handled = true; return; }
+            if (sel >= 6) { e.Handled = true; return; }
+
+            if (sel < 2)
+            {
+                if (!char.IsLetter(c)) { e.Handled = true; return; }
+                e.KeyChar = char.ToUpper(c);
+            }
+            else if (sel < 4)
+            {
+                if (!char.IsDigit(c)) { e.Handled = true; return; }
+            }
+            else // sel < 6
+            {
+                if (!char.IsLetter(c)) { e.Handled = true; return; }
+                e.KeyChar = char.ToLower(c);
+            }
+        }
+
+        private void txtRadaeReporterGrid_TextChanged(object sender, EventArgs e)
+        {
+            // Paste / programmatic-set safety: re-normalise per-position case
+            // and class.  See NormalizeRadaeGrid for the rules.
+            if (!m_radaeGridUpdating)
+            {
+                string raw = txtRadaeReporterGrid.Text;
+                string clean = NormalizeRadaeGrid(raw);
+                if (clean != raw)
+                {
+                    int caret = txtRadaeReporterGrid.SelectionStart;
+                    m_radaeGridUpdating = true;
+                    try
+                    {
+                        txtRadaeReporterGrid.Text = clean;
+                        txtRadaeReporterGrid.SelectionStart = Math.Min(caret, clean.Length);
+                    }
+                    finally { m_radaeGridUpdating = false; }
+                }
+            }
+
+            if (initializing) return;
+            Thetis.FreeDVReporter.FreeDVReporterManager.ApplyIdentity(
+                txtRadaeReporterCallsign.Text,
+                txtRadaeReporterGrid.Text,
+                txtRadaeReporterMsg.Text);
+        }
+
+        // FreeDVReporter emits the RX1 status message to qso.freedv.org.  The
+        // subsystem is ported in a later milestone; the wiring is kept so the
+        // designer event stays bound.
+        private void txtRadaeReporterMsg_TextChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            if (Thetis.FreeDVReporter.FreeDVReporterManager.Client != null)
+                Thetis.FreeDVReporter.FreeDVReporterManager.Client.EmitMessageUpdate(txtRadaeReporterMsg.Text);
+        }
+
+        // RX2 reporter message -- pushed only when the RX2 second client is
+        // up.  FreeDVReporter subsystem deferred; wiring kept.
+        private void txtRadaeReporterMsgRX2_TextChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            try
+            {
+                Thetis.FreeDVReporter.FreeDVReporterManager.SetRx2Message(
+                    txtRadaeReporterMsgRX2.Text ?? "");
+            }
+            catch { }
+        }
+
+        // Re-entrancy guards for the sanitising TextChanged handlers -- we set
+        // TextBoxTS.Text programmatically when normalising, which re-fires
+        // TextChanged.  The flag short-circuits the re-entry.
+        private bool m_radaeCallUpdating = false;
+        private bool m_radaeGridUpdating = false;
+
+        private static string SanitizeRadaeCallsign(string raw)
+        {
+            // Allowed: alphanumeric ASCII letters/digits and '/'.  Anything
+            // else is silently dropped.  No case folding -- callsigns can be
+            // entered as the user prefers (qso.freedv.org accepts either case
+            // but conventionally amateur callsigns are uppercase).
+            if (string.IsNullOrEmpty(raw)) return string.Empty;
+            var sb = new System.Text.StringBuilder(raw.Length);
+            foreach (char c in raw)
+            {
+                if (char.IsLetterOrDigit(c) || c == '/') sb.Append(c);
+            }
+            return sb.ToString();
+        }
+
+        private static string NormalizeRadaeGrid(string raw)
+        {
+            // Maidenhead 6-char locator: AA NN aa
+            //   pos 0,1: alpha -> uppercase
+            //   pos 2,3: digit
+            //   pos 4,5: alpha -> lowercase
+            // Trim to 6 characters; drop any char that does not match its
+            // position's required class.
+            if (string.IsNullOrEmpty(raw)) return string.Empty;
+            var sb = new System.Text.StringBuilder(6);
+            for (int i = 0; i < raw.Length && sb.Length < 6; i++)
+            {
+                char c = raw[i];
+                int pos = sb.Length;
+                if (pos < 2)
+                {
+                    if (char.IsLetter(c)) sb.Append(char.ToUpper(c));
+                }
+                else if (pos < 4)
+                {
+                    if (char.IsDigit(c)) sb.Append(c);
+                }
+                else
+                {
+                    if (char.IsLetter(c)) sb.Append(char.ToLower(c));
+                }
+            }
+            return sb.ToString();
+        }
+
+        private static bool IsValidRadaeCallsign(string s)
+        {
+            // Non-empty + at least one alphanumeric char.  We don't try to
+            // enforce a strict callsign pattern; that's the user's call.
+            if (string.IsNullOrEmpty(s)) return false;
+            for (int i = 0; i < s.Length; i++)
+                if (char.IsLetterOrDigit(s[i])) return true;
+            return false;
+        }
+
+        private static bool IsValidRadaeGrid(string s)
+        {
+            // Strict 6-char Maidenhead: AA NN aa.
+            if (s == null || s.Length != 6) return false;
+            return char.IsLetter(s[0]) && char.IsUpper(s[0])
+                && char.IsLetter(s[1]) && char.IsUpper(s[1])
+                && char.IsDigit(s[2])
+                && char.IsDigit(s[3])
+                && char.IsLetter(s[4]) && char.IsLower(s[4])
+                && char.IsLetter(s[5]) && char.IsLower(s[5]);
+        }
+
+        // Public accessors used by the console-side mirrors so the master
+        // state remains a single source of truth on the Setup checkboxes.
+        // Setters are idempotent: assigning the same value is a WinForms
+        // no-op (CheckedChanged fires only on real state change), so
+        // cross-mirror writes can't recurse.
+        public bool RADAE
+        {
+            get { return chkRADAE.Checked; }
+            set { if (chkRADAE.Checked != value) chkRADAE.Checked = value; }
+        }
+        public bool RADAEReporter
+        {
+            get { return chkRADAEReporter.Checked; }
+            set { if (chkRADAEReporter.Checked != value) chkRADAEReporter.Checked = value; }
+        }
+        public bool RADAEReporting
+        {
+            get { return chkRADAEReporting.Checked; }
+            set { if (chkRADAEReporting.Checked != value) chkRADAEReporting.Checked = value; }
+        }
+
+        // Per-RX RADE protocol version selectors (0 = V1, 1 = V2).  Always
+        // enabled; visibility tracks the per-RX master.  Persisted by name as
+        // ComboBoxTS .Text ("V1"/"V2").
+        public int RADAEVersionRX1
+        {
+            get { return cmbRX1RADEVersion == null ? 0 : cmbRX1RADEVersion.SelectedIndex; }
+            set
+            {
+                if (cmbRX1RADEVersion == null) return;
+                if (value < 0 || value >= cmbRX1RADEVersion.Items.Count) return;
+                if (cmbRX1RADEVersion.SelectedIndex != value) cmbRX1RADEVersion.SelectedIndex = value;
+            }
+        }
+        public int RADAEVersionRX2
+        {
+            get { return cmbRX2RADEVersion == null ? 0 : cmbRX2RADEVersion.SelectedIndex; }
+            set
+            {
+                if (cmbRX2RADEVersion == null) return;
+                if (value < 0 || value >= cmbRX2RADEVersion.Items.Count) return;
+                if (cmbRX2RADEVersion.SelectedIndex != value) cmbRX2RADEVersion.SelectedIndex = value;
+            }
+        }
+
+        public bool RX1RadeControl
+        {
+            get { return chkRX1RadeControl != null && chkRX1RadeControl.Checked; }
+            set { if (chkRX1RadeControl != null) chkRX1RadeControl.Checked = value; }
+        }
+        public bool RX2RadeControl
+        {
+            get { return chkRX2RadeControl != null && chkRX2RadeControl.Checked; }
+            set { if (chkRX2RadeControl != null) chkRX2RadeControl.Checked = value; }
+        }
+        public bool RX1Measure
+        {
+            get { return chkRX1Measure != null && chkRX1Measure.Checked; }
+            set { if (chkRX1Measure != null) chkRX1Measure.Checked = value; }
+        }
+        public bool RX2Measure
+        {
+            get { return chkRX2Measure != null && chkRX2Measure.Checked; }
+            set { if (chkRX2Measure != null) chkRX2Measure.Checked = value; }
+        }
+        public bool TXMeasure
+        {
+            get { return chkTXMeasure != null && chkTXMeasure.Checked; }
+            set { if (chkTXMeasure != null) chkTXMeasure.Checked = value; }
+        }
+        public bool RADAERX2
+        {
+            get { return chkRADAERX2.Checked; }
+            set { if (chkRADAERX2.Checked != value) chkRADAERX2.Checked = value; }
+        }
+        public bool RADAEReportingRX2
+        {
+            get { return chkRADAEReportingRX2.Checked; }
+            set { if (chkRADAEReportingRX2.Checked != value) chkRADAEReportingRX2.Checked = value; }
+        }
+
+        // RADE Mic level (dB) -> g_radae_mic_scale.  Dedicated mic-input gain
+        // at the RADE encoder.  Range -40..+40 dB, 1 dB step, default 0 dB
+        // (unity).  Has effect only while RADE is enabled (the multiply lives
+        // inside xradae_tx, which return-earlies when RADE is off).
+        private void udRadaeMicLevel_ValueChanged(object sender, EventArgs e)
+        {
+            double db = (double)udRadaeMicLevel.Value;
+            double scale = Math.Pow(10.0, db / 20.0);
+            cmaster.SetRadaeMicScale(scale);
+        }
+
+        // RADE Rx level (dB) -> g_radae_rx_dial_scale.  Dedicated RX-input
+        // gain at the RADE decoder.  Range -40..+40 dB, 1 dB step, default
+        // 0 dB (unity).  This is the decoder INPUT trim -- it scales the
+        // signal the modem sees, so it owns SNR / overload of the decode.
+        private void udRadaeRxLevel_ValueChanged(object sender, EventArgs e)
+        {
+            double db = (double)udRadaeRxLevel.Value;
+            double scale = Math.Pow(10.0, db / 20.0);
+            cmaster.SetRadaeRxDialScale(0, scale);
+        }
+
+        private void udRadaeRxLevelRX2_ValueChanged(object sender, EventArgs e)
+        {
+            double db = (double)udRadaeRxLevelRX2.Value;
+            double scale = Math.Pow(10.0, db / 20.0);
+            cmaster.SetRadaeRxDialScale(1, scale);
+        }
+
+        // ------------------------------------------------------------
+        // Pre-encoder mic-conditioning chain (FreeDV-GUI parity).
+        // RNNoise (xiph/rnnoise) -> ITU-R BS.1770 K-weighted AGC +
+        // peak limiter -> 3-band biquad EQ + master Vol.  All stages
+        // off by default; each stage has its own enable; chain runs
+        // inside xradae_tx (gated by g_radae_tx_enabled) so the
+        // controls have effect only while RADE is active.
+        // ------------------------------------------------------------
+        private void chkRadaeMicRNNoise_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicRNNoiseEnabled(chkRadaeMicRNNoise.Checked ? 1 : 0);
+        }
+
+        private void chkRadaeMicAGC_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicAGCEnabled(chkRadaeMicAGC.Checked ? 1 : 0);
+        }
+
+        private void udRadaeMicAGCTarget_ValueChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicAGCTargetLufs((double)udRadaeMicAGCTarget.Value);
+        }
+
+        private void chkRadaeMicEQ_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicEQEnabled(chkRadaeMicEQ.Checked ? 1 : 0);
+        }
+
+        private void udRadaeMicEQBass_ValueChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicEQBass(
+                (double)udRadaeMicEQBassFreq.Value,
+                (double)udRadaeMicEQBassGain.Value);
+        }
+
+        private void udRadaeMicEQMid_ValueChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicEQMid(
+                (double)udRadaeMicEQMidFreq.Value,
+                (double)udRadaeMicEQMidGain.Value,
+                (double)udRadaeMicEQMidQ.Value);
+        }
+
+        private void udRadaeMicEQTreble_ValueChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicEQTreble(
+                (double)udRadaeMicEQTrebleFreq.Value,
+                (double)udRadaeMicEQTrebleGain.Value);
+        }
+
+        private void udRadaeMicEQVol_ValueChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeMicEQVol((double)udRadaeMicEQVol.Value);
+        }
+
+        // ----- Setup -> DSP -> RADE -> Diagnostics handlers -----
+        // Plain System.Windows.Forms.CheckBox -- not picked up by SaveOptions
+        // so each flag boots OFF on every launch.  Pushes the 0/1 flag down to
+        // ChannelMaster.dll where xradae_tx() reads it atomically at the top
+        // of every audio block.
+        private void chkRadaeBypassEncoder_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeBypassEncoder(chkRadaeBypassEncoder.Checked ? 1 : 0);
+        }
+
+        private void chkRadaeBypassEncoderCore_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeBypassEncoderCore(chkRadaeBypassEncoderCore.Checked ? 1 : 0);
+        }
+
+        private void chkRadaeBypassRmatch_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeBypassRmatch(chkRadaeBypassRmatch.Checked ? 1 : 0);
+        }
+
+        private void chkRadaeBypassMicDsp_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeBypassMicDsp(chkRadaeBypassMicDsp.Checked ? 1 : 0);
+        }
+
+        private void chkRadaeBypassAll_CheckedChanged(object sender, EventArgs e)
+        {
+            cmaster.SetRadaeBypassAll(chkRadaeBypassAll.Checked ? 1 : 0);
+        }
+
+        // "Ignore QSY request" -- when ticked, the reporter form will skip the
+        // popup for an inbound QSY request (the event is still logged).
+        private void chkRADAEIgnoreQsy_CheckedChanged(object sender, EventArgs e)
+        {
+            if (console != null) console.RadeIgnoreQsyRequest = chkRADAEIgnoreQsy.Checked;
+        }
+
+        // "UTC" -- selects UTC or local time for the reporter form's Last TX /
+        // Updated columns.  Default ticked (UTC).
+        private void chkRADAEReporterUTC_CheckedChanged(object sender, EventArgs e)
+        {
+            if (console != null) console.RadeReporterTimesUtc = chkRADAEReporterUTC.Checked;
+        }
+
+        // RADE Reporter (qso.freedv.org).  Connects to the FreeDV Reporter
+        // Socket.IO service, sends station identity + freq/TX/RX/SNR updates,
+        // and shows the live station list in a separate dialog.  The
+        // FreeDVReporter subsystem itself is ported in a later milestone; the
+        // enabled/visibility gating below is the Setup-side contract used by
+        // the rest of the UI.
+        private void chkRADAEReporter_CheckedChanged(object sender, EventArgs e)
+        {
+            // Greyed-out state of "RX1RADE enable reporting" tracks the master.
+            chkRADAEReporting.Enabled = chkRADAEReporter.Checked;
+            // RX2 VIS ("RX2RADE enable reporting") gates on the single RX1 reporter.
+            if (chkRADAEReportingRX2 != null)
+                chkRADAEReportingRX2.Enabled = chkRADAEReporter.Checked;
+            // "Ignore QSY request" only matters while the reporter is on.
+            if (chkRADAEIgnoreQsy != null)
+                chkRADAEIgnoreQsy.Enabled = chkRADAEReporter.Checked;
+            // "UTC" time selection only matters while the reporter is on.
+            if (chkRADAEReporterUTC != null)
+                chkRADAEReporterUTC.Enabled = chkRADAEReporter.Checked;
+
+            // Single RX1 reporter drives the console RX1 REPR mirror and the
+            // VIS enabled state (RX2 VIS gates on RX1's reporter too).
+            try
+            {
+                if (console != null && console.chkREPRMirror != null &&
+                    console.chkREPRMirror.Checked != chkRADAEReporter.Checked)
+                    console.chkREPRMirror.Checked = chkRADAEReporter.Checked;
+                if (console != null && console.chkVISMirror != null &&
+                    console.chkVISMirror.Enabled != chkRADAEReporter.Checked)
+                    console.chkVISMirror.Enabled = chkRADAEReporter.Checked;
+            }
+            catch { }
+
+            if (initializing) return;
+            if (chkRADAEReporter.Checked)
+            {
+                Thetis.FreeDVReporter.FreeDVReporterManager.OnFormClosedByUser =
+                    () => { chkRADAEReporter.Checked = false; };
+                Thetis.FreeDVReporter.FreeDVReporterManager.Enable(
+                    console,
+                    txtRadaeReporterCallsign.Text,
+                    txtRadaeReporterGrid.Text,
+                    txtRadaeReporterMsg.Text,
+                    chkRADAEReporting.Checked);
+            }
+            else
+            {
+                Thetis.FreeDVReporter.FreeDVReporterManager.OnFormClosedByUser = null;
+                Thetis.FreeDVReporter.FreeDVReporterManager.Disable();
+            }
+        }
+
+        // RADE enable reporting: when checked, the reporter client connects
+        // with role="report" and publishes our callsign / freq / TX / RX SNR
+        // to qso.freedv.org.  When unchecked it connects with role="view".
+        private void chkRADAEReporting_CheckedChanged(object sender, EventArgs e)
+        {
+            // Validation gate: refuse to enable reporting unless BOTH the
+            // callsign and the Maidenhead grid are filled and well-formed.
+            // Setting Checked = false below re-enters this handler with
+            // Checked=false; the recursive call falls through and turns off
+            // the console chkVIS mirror too, so the two stay in sync.
+            if (!initializing && chkRADAEReporting.Checked)
+            {
+                string call = txtRadaeReporterCallsign.Text == null
+                              ? "" : txtRadaeReporterCallsign.Text.Trim();
+                string grid = txtRadaeReporterGrid.Text == null
+                              ? "" : txtRadaeReporterGrid.Text.Trim();
+                bool callOk = IsValidRadaeCallsign(call);
+                bool gridOk = IsValidRadaeGrid(grid);
+                if (!callOk || !gridOk)
+                {
+                    string msg = "RADE reporting requires both a callsign and a "
+                               + "valid Maidenhead locator before it can be enabled.\n\n"
+                               + (callOk ? "" : "  - Callsign is empty.\n")
+                               + (gridOk ? "" : "  - Grid must be 6 characters in the form "
+                                              + "AAnnaa  (two upper-case letters, two digits, "
+                                              + "two lower-case letters).\n")
+                               + "\nNo reports will be sent to qso.freedv.org until both are filled.";
+                    try
+                    {
+                        System.Windows.Forms.MessageBox.Show(this, msg,
+                            "RADE Reporter",
+                            System.Windows.Forms.MessageBoxButtons.OK,
+                            System.Windows.Forms.MessageBoxIcon.Information);
+                    }
+                    catch { }
+                    chkRADAEReporting.Checked = false;
+                    return;
+                }
+            }
+
+            // Mirror to console-side chkVIS so both stay in sync.
+            try
+            {
+                if (console != null && console.chkVISMirror != null &&
+                    console.chkVISMirror.Checked != chkRADAEReporting.Checked)
+                    console.chkVISMirror.Checked = chkRADAEReporting.Checked;
+            }
+            catch { }
+
+            if (initializing) return;
+            Thetis.FreeDVReporter.FreeDVReporterManager.SetReportingEnabled(chkRADAEReporting.Checked);
+        }
+
+        // chkRX1RadeControl is the experimental master switch for the RX1 RADE
+        // feature + TX/mic chain + reporter UI.  Symmetric to chkRX2RadeControl:
+        // when unchecked it force-unchecks every dependent control (chkRADAE,
+        // loopback, mic-conditioning chain, reporter on/off, etc.) so the
+        // existing CheckedChanged handlers run their normal teardown, then
+        // hides and disables every RX1 + TX/mic + reporter control on this tab.
+        // Default unchecked: opt-in only.
+        private void chkRX1RadeControl_CheckedChanged(object sender, EventArgs e)
+        {
+            bool on = chkRX1RadeControl.Checked;
+
+            // If switching OFF, force-uncheck every dependent RX1+TX control
+            // first so its existing handler runs the full teardown.  Also
+            // force-uncheck chkRX2RadeControl so RX2 RADE goes off too -- RX2
+            // depends on RX1 (shares the TX path + reporter identity), so RX2
+            // cannot run on its own.  chkRX2RadeControl is then disabled/greyed
+            // below so the user cannot re-enable RX2 while RX1 is off.
+            if (!on)
+            {
+                if (chkRX2RadeControl != null && chkRX2RadeControl.Checked)
+                    chkRX2RadeControl.Checked = false;
+                if (chkRADAEReporting != null && chkRADAEReporting.Checked)
+                    chkRADAEReporting.Checked = false;
+                if (chkRADAEReporter != null && chkRADAEReporter.Checked)
+                    chkRADAEReporter.Checked = false;
+                if (chkRadaeMicEQ != null && chkRadaeMicEQ.Checked)
+                    chkRadaeMicEQ.Checked = false;
+                if (chkRadaeMicAGC != null && chkRadaeMicAGC.Checked)
+                    chkRadaeMicAGC.Checked = false;
+                if (chkRadaeMicRNNoise != null && chkRadaeMicRNNoise.Checked)
+                    chkRadaeMicRNNoise.Checked = false;
+                if (chkRADAELoopback != null && chkRADAELoopback.Checked)
+                    chkRADAELoopback.Checked = false;
+                if (chkRADAE != null && chkRADAE.Checked)
+                    chkRADAE.Checked = false;
+            }
+
+            // chkRX2RadeControl is enabled only while chkRX1RadeControl is on.
+            // Visible always (so the user sees the dependency), but greyed when
+            // RX1 master is off.
+            if (chkRX2RadeControl != null) chkRX2RadeControl.Enabled = on;
+
+            // RX1Measure follows RX1 master; force-uncheck when RX1 off.
+            // TXMeasure follows (RX1 OR RX2) master; force-uncheck when both off.
+            if (chkRX1Measure != null)
+            {
+                if (!on && chkRX1Measure.Checked) chkRX1Measure.Checked = false;
+                chkRX1Measure.Enabled = on;
+            }
+            UpdateTxMeasureEnabled();
+
+            // Visibility + enabled for the Setup-side RX1 + TX/mic + reporter
+            // controls.  Mic-conditioning EQ rows, AGC target, and the
+            // (production-hidden) Diagnostics group are all gated together so
+            // the entire RX1/TX block disappears in lockstep.
+            if (chkRADAE != null)             { chkRADAE.Visible             = on; chkRADAE.Enabled             = on; }
+            if (chkRADAELoopback != null)     { chkRADAELoopback.Visible     = on; chkRADAELoopback.Enabled     = on; }
+            // RX1 Version combo: visibility tracks the master, but it stays
+            // ENABLED regardless (per spec -- changeable even with RADE off).
+            if (cmbRX1RADEVersion != null)      cmbRX1RADEVersion.Visible      = on;
+            if (lblRadaeMicLevel != null)       lblRadaeMicLevel.Visible       = on;
+            if (udRadaeMicLevel != null)      { udRadaeMicLevel.Visible      = on; udRadaeMicLevel.Enabled      = on; }
+            if (lblRadaeRxLevel != null)        lblRadaeRxLevel.Visible        = on;
+            if (udRadaeRxLevel != null)       { udRadaeRxLevel.Visible       = on; udRadaeRxLevel.Enabled       = on; }
+            if (chkRadaeMicRNNoise != null)   { chkRadaeMicRNNoise.Visible   = on; chkRadaeMicRNNoise.Enabled   = on; }
+            if (chkRadaeMicAGC != null)       { chkRadaeMicAGC.Visible       = on; chkRadaeMicAGC.Enabled       = on; }
+            if (lblRadaeMicAGCTarget != null)   lblRadaeMicAGCTarget.Visible   = on;
+            if (udRadaeMicAGCTarget != null)  { udRadaeMicAGCTarget.Visible  = on; udRadaeMicAGCTarget.Enabled  = on; }
+            if (chkRadaeMicEQ != null)        { chkRadaeMicEQ.Visible        = on; chkRadaeMicEQ.Enabled        = on; }
+            if (lblRadaeMicEQBass != null)      lblRadaeMicEQBass.Visible      = on;
+            if (udRadaeMicEQBassFreq != null) { udRadaeMicEQBassFreq.Visible = on; udRadaeMicEQBassFreq.Enabled = on; }
+            if (udRadaeMicEQBassGain != null) { udRadaeMicEQBassGain.Visible = on; udRadaeMicEQBassGain.Enabled = on; }
+            if (lblRadaeMicEQMid != null)       lblRadaeMicEQMid.Visible       = on;
+            if (udRadaeMicEQMidFreq != null)  { udRadaeMicEQMidFreq.Visible  = on; udRadaeMicEQMidFreq.Enabled  = on; }
+            if (udRadaeMicEQMidGain != null)  { udRadaeMicEQMidGain.Visible  = on; udRadaeMicEQMidGain.Enabled  = on; }
+            if (udRadaeMicEQMidQ != null)     { udRadaeMicEQMidQ.Visible     = on; udRadaeMicEQMidQ.Enabled     = on; }
+            if (lblRadaeMicEQTreble != null)    lblRadaeMicEQTreble.Visible    = on;
+            if (udRadaeMicEQTrebleFreq != null){ udRadaeMicEQTrebleFreq.Visible= on; udRadaeMicEQTrebleFreq.Enabled = on; }
+            if (udRadaeMicEQTrebleGain != null){ udRadaeMicEQTrebleGain.Visible= on; udRadaeMicEQTrebleGain.Enabled = on; }
+            if (lblRadaeMicEQVol != null)       lblRadaeMicEQVol.Visible       = on;
+            if (udRadaeMicEQVol != null)      { udRadaeMicEQVol.Visible      = on; udRadaeMicEQVol.Enabled      = on; }
+            if (chkRADAEReporter != null)     { chkRADAEReporter.Visible     = on; chkRADAEReporter.Enabled     = on; }
+            if (chkRADAEIgnoreQsy != null)
+            {
+                /* Visibility follows RX1 master; Enabled is then further gated
+                 * by chkRADAEReporter.Checked (greyed when reporter is off even
+                 * if RX1 master is on). */
+                chkRADAEIgnoreQsy.Visible = on;
+                chkRADAEIgnoreQsy.Enabled = on && chkRADAEReporter != null && chkRADAEReporter.Checked;
+            }
+            if (chkRADAEReporterUTC != null)
+            {
+                /* Same visibility/enable rules as "Ignore QSY request". */
+                chkRADAEReporterUTC.Visible = on;
+                chkRADAEReporterUTC.Enabled = on && chkRADAEReporter != null && chkRADAEReporter.Checked;
+            }
+            if (chkRADAEReporting != null)    { chkRADAEReporting.Visible    = on; chkRADAEReporting.Enabled    = on; }
+            if (lblRadaeReporterCallsign != null) lblRadaeReporterCallsign.Visible = on;
+            if (txtRadaeReporterCallsign != null){ txtRadaeReporterCallsign.Visible = on; txtRadaeReporterCallsign.Enabled = on; }
+            if (lblRadaeReporterGrid != null)   lblRadaeReporterGrid.Visible   = on;
+            if (txtRadaeReporterGrid != null) { txtRadaeReporterGrid.Visible = on; txtRadaeReporterGrid.Enabled = on; }
+            if (lblRadaeReporterMsg != null)    lblRadaeReporterMsg.Visible    = on;
+            if (txtRadaeReporterMsg != null)  { txtRadaeReporterMsg.Visible  = on; txtRadaeReporterMsg.Enabled  = on; }
+
+            // Console-side RX1 mirror visibility (chkRADE / chkREPR / chkVIS on
+            // the main face).
+            try { if (console != null) console.SetRx1RadeControlVisible(on); } catch { }
+
+            // Push to the FreeDVReporter form's Track RX1 button.  When
+            // turning OFF, the form falls back _trackTarget to RX2 if RX2 is
+            // available, else Off.
+            try
+            {
+                Thetis.FreeDVReporter.FreeDVReporterManager.SetRx1RadeControlVisible(on);
+            }
+            catch { }
+        }
+
+        // chkRX2RadeControl is the experimental master switch for the entire
+        // RX2 RADE feature.  When unchecked it force-unchecks every dependent
+        // RX2 RADE control (so handlers tear down the C-side decoder + reporter
+        // client), then hides and disables them.  Default is unchecked: opt-in
+        // only, to keep CPU cost off by default.
+        private void chkRX2RadeControl_CheckedChanged(object sender, EventArgs e)
+        {
+            bool on = chkRX2RadeControl.Checked;
+
+            // If switching OFF, force-uncheck every dependent RX2 RADE control
+            // first so its existing handler runs the full teardown (C-side
+            // decoder, reporter client).  WinForms suppresses the recursion
+            // when a checkbox is set to its current value, so already-off
+            // controls are no-ops.  The RX2 master does NOT touch
+            // chkRADAEReporter (the shared FreeDV Reporter WINDOW) -- RX2 is
+            // not the owner of that window.
+            if (!on)
+            {
+                if (chkRADAEReportingRX2 != null && chkRADAEReportingRX2.Checked)
+                    chkRADAEReportingRX2.Checked = false;
+                if (chkRADAERX2 != null && chkRADAERX2.Checked)
+                    chkRADAERX2.Checked = false;
+            }
+
+            // RX2Measure follows RX2 master; force-uncheck when RX2 off.
+            // TXMeasure follows (RX1 OR RX2) master; force-uncheck when both off.
+            if (chkRX2Measure != null)
+            {
+                if (!on && chkRX2Measure.Checked) chkRX2Measure.Checked = false;
+                chkRX2Measure.Enabled = on;
+            }
+            UpdateTxMeasureEnabled();
+
+            // Visibility + enabled for the Setup-side RX2 RADE controls.
+            if (chkRADAERX2 != null)         { chkRADAERX2.Visible         = on; chkRADAERX2.Enabled         = on; }
+            // RX2 Version combo: visibility tracks the master, always enabled.
+            if (cmbRX2RADEVersion != null)     cmbRX2RADEVersion.Visible     = on;
+            if (chkRADAEReportingRX2 != null){ chkRADAEReportingRX2.Visible= on; chkRADAEReportingRX2.Enabled= on; }
+            if (lblRadaeRxLevelRX2 != null)   lblRadaeRxLevelRX2.Visible   = on;
+            if (udRadaeRxLevelRX2 != null)   { udRadaeRxLevelRX2.Visible   = on; udRadaeRxLevelRX2.Enabled   = on; }
+            if (lblRadaeReporterMsgRX2 != null) lblRadaeReporterMsgRX2.Visible = on;
+            if (txtRadaeReporterMsgRX2 != null){ txtRadaeReporterMsgRX2.Visible = on; txtRadaeReporterMsgRX2.Enabled = on; }
+
+            // Console-side mirrors (chkRADERX2 / chkREPRRX2 / chkVISRX2 on
+            // panelRX2Display) are wired when the console mirror controls land.
+
+            // Push to the FreeDVReporter form's Track RX2 button.  When
+            // turning OFF, the form also drops _trackTarget back to RX1
+            // (or Off if neither is enabled) so a stale "tracking RX2"
+            // state does not survive.
+            try
+            {
+                Thetis.FreeDVReporter.FreeDVReporterManager.SetRx2RadeControlVisible(on);
+            }
+            catch { }
+        }
+
+        // TXMeasure is enabled when at least one of the two RADE masters is on.
+        // When both masters go off, force-uncheck so a stale flag does not
+        // survive a feature shutdown.
+        private void UpdateTxMeasureEnabled()
+        {
+            if (chkTXMeasure == null) return;
+            bool eitherOn = (chkRX1RadeControl != null && chkRX1RadeControl.Checked)
+                         || (chkRX2RadeControl != null && chkRX2RadeControl.Checked);
+            if (!eitherOn && chkTXMeasure.Checked) chkTXMeasure.Checked = false;
+            chkTXMeasure.Enabled = eitherOn;
+        }
+
+        // Console-side publishers for the panadapter overlay.  Display reads
+        // these per frame to decide whether to draw the RX/TX RADE metrics
+        // overlay on each RX's panadapter.
+        private void chkRX1Measure_CheckedChanged(object sender, EventArgs e)
+        {
+            if (console != null) console.RadeMeasureRx1 = chkRX1Measure.Checked;
+        }
+
+        private void chkRX2Measure_CheckedChanged(object sender, EventArgs e)
+        {
+            if (console != null) console.RadeMeasureRx2 = chkRX2Measure.Checked;
+        }
+
+        private void chkTXMeasure_CheckedChanged(object sender, EventArgs e)
+        {
+            if (console != null) console.RadeMeasureTx = chkTXMeasure.Checked;
+        }
+
+        // RX2 reporting (the "VIS" enable for the second connection).  Per the
+        // dual-client design, this opens/closes a second FreeDVReporterClient
+        // instance dedicated to RX2's frequency + SNR.
+        private void chkRADAEReportingRX2_CheckedChanged(object sender, EventArgs e)
+        {
+            // Same validation gate as chkRADAEReporting.
+            if (!initializing && chkRADAEReportingRX2.Checked)
+            {
+                string call = txtRadaeReporterCallsign.Text == null
+                              ? "" : txtRadaeReporterCallsign.Text.Trim();
+                string grid = txtRadaeReporterGrid.Text == null
+                              ? "" : txtRadaeReporterGrid.Text.Trim();
+                bool callOk = IsValidRadaeCallsign(call);
+                bool gridOk = IsValidRadaeGrid(grid);
+                if (!callOk || !gridOk)
+                {
+                    try
+                    {
+                        System.Windows.Forms.MessageBox.Show(this,
+                            "RX2 RADE reporting requires both a valid callsign "
+                            + "and a valid Maidenhead locator.",
+                            "RADE Reporter",
+                            System.Windows.Forms.MessageBoxButtons.OK,
+                            System.Windows.Forms.MessageBoxIcon.Information);
+                    }
+                    catch { }
+                    chkRADAEReportingRX2.Checked = false;
+                    return;
+                }
+            }
+
+            if (initializing) return;
+            // Belt-and-braces: push the current Msg text to the manager cache
+            // before opening the second client, so any earlier initialising-skip
+            // of txtRadaeReporterMsgRX2_TextChanged still results in the right
+            // initial message being emitted.
+            try
+            {
+                Thetis.FreeDVReporter.FreeDVReporterManager.SetRx2Message(
+                    txtRadaeReporterMsgRX2.Text ?? "");
+            }
+            catch { }
+            Thetis.FreeDVReporter.FreeDVReporterManager.SetRx2ReportingEnabled(
+                chkRADAEReportingRX2.Checked);
         }
 
         #endregion
@@ -35291,6 +36114,16 @@ namespace Thetis
             if (cci != null)
             {
                 MeterManager.ContainerHidesWhenRXNotUsed(cci.ID, chkContainer_hidewhennotused.Checked);
+            }
+        }
+
+        private void chkContainer_hideRADEnotenabled_CheckedChanged(object sender, EventArgs e)
+        {
+            if (initializing) return;
+            clsContainerComboboxItem cci = (clsContainerComboboxItem)comboContainerSelect.SelectedItem;
+            if (cci != null)
+            {
+                MeterManager.ContainerHidesWhenRADENotEnabled(cci.ID, chkContainer_hideRADEnotenabled.Checked);
             }
         }
 
