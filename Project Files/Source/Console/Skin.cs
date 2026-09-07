@@ -1044,6 +1044,8 @@ namespace Thetis
             string imgName = ctrl.Name;
             if (imgName == "chkTXVST" || imgName == "chkRXVST" || imgName == "chkDisplay3DPan")
                 imgName = "chkNoiseGate";
+            else if (imgName == "btnFreeDV") // no dedicated art yet; reuse the mode button art directly below it
+                imgName = "radModeDIGL";
 
             string skey = "";
             for (int i=0; i<8; i++)

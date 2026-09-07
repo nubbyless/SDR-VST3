@@ -37476,6 +37476,7 @@ namespace Thetis
             try
             {
                 if (chkRADE != null) { chkRADE.Visible = visible; chkRADE.Enabled = visible; }
+                if (btnFreeDV != null) { btnFreeDV.Visible = visible; btnFreeDV.Enabled = visible; }
                 if (chkREPR != null) { chkREPR.Visible = visible; chkREPR.Enabled = visible; }
                 if (chkVIS  != null) { chkVIS.Visible  = visible; chkVIS.Enabled  = visible; }
                 // Version combo: visibility follows the master; always enabled.
@@ -37488,8 +37489,22 @@ namespace Thetis
         {
             try
             {
+                if (btnFreeDV != null && btnFreeDV.Checked != chkRADE.Checked)
+                    btnFreeDV.Checked = chkRADE.Checked;
                 if (!IsSetupFormNull && SetupForm.RADAE != chkRADE.Checked)
                     SetupForm.RADAE = chkRADE.Checked;
+            }
+            catch { }
+        }
+        private void btnFreeDV_CheckedChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                btnFreeDV.BackColor = btnFreeDV.Checked ? button_selected_color : SystemColors.Control;
+                if (chkRADE != null && chkRADE.Checked != btnFreeDV.Checked)
+                    chkRADE.Checked = btnFreeDV.Checked;
+                if (!IsSetupFormNull && SetupForm.RADAE != btnFreeDV.Checked)
+                    SetupForm.RADAE = btnFreeDV.Checked;
             }
             catch { }
         }
@@ -45568,6 +45583,10 @@ namespace Thetis
         private void radModeFMN_MouseDown(object sender, MouseEventArgs e)
         {
             if (IsRightButton(e)) SetupForm.ShowSetupTab(Setup.SetupTab.FM_Tab);
+        }
+        private void btnFreeDV_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (IsRightButton(e)) SetupForm.ShowSetupTab(Setup.SetupTab.RADE_Tab);
         }
         private void comboAGC_MouseDown(object sender, MouseEventArgs e)
         {

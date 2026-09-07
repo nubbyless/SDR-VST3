@@ -21272,6 +21272,7 @@ namespace Thetis
             AM_Tab,
             FM_Tab,
             DSPAudio_Tab,
+            RADE_Tab,
             MNF_Tab,
             VOXDE_Tab,
             CFC_Tab,
@@ -21331,6 +21332,10 @@ namespace Thetis
                 case SetupTab.DSPAudio_Tab:
                     TabSetup.SelectedIndex = 3;
                     TabDSP.SelectedIndex = 5; // select DSP/Audio tab
+                    break;
+                case SetupTab.RADE_Tab:
+                    TabSetup.SelectedIndex = 3;
+                    TabDSP.SelectedIndex = 12; // select DSP/RADE tab
                     break;
                 case SetupTab.MNF_Tab:
                     TabSetup.SelectedIndex = 3;

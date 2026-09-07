@@ -137,6 +137,7 @@
         private System.Windows.Forms.CheckBoxTS chkVAC1;
         private System.Windows.Forms.ComboBoxTS comboDigTXProfile;
         private System.Windows.Forms.CheckBoxTS chkRADE;
+        private System.Windows.Forms.CheckBoxTS btnFreeDV;
         private System.Windows.Forms.CheckBoxTS chkREPR;
         private System.Windows.Forms.CheckBoxTS chkVIS;
         private System.Windows.Forms.ComboBoxTS cmbRadeVersionRX1;
@@ -644,6 +645,7 @@
             this.chkVAC1 = new System.Windows.Forms.CheckBoxTS();
             this.comboDigTXProfile = new System.Windows.Forms.ComboBoxTS();
             this.chkRADE = new System.Windows.Forms.CheckBoxTS();
+            this.btnFreeDV = new System.Windows.Forms.CheckBoxTS();
             this.chkREPR = new System.Windows.Forms.CheckBoxTS();
             this.chkVIS = new System.Windows.Forms.CheckBoxTS();
             this.cmbRadeVersionRX1 = new System.Windows.Forms.ComboBoxTS();
@@ -7135,8 +7137,29 @@
             this.panelMode.Controls.Add(this.radModeDRM);
             this.panelMode.Controls.Add(this.radModeDIGL);
             this.panelMode.Controls.Add(this.radModeSPEC);
+            this.panelMode.Controls.Add(this.btnFreeDV);
             this.panelMode.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.panelMode.Name = "panelMode";
+            // 
+            // btnFreeDV  [v2.10.3.16] front-console toggle for the RX1 RADE modem
+            //             (not a mode: mode selection stays active underneath it)
+            // 
+            this.btnFreeDV.Appearance = System.Windows.Forms.Appearance.Button;
+            this.btnFreeDV.BackColor = System.Drawing.SystemColors.Control;
+            this.btnFreeDV.FlatAppearance.BorderSize = 0;
+            this.btnFreeDV.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnFreeDV.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnFreeDV.ForeColor = System.Drawing.Color.White;
+            this.btnFreeDV.Location = new System.Drawing.Point(10, 99);
+            this.btnFreeDV.Name = "btnFreeDV";
+            this.btnFreeDV.Size = new System.Drawing.Size(60, 23);
+            this.btnFreeDV.TabIndex = 200;
+            this.btnFreeDV.Text = "FreeDV";
+            this.btnFreeDV.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.toolTip1.SetToolTip(this.btnFreeDV, "Enable/disable the RADE V1 digital-voice modem (mirrors RADE on the front console and Setup -> DSP -> RADE). Toggling either control sets both.");
+            this.btnFreeDV.UseVisualStyleBackColor = false;
+            this.btnFreeDV.CheckedChanged += new System.EventHandler(this.btnFreeDV_CheckedChanged);
+            this.btnFreeDV.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btnFreeDV_MouseDown);
             // 
             // panelBandHF
             // 
