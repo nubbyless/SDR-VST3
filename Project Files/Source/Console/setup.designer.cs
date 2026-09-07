@@ -6056,10 +6056,11 @@
             // 
             // chkSWRTuneProtection
             // 
+            this.chkSWRTuneProtection.AutoSize = true;
             this.chkSWRTuneProtection.Image = null;
             this.chkSWRTuneProtection.Location = new System.Drawing.Point(24, 44);
             this.chkSWRTuneProtection.Name = "chkSWRTuneProtection";
-            this.chkSWRTuneProtection.Size = new System.Drawing.Size(155, 23);
+            this.chkSWRTuneProtection.Size = new System.Drawing.Size(165, 23);
             this.chkSWRTuneProtection.TabIndex = 4;
             this.chkSWRTuneProtection.Text = "Ignore when Tune Pwr <";
             this.toolTip1.SetToolTip(this.chkSWRTuneProtection, "Disables SWR Protection during Tune.");
@@ -35341,7 +35342,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(216, 116);
+            this.label14.Location = new System.Drawing.Point(224, 116);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(57, 13);
             this.label14.TabIndex = 86;
@@ -35370,7 +35371,7 @@
             0,
             0,
             0});
-            this.nudRX1NFoffsetGridFollow.Location = new System.Drawing.Point(159, 114);
+            this.nudRX1NFoffsetGridFollow.Location = new System.Drawing.Point(164, 114);
             this.nudRX1NFoffsetGridFollow.Maximum = new decimal(new int[] {
             30,
             0,
@@ -35417,7 +35418,7 @@
             // 
             // txtDisplayGridBandLevel
             // 
-            this.txtDisplayGridBandLevel.Location = new System.Drawing.Point(146, 80);
+            this.txtDisplayGridBandLevel.Location = new System.Drawing.Point(156, 80);
             this.txtDisplayGridBandLevel.Name = "txtDisplayGridBandLevel";
             this.txtDisplayGridBandLevel.ReadOnly = true;
             this.txtDisplayGridBandLevel.Size = new System.Drawing.Size(94, 20);
@@ -36520,7 +36521,7 @@
             // label20
             // 
             this.label20.AutoSize = true;
-            this.label20.Location = new System.Drawing.Point(216, 116);
+            this.label20.Location = new System.Drawing.Point(224, 116);
             this.label20.Name = "label20";
             this.label20.Size = new System.Drawing.Size(57, 13);
             this.label20.TabIndex = 88;
@@ -36549,7 +36550,7 @@
             0,
             0,
             0});
-            this.nudRX2NFoffsetGridFollow.Location = new System.Drawing.Point(159, 114);
+            this.nudRX2NFoffsetGridFollow.Location = new System.Drawing.Point(164, 114);
             this.nudRX2NFoffsetGridFollow.Maximum = new decimal(new int[] {
             30,
             0,
@@ -36596,7 +36597,7 @@
             // 
             // txtRX2DisplayGridBandLevel
             // 
-            this.txtRX2DisplayGridBandLevel.Location = new System.Drawing.Point(146, 80);
+            this.txtRX2DisplayGridBandLevel.Location = new System.Drawing.Point(156, 80);
             this.txtRX2DisplayGridBandLevel.Name = "txtRX2DisplayGridBandLevel";
             this.txtRX2DisplayGridBandLevel.ReadOnly = true;
             this.txtRX2DisplayGridBandLevel.Size = new System.Drawing.Size(94, 20);
@@ -62309,7 +62310,7 @@
             this.groupBoxTS30.Controls.Add(this.chkShowControlDebug);
             this.groupBoxTS30.Location = new System.Drawing.Point(11, 340);
             this.groupBoxTS30.Name = "groupBoxTS30";
-            this.groupBoxTS30.Size = new System.Drawing.Size(711, 82);
+            this.groupBoxTS30.Size = new System.Drawing.Size(711, 92);
             this.groupBoxTS30.TabIndex = 120;
             this.groupBoxTS30.TabStop = false;
             this.groupBoxTS30.Text = "Debug";
@@ -62343,7 +62344,7 @@
             // chkIgnoreATTOffset
             // 
             this.chkIgnoreATTOffset.Image = null;
-            this.chkIgnoreATTOffset.Location = new System.Drawing.Point(155, 48);
+            this.chkIgnoreATTOffset.Location = new System.Drawing.Point(175, 56);
             this.chkIgnoreATTOffset.Name = "chkIgnoreATTOffset";
             this.chkIgnoreATTOffset.Size = new System.Drawing.Size(130, 24);
             this.chkIgnoreATTOffset.TabIndex = 123;
@@ -62354,7 +62355,7 @@
             // chkShowStartupLog
             // 
             this.chkShowStartupLog.Image = null;
-            this.chkShowStartupLog.Location = new System.Drawing.Point(155, 18);
+            this.chkShowStartupLog.Location = new System.Drawing.Point(175, 18);
             this.chkShowStartupLog.Name = "chkShowStartupLog";
             this.chkShowStartupLog.Size = new System.Drawing.Size(130, 24);
             this.chkShowStartupLog.TabIndex = 122;
@@ -62365,7 +62366,7 @@
             // btnFormLocationHelper
             // 
             this.btnFormLocationHelper.Image = null;
-            this.btnFormLocationHelper.Location = new System.Drawing.Point(347, 47);
+            this.btnFormLocationHelper.Location = new System.Drawing.Point(347, 55);
             this.btnFormLocationHelper.Name = "btnFormLocationHelper";
             this.btnFormLocationHelper.Selectable = true;
             this.btnFormLocationHelper.Size = new System.Drawing.Size(106, 23);
@@ -62390,7 +62391,7 @@
             // btnShowSeqLog
             // 
             this.btnShowSeqLog.Image = null;
-            this.btnShowSeqLog.Location = new System.Drawing.Point(459, 46);
+            this.btnShowSeqLog.Location = new System.Drawing.Point(459, 53);
             this.btnShowSeqLog.Name = "btnShowSeqLog";
             this.btnShowSeqLog.Selectable = true;
             this.btnShowSeqLog.Size = new System.Drawing.Size(107, 23);
@@ -62402,9 +62403,9 @@
             // chkShowDisplayDebug
             // 
             this.chkShowDisplayDebug.Image = null;
-            this.chkShowDisplayDebug.Location = new System.Drawing.Point(18, 48);
+            this.chkShowDisplayDebug.Location = new System.Drawing.Point(18, 56);
             this.chkShowDisplayDebug.Name = "chkShowDisplayDebug";
-            this.chkShowDisplayDebug.Size = new System.Drawing.Size(131, 24);
+            this.chkShowDisplayDebug.Size = new System.Drawing.Size(150, 24);
             this.chkShowDisplayDebug.TabIndex = 119;
             this.chkShowDisplayDebug.Text = "Show Display Debug";
             this.toolTip1.SetToolTip(this.chkShowDisplayDebug, "Show some debug info in the spectral area");
@@ -62415,7 +62416,7 @@
             this.chkShowControlDebug.Image = null;
             this.chkShowControlDebug.Location = new System.Drawing.Point(18, 18);
             this.chkShowControlDebug.Name = "chkShowControlDebug";
-            this.chkShowControlDebug.Size = new System.Drawing.Size(131, 24);
+            this.chkShowControlDebug.Size = new System.Drawing.Size(150, 24);
             this.chkShowControlDebug.TabIndex = 118;
             this.chkShowControlDebug.Text = "Show Control Debug";
             this.toolTip1.SetToolTip(this.chkShowControlDebug, "Show the control name that is being hovered over with the mouse as debug in the s" +

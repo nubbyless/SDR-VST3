@@ -110,6 +110,10 @@ namespace Thetis
 
         #region Constructor and Destructor
 
+        //MW0LGE scale splash down on startup only (does not affect the setup screens).
+        // 0.8f matches the smaller size it showed when DPI was set to SystemAware at 125%.
+        private const float SPLASH_SCALE = 0.8f;
+
         public Splash()
 		{
             InitializeComponent();
@@ -118,6 +122,8 @@ namespace Thetis
 			timer1.Interval = TIMER_INTERVAL;
 			timer1.Start();
 			this.ClientSize = this.BackgroundImage.Size;
+			this.Scale(new SizeF(SPLASH_SCALE, SPLASH_SCALE));
+			this.BackgroundImage = new Bitmap(this.BackgroundImage, this.ClientSize);
 			this.ShowInTaskbar = false;
 		}
 
@@ -153,7 +159,7 @@ namespace Thetis
             // 
             this.pnlStatus.BackColor = System.Drawing.Color.SkyBlue;
             this.pnlStatus.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.pnlStatus.Location = new System.Drawing.Point(236, 270);
+            this.pnlStatus.Location = new System.Drawing.Point(236, 263);
             this.pnlStatus.Name = "pnlStatus";
             this.pnlStatus.Size = new System.Drawing.Size(490, 17);
             this.pnlStatus.TabIndex = 2;
@@ -167,7 +173,7 @@ namespace Thetis
             // panel1
             // 
             this.panel1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.panel1.Location = new System.Drawing.Point(221, 249);
+            this.panel1.Location = new System.Drawing.Point(221, 242);
             this.panel1.Name = "panel1";
             this.panel1.Size = new System.Drawing.Size(520, 59);
             this.panel1.TabIndex = 4;
@@ -178,7 +184,7 @@ namespace Thetis
             this.lblVersion.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.lblVersion.ForeColor = System.Drawing.Color.White;
             this.lblVersion.Image = null;
-            this.lblVersion.Location = new System.Drawing.Point(228, 290);
+            this.lblVersion.Location = new System.Drawing.Point(228, 283);
             this.lblVersion.Name = "lblVersion";
             this.lblVersion.Size = new System.Drawing.Size(205, 13);
             this.lblVersion.TabIndex = 3;
@@ -189,7 +195,7 @@ namespace Thetis
             this.lblTimeRemaining.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.lblTimeRemaining.ForeColor = System.Drawing.Color.White;
             this.lblTimeRemaining.Image = null;
-            this.lblTimeRemaining.Location = new System.Drawing.Point(649, 290);
+            this.lblTimeRemaining.Location = new System.Drawing.Point(649, 283);
             this.lblTimeRemaining.Name = "lblTimeRemaining";
             this.lblTimeRemaining.Size = new System.Drawing.Size(92, 16);
             this.lblTimeRemaining.TabIndex = 1;
@@ -201,7 +207,7 @@ namespace Thetis
             this.lblStatus.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(192)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.lblStatus.ForeColor = System.Drawing.Color.White;
             this.lblStatus.Image = null;
-            this.lblStatus.Location = new System.Drawing.Point(221, 252);
+            this.lblStatus.Location = new System.Drawing.Point(221, 245);
             this.lblStatus.Name = "lblStatus";
             this.lblStatus.Size = new System.Drawing.Size(520, 16);
             this.lblStatus.TabIndex = 0;
@@ -359,12 +365,13 @@ namespace Thetis
 			{
 				if (File.Exists(matchingFiles[index]))
 				{
-					this.BackgroundImage = Image.FromFile(matchingFiles[index]);
+					Image img = Image.FromFile(matchingFiles[index]);
+					this.BackgroundImage = new Bitmap(img, this.ClientSize);
 				}
 			}
 			catch 
 			{
-				this.BackgroundImage = Properties.Resources.thetis_logo2;
+				this.BackgroundImage = new Bitmap(Properties.Resources.thetis_logo2, this.ClientSize);
 			}
         }
         // Internal method for setting reference points.

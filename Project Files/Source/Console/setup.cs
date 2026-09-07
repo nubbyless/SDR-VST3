@@ -3688,6 +3688,27 @@ namespace Thetis
 
                 if (DB.ConvertFromDBVal<string>(dr["CFCParaEQData"]) != CFCConfigForm.ConfigData) return true;
 
+                // RADE DSP settings
+                if (DB.ConvertFromDBVal<bool>(dr["RADE_Enabled"]) != chkRADAE.Checked) return true;
+                if (DB.ConvertFromDBVal<bool>(dr["RADE_EnabledRX2"]) != chkRADAERX2.Checked) return true;
+                if (DB.ConvertFromDBVal<int>(dr["RADE_VersionRX1"]) != cmbRX1RADEVersion.SelectedIndex) return true;
+                if (DB.ConvertFromDBVal<int>(dr["RADE_VersionRX2"]) != cmbRX2RADEVersion.SelectedIndex) return true;
+                if (DB.ConvertFromDBVal<decimal>(dr["RADE_MicLevel"]) != udRadaeMicLevel.Value) return true;
+                if (DB.ConvertFromDBVal<decimal>(dr["RADE_RxLevel"]) != udRadaeRxLevel.Value) return true;
+                if (DB.ConvertFromDBVal<decimal>(dr["RADE_RxLevelRX2"]) != udRadaeRxLevelRX2.Value) return true;
+                if (DB.ConvertFromDBVal<bool>(dr["RADE_MicRNNoise"]) != chkRadaeMicRNNoise.Checked) return true;
+                if (DB.ConvertFromDBVal<bool>(dr["RADE_MicAGC"]) != chkRadaeMicAGC.Checked) return true;
+                if (DB.ConvertFromDBVal<int>(dr["RADE_MicAGCTarget"]) != (int)udRadaeMicAGCTarget.Value) return true;
+                if (DB.ConvertFromDBVal<bool>(dr["RADE_MicEQ"]) != chkRadaeMicEQ.Checked) return true;
+                if (DB.ConvertFromDBVal<int>(dr["RADE_MicEQBassFreq"]) != (int)udRadaeMicEQBassFreq.Value) return true;
+                if (DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQBassGain"]) != udRadaeMicEQBassGain.Value) return true;
+                if (DB.ConvertFromDBVal<int>(dr["RADE_MicEQMidFreq"]) != (int)udRadaeMicEQMidFreq.Value) return true;
+                if (DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQMidGain"]) != udRadaeMicEQMidGain.Value) return true;
+                if (DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQMidQ"]) != udRadaeMicEQMidQ.Value) return true;
+                if (DB.ConvertFromDBVal<int>(dr["RADE_MicEQTrebleFreq"]) != (int)udRadaeMicEQTrebleFreq.Value) return true;
+                if (DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQTrebleGain"]) != udRadaeMicEQTrebleGain.Value) return true;
+                if (DB.ConvertFromDBVal<int>(dr["RADE_MicEQVol"]) != (int)udRadaeMicEQVol.Value) return true;
+
             }
 
             return false;
@@ -3875,6 +3896,27 @@ namespace Thetis
             Common.HightlightControl(udCFC7, bHighlight);
             Common.HightlightControl(udCFC8, bHighlight);
             Common.HightlightControl(udCFC9, bHighlight);
+
+            // RADE DSP settings
+            Common.HightlightControl(chkRADAE, bHighlight);
+            Common.HightlightControl(chkRADAERX2, bHighlight);
+            Common.HightlightControl(cmbRX1RADEVersion, bHighlight);
+            Common.HightlightControl(cmbRX2RADEVersion, bHighlight);
+            Common.HightlightControl(udRadaeMicLevel, bHighlight);
+            Common.HightlightControl(udRadaeRxLevel, bHighlight);
+            Common.HightlightControl(udRadaeRxLevelRX2, bHighlight);
+            Common.HightlightControl(chkRadaeMicRNNoise, bHighlight);
+            Common.HightlightControl(chkRadaeMicAGC, bHighlight);
+            Common.HightlightControl(udRadaeMicAGCTarget, bHighlight);
+            Common.HightlightControl(chkRadaeMicEQ, bHighlight);
+            Common.HightlightControl(udRadaeMicEQBassFreq, bHighlight);
+            Common.HightlightControl(udRadaeMicEQBassGain, bHighlight);
+            Common.HightlightControl(udRadaeMicEQMidFreq, bHighlight);
+            Common.HightlightControl(udRadaeMicEQMidGain, bHighlight);
+            Common.HightlightControl(udRadaeMicEQMidQ, bHighlight);
+            Common.HightlightControl(udRadaeMicEQTrebleFreq, bHighlight);
+            Common.HightlightControl(udRadaeMicEQTrebleGain, bHighlight);
+            Common.HightlightControl(udRadaeMicEQVol, bHighlight);
         }
 
         private void updateTXProfileInDB(DataRow dr)
@@ -4061,6 +4103,27 @@ namespace Thetis
                 dr["CFCEqFreq" + (i - 22).ToString()] = cfceq[i];
 
             dr["CFCParaEQData"] = CFCConfigForm.ConfigData;
+
+            // RADE DSP settings
+            dr["RADE_Enabled"] = chkRADAE.Checked;
+            dr["RADE_EnabledRX2"] = chkRADAERX2.Checked;
+            dr["RADE_VersionRX1"] = cmbRX1RADEVersion.SelectedIndex;
+            dr["RADE_VersionRX2"] = cmbRX2RADEVersion.SelectedIndex;
+            dr["RADE_MicLevel"] = udRadaeMicLevel.Value;
+            dr["RADE_RxLevel"] = udRadaeRxLevel.Value;
+            dr["RADE_RxLevelRX2"] = udRadaeRxLevelRX2.Value;
+            dr["RADE_MicRNNoise"] = chkRadaeMicRNNoise.Checked;
+            dr["RADE_MicAGC"] = chkRadaeMicAGC.Checked;
+            dr["RADE_MicAGCTarget"] = (int)udRadaeMicAGCTarget.Value;
+            dr["RADE_MicEQ"] = chkRadaeMicEQ.Checked;
+            dr["RADE_MicEQBassFreq"] = (int)udRadaeMicEQBassFreq.Value;
+            dr["RADE_MicEQBassGain"] = udRadaeMicEQBassGain.Value;
+            dr["RADE_MicEQMidFreq"] = (int)udRadaeMicEQMidFreq.Value;
+            dr["RADE_MicEQMidGain"] = udRadaeMicEQMidGain.Value;
+            dr["RADE_MicEQMidQ"] = udRadaeMicEQMidQ.Value;
+            dr["RADE_MicEQTrebleFreq"] = (int)udRadaeMicEQTrebleFreq.Value;
+            dr["RADE_MicEQTrebleGain"] = udRadaeMicEQTrebleGain.Value;
+            dr["RADE_MicEQVol"] = (int)udRadaeMicEQVol.Value;
         }
 
         public void SaveTXProfileData()
@@ -9848,6 +9911,27 @@ namespace Thetis
             CFCCOMPEQ = cfceq;
             CFCConfigForm.ConfigData = (string)dr["CFCParaEQData"];
 
+            // RADE DSP settings
+            chkRADAE.Checked = DB.ConvertFromDBVal<bool>(dr["RADE_Enabled"]);
+            chkRADAERX2.Checked = DB.ConvertFromDBVal<bool>(dr["RADE_EnabledRX2"]);
+            cmbRX1RADEVersion.SelectedIndex = Math.Min(Math.Max(DB.ConvertFromDBVal<int>(dr["RADE_VersionRX1"]), 0), Math.Max(cmbRX1RADEVersion.Items.Count - 1, 0));
+            cmbRX2RADEVersion.SelectedIndex = Math.Min(Math.Max(DB.ConvertFromDBVal<int>(dr["RADE_VersionRX2"]), 0), Math.Max(cmbRX2RADEVersion.Items.Count - 1, 0));
+            udRadaeMicLevel.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<decimal>(dr["RADE_MicLevel"]), udRadaeMicLevel.Minimum), udRadaeMicLevel.Maximum);
+            udRadaeRxLevel.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<decimal>(dr["RADE_RxLevel"]), udRadaeRxLevel.Minimum), udRadaeRxLevel.Maximum);
+            udRadaeRxLevelRX2.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<decimal>(dr["RADE_RxLevelRX2"]), udRadaeRxLevelRX2.Minimum), udRadaeRxLevelRX2.Maximum);
+            chkRadaeMicRNNoise.Checked = DB.ConvertFromDBVal<bool>(dr["RADE_MicRNNoise"]);
+            chkRadaeMicAGC.Checked = DB.ConvertFromDBVal<bool>(dr["RADE_MicAGC"]);
+            udRadaeMicAGCTarget.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<int>(dr["RADE_MicAGCTarget"]), udRadaeMicAGCTarget.Minimum), udRadaeMicAGCTarget.Maximum);
+            chkRadaeMicEQ.Checked = DB.ConvertFromDBVal<bool>(dr["RADE_MicEQ"]);
+            udRadaeMicEQBassFreq.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<int>(dr["RADE_MicEQBassFreq"]), udRadaeMicEQBassFreq.Minimum), udRadaeMicEQBassFreq.Maximum);
+            udRadaeMicEQBassGain.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQBassGain"]), udRadaeMicEQBassGain.Minimum), udRadaeMicEQBassGain.Maximum);
+            udRadaeMicEQMidFreq.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<int>(dr["RADE_MicEQMidFreq"]), udRadaeMicEQMidFreq.Minimum), udRadaeMicEQMidFreq.Maximum);
+            udRadaeMicEQMidGain.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQMidGain"]), udRadaeMicEQMidGain.Minimum), udRadaeMicEQMidGain.Maximum);
+            udRadaeMicEQMidQ.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQMidQ"]), udRadaeMicEQMidQ.Minimum), udRadaeMicEQMidQ.Maximum);
+            udRadaeMicEQTrebleFreq.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<int>(dr["RADE_MicEQTrebleFreq"]), udRadaeMicEQTrebleFreq.Minimum), udRadaeMicEQTrebleFreq.Maximum);
+            udRadaeMicEQTrebleGain.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<decimal>(dr["RADE_MicEQTrebleGain"]), udRadaeMicEQTrebleGain.Minimum), udRadaeMicEQTrebleGain.Maximum);
+            udRadaeMicEQVol.Value = Math.Min(Math.Max(DB.ConvertFromDBVal<int>(dr["RADE_MicEQVol"]), udRadaeMicEQVol.Minimum), udRadaeMicEQVol.Maximum);
+
             chkAudioEnableVAC.Checked = (bool)dr["VAC1_On"];    // moved here after setting to off MW0LGE_21k9d
             chkAudioVACAutoEnable.Checked = (bool)dr["VAC1_Auto_On"]; //[2.10.1.0] MW0LGE moved here
             chkVAC2Enable.Checked = (bool)dr["VAC2_On"];    // moved here after setting to off MW0LGE_21k9d
@@ -9861,11 +9945,23 @@ namespace Thetis
 
         public int TCIClientsConnectedChange
         {
-            set { grpTCIServer.Text = "TCI Server (" + value.ToString() + " clients)"; }
+            set
+            {
+                if (IsDisposed || !IsHandleCreated || grpTCIServer.IsDisposed) return;
+                try { grpTCIServer.Text = "TCI Server (" + value.ToString() + " clients)"; }
+                catch (ObjectDisposedException) { }
+                catch (InvalidOperationException) { }
+            }
         }
         public int TCPIPcatClientsConnectedChange
         {
-            set { grpTCPIPcatServer.Text = "TCP / IP CAT Server (" + value.ToString() + " clients)"; }
+            set
+            {
+                if (IsDisposed || !IsHandleCreated || grpTCPIPcatServer.IsDisposed) return;
+                try { grpTCPIPcatServer.Text = "TCP / IP CAT Server (" + value.ToString() + " clients)"; }
+                catch (ObjectDisposedException) { }
+                catch (InvalidOperationException) { }
+            }
         }
         public void ForceTXProfileUpdate()
         {

@@ -276,12 +276,15 @@ namespace Thetis
             else
             {
                 int nMaxRight = 0;
+                int nMaxBottom = 0;
                 foreach (Control c in Controls)
                 {
                     if (!c.Visible) continue;
                     if (c.Left + c.Width > nMaxRight) nMaxRight = c.Left + c.Width;
+                    if (c.Top + c.Height > nMaxBottom) nMaxBottom = c.Top + c.Height;
                 }
                 this.Width = nMaxRight + (this.Width - this.ClientSize.Width) + 24;
+                this.Height = nMaxBottom + (this.Height - this.ClientSize.Height) + 8;
                 btnOptions.Text = "Options <<";
             }
         }

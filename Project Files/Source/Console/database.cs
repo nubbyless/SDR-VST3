@@ -283,6 +283,42 @@ namespace Thetis
                         seq++;
                     }
                 }
+
+                // RADE DSP settings
+                var radeSchema = new Dictionary<string, Tuple<Type, object>> {
+                    { "RADE_Enabled",          Tuple.Create(typeof(bool), (object)false) },
+                    { "RADE_EnabledRX2",       Tuple.Create(typeof(bool), (object)false) },
+                    { "RADE_VersionRX1",       Tuple.Create(typeof(int),  (object)0) },
+                    { "RADE_VersionRX2",       Tuple.Create(typeof(int),  (object)0) },
+                    { "RADE_MicLevel",         Tuple.Create(typeof(decimal), (object)0.0m) },
+                    { "RADE_RxLevel",          Tuple.Create(typeof(decimal), (object)0.0m) },
+                    { "RADE_RxLevelRX2",       Tuple.Create(typeof(decimal), (object)0.0m) },
+                    { "RADE_MicRNNoise",       Tuple.Create(typeof(bool), (object)false) },
+                    { "RADE_MicAGC",           Tuple.Create(typeof(bool), (object)false) },
+                    { "RADE_MicAGCTarget",     Tuple.Create(typeof(int),  (object)(-23)) },
+                    { "RADE_MicEQ",            Tuple.Create(typeof(bool), (object)false) },
+                    { "RADE_MicEQBassFreq",    Tuple.Create(typeof(int),  (object)100) },
+                    { "RADE_MicEQBassGain",    Tuple.Create(typeof(decimal), (object)0.0m) },
+                    { "RADE_MicEQMidFreq",     Tuple.Create(typeof(int),  (object)1000) },
+                    { "RADE_MicEQMidGain",     Tuple.Create(typeof(decimal), (object)0.0m) },
+                    { "RADE_MicEQMidQ",        Tuple.Create(typeof(decimal), (object)0.7m) },
+                    { "RADE_MicEQTrebleFreq",  Tuple.Create(typeof(int),  (object)5000) },
+                    { "RADE_MicEQTrebleGain",  Tuple.Create(typeof(decimal), (object)0.0m) },
+                    { "RADE_MicEQVol",         Tuple.Create(typeof(int),  (object)0) }
+                };
+                foreach (var kv in radeSchema)
+                {
+                    if (!t.Columns.Contains(kv.Key))
+                        t.Columns.Add(kv.Key, kv.Value.Item1);
+                }
+                foreach (var kv in radeSchema)
+                {
+                    foreach (DataRow row in t.Rows)
+                    {
+                        if (row.IsNull(kv.Key))
+                            row[kv.Key] = kv.Value.Item2;
+                    }
+                }
             }
         }
 
@@ -4672,7 +4708,28 @@ namespace Thetis
             t.Columns.Add("CFCEqFreq8", typeof(int));
             t.Columns.Add("CFCEqFreq9", typeof(int));
 
-            t.Columns.Add("CFCParaEQData", typeof(string));            
+            t.Columns.Add("CFCParaEQData", typeof(string));
+
+            // RADE DSP settings
+            t.Columns.Add("RADE_Enabled", typeof(bool));
+            t.Columns.Add("RADE_EnabledRX2", typeof(bool));
+            t.Columns.Add("RADE_VersionRX1", typeof(int));
+            t.Columns.Add("RADE_VersionRX2", typeof(int));
+            t.Columns.Add("RADE_MicLevel", typeof(decimal));
+            t.Columns.Add("RADE_RxLevel", typeof(decimal));
+            t.Columns.Add("RADE_RxLevelRX2", typeof(decimal));
+            t.Columns.Add("RADE_MicRNNoise", typeof(bool));
+            t.Columns.Add("RADE_MicAGC", typeof(bool));
+            t.Columns.Add("RADE_MicAGCTarget", typeof(int));
+            t.Columns.Add("RADE_MicEQ", typeof(bool));
+            t.Columns.Add("RADE_MicEQBassFreq", typeof(int));
+            t.Columns.Add("RADE_MicEQBassGain", typeof(decimal));
+            t.Columns.Add("RADE_MicEQMidFreq", typeof(int));
+            t.Columns.Add("RADE_MicEQMidGain", typeof(decimal));
+            t.Columns.Add("RADE_MicEQMidQ", typeof(decimal));
+            t.Columns.Add("RADE_MicEQTrebleFreq", typeof(int));
+            t.Columns.Add("RADE_MicEQTrebleGain", typeof(decimal));
+            t.Columns.Add("RADE_MicEQVol", typeof(int));
 
             #region Default
 
@@ -4911,6 +4968,27 @@ namespace Thetis
             dr["CFCEqFreq9"] = 10000;
 
             dr["CFCParaEQData"] = "";
+
+            // RADE DSP defaults
+            dr["RADE_Enabled"] = false;
+            dr["RADE_EnabledRX2"] = false;
+            dr["RADE_VersionRX1"] = 0;
+            dr["RADE_VersionRX2"] = 0;
+            dr["RADE_MicLevel"] = 0.0m;
+            dr["RADE_RxLevel"] = 0.0m;
+            dr["RADE_RxLevelRX2"] = 0.0m;
+            dr["RADE_MicRNNoise"] = false;
+            dr["RADE_MicAGC"] = false;
+            dr["RADE_MicAGCTarget"] = -23;
+            dr["RADE_MicEQ"] = false;
+            dr["RADE_MicEQBassFreq"] = 100;
+            dr["RADE_MicEQBassGain"] = 0.0m;
+            dr["RADE_MicEQMidFreq"] = 1000;
+            dr["RADE_MicEQMidGain"] = 0.0m;
+            dr["RADE_MicEQMidQ"] = 0.7m;
+            dr["RADE_MicEQTrebleFreq"] = 5000;
+            dr["RADE_MicEQTrebleGain"] = 0.0m;
+            dr["RADE_MicEQVol"] = 0;
 
             t.Rows.Add(dr);
 

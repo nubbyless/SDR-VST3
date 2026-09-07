@@ -7016,7 +7016,7 @@ CTRL + Right Click on any Band Button to add Band Stack.</value>
     <value>129</value>
   </data>
   <data name="btnFMMemoryUp.Text" xml:space="preserve">
-    <value>â–²</value>
+    <value>▲</value>
   </data>
   <data name="btnFMMemoryUp.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
     <value>TopCenter</value>
@@ -7058,7 +7058,7 @@ CTRL + Right Click on any Band Button to add Band Stack.</value>
     <value>130</value>
   </data>
   <data name="btnFMMemoryDown.Text" xml:space="preserve">
-    <value>â–¼</value>
+    <value>▼</value>
   </data>
   <data name="btnFMMemoryDown.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
     <value>TopCenter</value>
@@ -7148,7 +7148,7 @@ CTRL + Right Click on any Band Button to add Band Stack.</value>
     <value>136</value>
   </data>
   <data name="chkFMTXLow.Text" xml:space="preserve">
-    <value>â€”</value>
+    <value>—</value>
   </data>
   <data name="chkFMTXLow.TextAlign" type="System.Drawing.ContentAlignment, System.Drawing">
     <value>TopCenter</value>

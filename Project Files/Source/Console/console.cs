@@ -2341,13 +2341,13 @@ namespace Thetis
         private void OnTCPIIPcatClientConnect()
         {
             if (m_tcpCATServer == null) return;
-            if (!IsSetupFormNull)
+            if (!IsSetupFormNull && !SetupForm.IsDisposed)
                 SetupForm.TCPIPcatClientsConnectedChange = m_tcpCATServer.ClientsConnected;
         }
         private void OnTCPIIPcatClientDisconnect()
         {
             if (m_tcpCATServer == null) return;
-            if (!IsSetupFormNull)
+            if (!IsSetupFormNull && !SetupForm.IsDisposed)
                 SetupForm.TCPIPcatClientsConnectedChange = m_tcpCATServer.ClientsConnected;
         }
         private void OnTCPIIPcatClientError(SocketException se)
@@ -2489,13 +2489,13 @@ namespace Thetis
         private void OnTCIClientConnect()
         {
             if (m_tcpTCIServer == null) return;
-            if (!IsSetupFormNull)
+            if (!IsSetupFormNull && !SetupForm.IsDisposed)
                 SetupForm.TCIClientsConnectedChange = m_tcpTCIServer.ClientsConnected;
         }
         private void OnTCIClientDisconnect()
         {
             if (m_tcpTCIServer == null) return;
-            if (!IsSetupFormNull)
+            if (!IsSetupFormNull && !SetupForm.IsDisposed)
                 SetupForm.TCIClientsConnectedChange = m_tcpTCIServer.ClientsConnected;
         }
         private void OnTCIClientError(SocketException se)
@@ -11952,6 +11952,14 @@ namespace Thetis
             //vac buttons
             Common.HightlightControl(chkVAC1, bHighlight);
             Common.HightlightControl(chkVAC2, bHighlight);
+
+            //vst host bypass buttons (state saved with tx profile)
+            Common.HightlightControl(chkTXVST, bHighlight);
+            Common.HightlightControl(chkRXVST, bHighlight);
+
+            VstChainManagerForm.HighlightProfileSaveItems = bHighlight;
+            if (m_frmVstChainManager != null && !m_frmVstChainManager.IsDisposed)
+                m_frmVstChainManager.HighlightTXProfileSaveItems(bHighlight);
         }
         public bool DX
         {

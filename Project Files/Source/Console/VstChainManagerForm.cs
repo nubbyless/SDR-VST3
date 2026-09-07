@@ -102,6 +102,8 @@ namespace Thetis
         private readonly Label _detailLabel;
         private readonly ChainPage _rxPage;
         private readonly ChainPage _txPage;
+
+        public static bool HighlightProfileSaveItems;
         private readonly System.Windows.Forms.Timer _statusTimer;
         private ChainPage _activePage;
         private VstChainViewMode _viewMode;
@@ -224,6 +226,9 @@ namespace Thetis
             _rxPage = CreateChainPage(VstChainKind.Rx, "RX");
             _txPage = CreateChainPage(VstChainKind.Tx, "TX");
 
+            if (HighlightProfileSaveItems)
+                HighlightTXProfileSaveItems(true);
+
             // Asymmetric margins put a visible gap between the two racks.
             _rxPage.Column.Margin = new Padding(0, 0, 6, 0);
             _txPage.Column.Margin = new Padding(6, 0, 0, 0);
@@ -344,6 +349,12 @@ namespace Thetis
             }
 
             return width + panel.Padding.Horizontal;
+        }
+
+        public void HighlightTXProfileSaveItems(bool bHighlight)
+        {
+            Common.HightlightControl(_rxPage.ChainBypassCheckBox, bHighlight);
+            Common.HightlightControl(_txPage.ChainBypassCheckBox, bHighlight);
         }
 
         public void RefreshChains()

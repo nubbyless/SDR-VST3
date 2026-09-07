@@ -121,7 +121,7 @@ namespace Thetis
             // btnDeleteSelected
             // 
             this.btnDeleteSelected.Image = null;
-            this.btnDeleteSelected.Location = new System.Drawing.Point(246, 355);
+            this.btnDeleteSelected.Location = new System.Drawing.Point(246, 306);
             this.btnDeleteSelected.Name = "btnDeleteSelected";
             this.btnDeleteSelected.Selectable = true;
             this.btnDeleteSelected.Size = new System.Drawing.Size(117, 31);
@@ -318,7 +318,7 @@ namespace Thetis
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ControlDark;
-            this.ClientSize = new System.Drawing.Size(496, 401);
+            this.ClientSize = new System.Drawing.Size(496, 440);
             this.Controls.Add(this.chkShowInSpectrum);
             this.Controls.Add(this.chkHideOnSelect);
             this.Controls.Add(this.chkIgnoreDuplicates);
