@@ -66670,7 +66670,7 @@
             this.lblTXProfileWarning.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblTXProfileWarning.ForeColor = System.Drawing.Color.Black;
             this.lblTXProfileWarning.Image = null;
-            this.lblTXProfileWarning.Location = new System.Drawing.Point(609, 2);
+            this.lblTXProfileWarning.Location = new System.Drawing.Point(752, 2);
             this.lblTXProfileWarning.Name = "lblTXProfileWarning";
             this.lblTXProfileWarning.Size = new System.Drawing.Size(134, 33);
             this.lblTXProfileWarning.TabIndex = 24;
@@ -67332,6 +67332,7 @@
             this.tcMMsettings.SelectedIndex = 0;
             this.tcMMsettings.Size = new System.Drawing.Size(734, 489);
             this.tcMMsettings.TabIndex = 111;
+            this.tcMMsettings.Visible = false;
             // 
             // tabPage1
             // 
@@ -72615,7 +72616,7 @@
             this.KeyPreview = true;
             this.MaximizeBox = false;
             this.MaximumSize = new System.Drawing.Size(1900, 1900);
-            this.MinimumSize = new System.Drawing.Size(760, 550);
+            this.MinimumSize = new System.Drawing.Size(830, 550);
             this.Name = "Setup";
             this.Text = "Setup";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.Setup_Closing);

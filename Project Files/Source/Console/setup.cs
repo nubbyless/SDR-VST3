@@ -1487,6 +1487,26 @@ namespace Thetis
 
             chkForceATTwhenOutPowerChanges_decreased.Left = chkForceATTwhenOutPowerChanges.Right - chkForceATTwhenOutPowerChanges_decreased.Width;
             chkUndoAutoATTTx.Left = chkAutoATTTXPsOff.Right - chkUndoAutoATTTx.Width;
+
+            if (tcSetup.IsHandleCreated && tcSetup.TabCount > 0)
+            {
+                Rectangle rTab = tcSetup.GetTabRect(tcSetup.TabCount - 1);
+                int x = tcSetup.Left + rTab.Right + 6;
+                lblTXProfileWarning.Location = new Point(x, 2);
+
+                int needW = lblTXProfileWarning.Right + 10;
+                if (needW > ClientSize.Width)
+                {
+                    ClientSize = new Size(needW, ClientSize.Height);
+                    MaximumSize = Size;
+                    MinimumSize = Size;
+                }
+            }
+
+            btnApply.Left = ClientSize.Width - btnApply.Width - 10;
+            btnCancel.Left = btnApply.Left - btnCancel.Width - 6;
+            btnOK.Left = btnCancel.Left - btnOK.Width - 6;
+            labelSavingLoading.Left = ClientSize.Width - labelSavingLoading.Width - 10;
         }
         public new void Hide()
         {
