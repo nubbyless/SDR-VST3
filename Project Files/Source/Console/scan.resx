@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="textBox3.Text" xml:space="preserve">
-    <value>MEMORY Scan, SWL Scan or BandStack Scan or Custom list:  Records Signal Strength -dBm
+    <value>MEMORY Scan, BandStack Scan or Custom list:  Records Signal Strength -dBm
 Select Memory GROUP, Scan Speed, and Squelch Break Pause options.
 
 Memory scan only: Left click on Memory = send to VFOA, Wheel click on Memory = send to VFOB, 
@@ -126,10 +126,7 @@ Right Click = Toggle memory Channel Scan (ignore) OFF/ON
 
 LOW-HIGH SCAN: Scans from Low to High Frequency within same Band.
 Select Step Size and Speed and Squelch Break option.
-Remember to set SQUELCH LEVEL correctly. 
-
-SWR transmits 10 watts and records up to 5 runs per band, for up to 3 antennas. 
-Right click on SWR button to open up recording folder.</value>
+Remember to set SQUELCH LEVEL correctly.</value>
   </data>
   <metadata name="toolTip1.TrayLocation" type="System.Drawing.Point, System.Drawing, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
     <value>157, 17</value>

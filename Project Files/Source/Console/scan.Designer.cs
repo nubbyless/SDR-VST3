@@ -204,7 +204,7 @@ namespace Thetis
             this.currFBox.Cursor = System.Windows.Forms.Cursors.Default;
             this.currFBox.Font = new System.Drawing.Font("Courier New", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.currFBox.HideSelection = false;
-            this.currFBox.Location = new System.Drawing.Point(12, 133);
+            this.currFBox.Location = new System.Drawing.Point(12, 157);
             this.currFBox.MaximumSize = new System.Drawing.Size(1000, 1000);
             this.currFBox.MaxLength = 10000000;
             this.currFBox.MinimumSize = new System.Drawing.Size(300, 100);
@@ -221,7 +221,7 @@ namespace Thetis
             // 
             this.label3.AutoSize = true;
             this.label3.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.label3.Location = new System.Drawing.Point(9, 117);
+            this.label3.Location = new System.Drawing.Point(9, 120);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(33, 13);
             this.label3.TabIndex = 78;
@@ -231,7 +231,7 @@ namespace Thetis
             // 
             this.label7.AutoSize = true;
             this.label7.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.label7.Location = new System.Drawing.Point(220, 117);
+            this.label7.Location = new System.Drawing.Point(220, 120);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(57, 13);
             this.label7.TabIndex = 79;
@@ -241,7 +241,7 @@ namespace Thetis
             // 
             this.label8.AutoSize = true;
             this.label8.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.label8.Location = new System.Drawing.Point(352, 117);
+            this.label8.Location = new System.Drawing.Point(352, 120);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(35, 13);
             this.label8.TabIndex = 80;
@@ -251,7 +251,7 @@ namespace Thetis
             // 
             this.label9.AutoSize = true;
             this.label9.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.label9.Location = new System.Drawing.Point(448, 117);
+            this.label9.Location = new System.Drawing.Point(448, 120);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(129, 13);
             this.label9.TabIndex = 81;
@@ -261,7 +261,7 @@ namespace Thetis
             // 
             this.pausebtn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.pausebtn.BackColor = System.Drawing.SystemColors.ControlLight;
-            this.pausebtn.Location = new System.Drawing.Point(18, 546);
+            this.pausebtn.Location = new System.Drawing.Point(18, 570);
             this.pausebtn.Name = "pausebtn";
             this.pausebtn.Size = new System.Drawing.Size(81, 23);
             this.pausebtn.TabIndex = 66;
@@ -394,7 +394,7 @@ namespace Thetis
             0,
             0,
             0});
-            this.udPauseLength.Location = new System.Drawing.Point(118, 546);
+            this.udPauseLength.Location = new System.Drawing.Point(118, 570);
             this.udPauseLength.Maximum = new decimal(new int[] {
             9999,
             0,
@@ -420,7 +420,7 @@ namespace Thetis
             this.chkBoxSQLBRK.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkBoxSQLBRK.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.chkBoxSQLBRK.Image = null;
-            this.chkBoxSQLBRK.Location = new System.Drawing.Point(112, 487);
+            this.chkBoxSQLBRK.Location = new System.Drawing.Point(112, 511);
             this.chkBoxSQLBRK.Name = "chkBoxSQLBRK";
             this.chkBoxSQLBRK.Size = new System.Drawing.Size(104, 31);
             this.chkBoxSQLBRK.TabIndex = 62;
@@ -513,7 +513,7 @@ namespace Thetis
             this.chkBoxSQLBRKWait.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkBoxSQLBRKWait.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.chkBoxSQLBRKWait.Image = null;
-            this.chkBoxSQLBRKWait.Location = new System.Drawing.Point(12, 487);
+            this.chkBoxSQLBRKWait.Location = new System.Drawing.Point(12, 511);
             this.chkBoxSQLBRKWait.Name = "chkBoxSQLBRKWait";
             this.chkBoxSQLBRKWait.Size = new System.Drawing.Size(104, 31);
             this.chkBoxSQLBRKWait.TabIndex = 95;
@@ -554,7 +554,7 @@ namespace Thetis
             this.label11.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label11.AutoSize = true;
             this.label11.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.label11.Location = new System.Drawing.Point(115, 522);
+            this.label11.Location = new System.Drawing.Point(115, 546);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(101, 13);
             this.label11.TabIndex = 92;
@@ -564,7 +564,7 @@ namespace Thetis
             // 
             this.label12.AutoSize = true;
             this.label12.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.label12.Location = new System.Drawing.Point(100, 117);
+            this.label12.Location = new System.Drawing.Point(100, 120);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(36, 13);
             this.label12.TabIndex = 93;
@@ -584,7 +584,7 @@ namespace Thetis
             this.groupBoxTS2.Controls.Add(this.labelTS23);
             this.groupBoxTS2.Controls.Add(this.chkBoxIdent);
             this.groupBoxTS2.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.groupBoxTS2.Location = new System.Drawing.Point(222, 472);
+            this.groupBoxTS2.Location = new System.Drawing.Point(222, 496);
             this.groupBoxTS2.Name = "groupBoxTS2";
             this.groupBoxTS2.Size = new System.Drawing.Size(410, 98);
             this.groupBoxTS2.TabIndex = 94;
@@ -670,7 +670,7 @@ namespace Thetis
             this.grpGenCustomTitleText.Controls.Add(this.button1);
             this.grpGenCustomTitleText.Controls.Add(this.label10);
             this.grpGenCustomTitleText.ForeColor = System.Drawing.SystemColors.ControlLightLight;
-            this.grpGenCustomTitleText.Location = new System.Drawing.Point(12, 290);
+            this.grpGenCustomTitleText.Location = new System.Drawing.Point(12, 314);
             this.grpGenCustomTitleText.Name = "grpGenCustomTitleText";
             this.grpGenCustomTitleText.Size = new System.Drawing.Size(620, 176);
             this.grpGenCustomTitleText.TabIndex = 61;
@@ -868,7 +868,7 @@ namespace Thetis
             // ScanControl
             // 
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.ClientSize = new System.Drawing.Size(644, 577);
+            this.ClientSize = new System.Drawing.Size(644, 601);
             this.Controls.Add(this.groupBoxTS2);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);

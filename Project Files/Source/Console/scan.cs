@@ -675,6 +675,8 @@ namespace Thetis
 
             UpdateText(); // upate currFBox text
 
+            btnGroupMemory.Enabled = true;
+
             Debug.WriteLine("memory list8a " + memcount);
 
             Debug.WriteLine("memory list8b " + memcount);
@@ -2324,28 +2326,14 @@ namespace Thetis
 
                         yyy = 0;
 
-                        if (iii > memIndex[memtotal])
+                        if (iii >= memtotal)
                         {
-                            Debug.WriteLine("clicked beyond index length " + memIndex[memtotal]);
+                            Debug.WriteLine("clicked beyond index length " + memtotal);
                             return;
 
                         }
 
-                        if (comboBoxTS1.Text != "") //.221 add so clicking on memory in the scan screen will pull up all memory parameters
-                        {
-                            Debug.WriteLine("MEMORY CLICK. restore memory " + xxx);
-
-                            comboMemGroupName.SelectedIndex = memIndex[xxx];
-                            recordToRestore = new MemoryRecord((MemoryRecord)comboMemGroupName.SelectedItem); // ke9ns   you select index in the combo pulldown list
-
-                            Debug.WriteLine("CHANGE MEMORY TO " + recordToRestore.RXFreq);
-                            console.RecallMemory(recordToRestore);
-
-
-                        }
-
                         int counter = 0;
-
 
                         for (int i = 0; i < memcount; i++) // find all the memories with the same group name
                         {
@@ -2365,10 +2353,35 @@ namespace Thetis
                                     if (scan == true) dataGridView2["Scan", i].Value = false; // ke9ns add .226 change value here (in memoryForm.cs)
                                     else dataGridView2["Scan", i].Value = true;
 
-                                    console.SetBand(mode, filter, freq);
-
                                     UpdateText(); // update memory currfbox.text .226
 
+                                    if (comboBoxTS1.Text != "") //.221 add so clicking on memory in the scan screen will pull up all memory parameters
+                                    {
+                                        try
+                                        {
+                                            Debug.WriteLine("MEMORY CLICK. restore memory " + i);
+
+                                            if (i < comboMemGroupName.Items.Count)
+                                            {
+                                                comboMemGroupName.SelectedIndex = i;
+                                                recordToRestore = new MemoryRecord((MemoryRecord)comboMemGroupName.SelectedItem); // ke9ns   you select index in the combo pulldown list
+                                                console.RecallMemory(recordToRestore);
+                                            }
+                                        }
+                                        catch (Exception q)
+                                        {
+                                            Debug.WriteLine("scan marker recall fail " + q);
+                                        }
+                                    }
+
+                                    try
+                                    {
+                                        console.SetBand(mode, filter, freq);
+                                    }
+                                    catch (Exception q)
+                                    {
+                                        Debug.WriteLine("scan marker setband fail " + q);
+                                    }
 
                                     return;
                                 }
