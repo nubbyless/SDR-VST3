@@ -346,6 +346,7 @@
         private MenuStrip menuStrip1;
         private ToolStripMenuItem setupToolStripMenuItem;
         private ToolStripMenuItem memoryToolStripMenuItem;
+        private ToolStripMenuItem scanToolStripMenuItem; // ke9ns add Scanner
         private ToolStripMenuItem equalizerToolStripMenuItem;
         private ToolStripMenuItem xVTRsToolStripMenuItem;
         private ToolStripMenuItem cWXToolStripMenuItem;
@@ -771,6 +772,7 @@
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.databaseManagerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.memoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.scanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem(); // ke9ns add Scanner
             this.equalizerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.vstToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xVTRsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -4287,6 +4289,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.setupToolStripMenuItem,
             this.memoryToolStripMenuItem,
+            this.scanToolStripMenuItem,
             this.equalizerToolStripMenuItem,
             this.vstToolStripMenuItem,
             this.xVTRsToolStripMenuItem,
@@ -4342,6 +4345,13 @@
             this.memoryToolStripMenuItem.Name = "memoryToolStripMenuItem";
             resources.ApplyResources(this.memoryToolStripMenuItem, "memoryToolStripMenuItem");
             this.memoryToolStripMenuItem.Click += new System.EventHandler(this.memoryToolStripMenuItem_Click);
+            // 
+            // scanToolStripMenuItem
+            // 
+            this.scanToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.scanToolStripMenuItem.Name = "scanToolStripMenuItem";
+            this.scanToolStripMenuItem.Text = "Scanner";
+            this.scanToolStripMenuItem.Click += new System.EventHandler(this.ScanMenuItem_Click);
             // 
             // equalizerToolStripMenuItem
             // 

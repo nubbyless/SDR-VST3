@@ -159,6 +159,7 @@ namespace Thetis
 
         public MemoryForm memoryForm;
         public MemoryList MemoryList { get; private set; }
+        public ScanControl ScanForm; // ke9ns add Scanner
         //public WaveControl WaveForm;
 
         //====================================================================================
@@ -5797,22 +5798,28 @@ namespace Thetis
 
         private void DisableAllModes()
         {
-            foreach (RadioButtonTS r in panelMode.Controls)
+            foreach (Control c in panelMode.Controls)
             {
-                r.Enabled = false;
-                if (r.BackColor == button_selected_color)
-                    r.BackColor = vfo_text_dark_color;
+                if (c is RadioButtonTS r)
+                {
+                    r.Enabled = false;
+                    if (r.BackColor == button_selected_color)
+                        r.BackColor = vfo_text_dark_color;
+                }
             }
         }
 
         private void EnableAllModes()
         {
-            foreach (RadioButtonTS r in panelMode.Controls)
+            foreach (Control c in panelMode.Controls)
             {
-                if (!string.IsNullOrEmpty(r.Text))
-                    r.Enabled = true;
-                if (r.BackColor == vfo_text_dark_color)
-                    r.BackColor = button_selected_color;
+                if (c is RadioButtonTS r)
+                {
+                    if (!string.IsNullOrEmpty(r.Text))
+                        r.Enabled = true;
+                    if (r.BackColor == vfo_text_dark_color)
+                        r.BackColor = button_selected_color;
+                }
             }
         }
 
@@ -5982,6 +5989,30 @@ namespace Thetis
                 )
                 SetBandChangeHanders?.Invoke(1, oldBand, RX1Band, oldMode, RX1DSPMode, oldFilter, RX1Filter, oldFreq, VFOAFreq,
                     oldCentreFreq, CentreFrequency, oldCtun, ClickTuneDisplay, oldZoomSlider, ptbDisplayZoom.Value);
+        }
+
+        // ke9ns add 3-arg SetBand convenience overload for the Scanner
+        public void SetBand(string mode, string filter, double freq)
+        {
+            SetBand(mode, filter, freq, false, ptbDisplayZoom.Value, 0);
+        }
+
+        // ke9ns add .222 SetBand2 for the SCAN (RX2 / VFO B)
+        public void SetBand2(string mode, string filter, double freq)
+        {
+            // Set mode, filter, and frequency according to passed parameters
+            RX2DSPMode = (DSPMode)Enum.Parse(typeof(DSPMode), mode, true);
+
+            if (_rx2_dsp_mode != DSPMode.DRM && _rx2_dsp_mode != DSPMode.SPEC)
+            {
+                RX2Filter = (Filter)Enum.Parse(typeof(Filter), filter, true);
+            }
+
+            _force_vfo_update = true;
+            VFOBFreq = freq;
+            _force_vfo_update = false;
+
+            PanCentreRX2();
         }
 
         private RadioButtonTS getButtonForBand(Band b)
@@ -28658,6 +28689,7 @@ namespace Thetis
             if (EQForm != null) EQForm.Close();
             if (m_frmVstChainManager != null) m_frmVstChainManager.Close();
             if (memoryForm != null) memoryForm.Close();
+            if (ScanForm != null && !ScanForm.IsDisposed) ScanForm.Dispose();
             if (diversityForm != null) diversityForm.Close();
 
             if (psform != null) psform.Close();
@@ -29262,7 +29294,13 @@ namespace Thetis
             if (_mox) signal_x = sql_x = 0;
             e.Graphics.FillRectangle(Brushes.LimeGreen, 0, 0, signal_x, picSquelch.Height);
             if (sql_x < signal_x)
+            {
                 e.Graphics.FillRectangle(Brushes.Red, sql_x + 1, 0, signal_x - sql_x - 1, picSquelch.Height);
+                ScanControl.ScanStop = 1; // ke9ns add for scanner
+            }
+
+            ScanControl.SQL = (int)ptbSquelch.Value;
+            ScanControl.SIG = (int)sql_data;
         }
 
         private void chkNoiseGate_CheckedChanged(object sender, System.EventArgs e)
@@ -39379,7 +39417,13 @@ namespace Thetis
             //if (_mox) signal_x = sql_x = 0;
             e.Graphics.FillRectangle(Brushes.LimeGreen, 0, 0, signal_x, picRX2Squelch.Height);
             if (sql_x < signal_x)
+            {
                 e.Graphics.FillRectangle(Brushes.Red, sql_x + 1, 0, signal_x - sql_x - 1, picRX2Squelch.Height);
+                ScanControl.ScanStop2 = 1; // ke9ns add for scanner .244
+            }
+
+            ScanControl.SQL2 = (int)ptbRX2Squelch.Value;
+            ScanControl.SIG2 = (int)rx2_sql_data;
         }
         private void chkRX1Preamp_CheckedChanged(object sender, System.EventArgs e)
         {
@@ -41385,6 +41429,37 @@ namespace Thetis
             RF = record.AGCT;
         }
 
+        // ke9ns add .206 RX2 - recall memory for the SCAN (2nd RX / VFO B)
+        public void RecallMemoryB(MemoryRecord record)
+        {
+            VFOBFreq = record.RXFreq;
+            RX2DSPMode = record.DSPMode;
+
+            TuneStepIndex = TuneStepLookup(record.TuneStep);
+
+            if (record.DSPMode == DSPMode.FM)
+            {
+                CurrentFMTXMode = record.RPTR;
+                FMTXOffsetMHz = record.RPTROffset;
+                CTCSSOn = record.CTCSSOn;
+                CTCSSFreq = record.CTCSSFreq;
+                FMDeviation_Hz = record.Deviation;
+            }
+            else
+            {
+                RX2Filter = record.RXFilter;
+                if (record.RXFilter == Filter.VAR1 || record.RXFilter == Filter.VAR2)
+                    UpdateRX2Filters(record.RXFilterLow, record.RXFilterHigh);
+            }
+
+            PWR = record.Power;
+            VFOSplit = record.Split;
+            TXFreq = record.TXFreq;
+            RX2AGCMode = record.AGCMode;
+            if (RX2RF != record.AGCT && AutoAGCRX2) AutoAGCRX2 = false; // turn off 'auto agc' only if different MW0LGE_21k8
+            RX2RF = record.AGCT;
+        }
+
         private void comboFMMemory_SelectedIndexChanged(object sender, EventArgs e)
         {
             if (comboFMMemory.Items.Count == 0 || comboFMMemory.SelectedItem == null) return;
@@ -41458,6 +41533,28 @@ namespace Thetis
                 memoryForm.Show();
                 memoryForm.Focus();
                 SetFocusMaster(false);
+            }
+        }
+
+        // ke9ns add Scanner
+        private void ScanMenuItem_Click(object sender, EventArgs e)
+        {
+            if (ScanForm == null || ScanForm.IsDisposed)
+                ScanForm = new ScanControl(this);
+            if (ScanForm.InvokeRequired)
+            {
+                ScanForm.Invoke(new MethodInvoker(() =>
+                {
+                    ScanForm.Show();
+                    ScanForm.Focus();
+                    ScanForm.WindowState = FormWindowState.Normal;
+                }));
+            }
+            else
+            {
+                ScanForm.Show();
+                ScanForm.Focus();
+                ScanForm.WindowState = FormWindowState.Normal;
             }
         }
 
@@ -46782,6 +46879,8 @@ namespace Thetis
                         setBandPanelVisible(false, false, true);
                         break;
                 }
+
+                if (ScanForm != null && !ScanForm.IsDisposed) ScanForm.UpdateBandScanRange(); // ke9ns add for the Scanner
             }
 
             //reset smeter pixel history //MW0LGE_21a

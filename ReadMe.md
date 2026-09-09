@@ -27,6 +27,19 @@ Forked from his original at his github page
 https://github.com/ChasingCoffee/Thetis/tree/vst-support
 
 
+Credits — RADE / FreeDV digital voice
+The RADE (Radio AutoEncoder) digital-voice modem and FreeDV integration was ported from Christos Nikolaou's (SV1EIA) Thetis-RADE fork:
+https://github.com/sv1eia/Thetis-RADE
+
+Special thanks to:
+- Christos Nikolaou (SV1EIA) <sv1eia@gmail.com> — the Thetis-RADE fork and C port of the RADE modem this feature is built on
+- Peter B Marks — radae_nopy, the reference implementation the RADE port was made from
+- David Rowe & Jean-Marc Valin — original authors of RADE (Radio AutoEncoder)
+- The FreeDV project (David Rowe / drowe67) — FreeDV-GUI's rade_text reliable-text codec and the codec2 library used for EOO callsign frames
+
+The RADE DSP dependencies vendored under Project Files/lib/ keep their own licences (BSD-2-Clause / BSD-3-Clause / MIT / LGPL-2.1); see the commit_pin.txt and LICENSE / NOTICE files in each lib/<vendor> directory.
+
+
 Changelog
 VST2 Support Removed
 Removed VST2 plugin support entirely to avoid potential licensing and legal issues. It now exclusively supports VST3 plugins.
