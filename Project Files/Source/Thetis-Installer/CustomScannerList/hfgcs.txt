@@ -1,0 +1,99 @@
+Air Force GHFS primary days,11.175,USB,F1
+Air Force GHFS primary nights,6.739,USB,F1
+Air Force GHFS,4.725,USB,F1
+Air Force GHFS,8.993,USB,F1
+Air Combat Command (ACC) ops.,9.014,USB,F1
+STRATCOM primary days,11.243,USB,F1
+STRATCOM primary nights,6.761,USB,F1
+MYSTIC STAR primary AF-1/AF-2 SAMs,6.812,USB,F1
+Air Force GHFS McClellan/MacDill AFB,11.246,USB,F1
+Air Force GHFS (old SAC S-394),13.201,USB,F1
+Air Force GHS Andrews/MacDill AFB,13.215,USB,F1
+Air Force GHFS,13.244,USB,F1
+search & rescue all military,5.680,USB,F1
+Primary USCG aviation (nights),5.696,USB,F1
+USCG (primary days) secondary nights,8.984,USB,F1
+US Navy HICOM,6.697,USB,F1
+US Navy HICOM,11.267,USB,F1
+NORAD primary nights,9.023,USB,F1
+STRATCOM (old SAC),13.241,USB,F1
+STRATCOM Sierra 302,3.113,USB,F1
+STRATCOM,13.205,USB,F1
+STRATCOM X-Ray 906,13.217,USB,F1
+Mystic Star/Andrews AFB STRATCOM,13.247,USB,F1
+ACC (secondary) tactical ops.,15.091,USB,F1
+STRATCOM Alpha Sierra,3.369,USB,F1
+STRATCOM Sierra 304,4.495,USB,F1
+Mystic Star/Andrews AFB,4.721,USB,F1
+Air Force GHFS (discrete),18.002,USB,F1
+Air Force GHFS,18.046,USB,F1
+STRATCOM Foxtrot,5.020,USB,F1
+STRATCOM (discrete),7.972,USB,F1
+Air Force GHFS,17.975,USB,F1
+STRATCOM (old SAC Whiskey),20.631,USB,F1
+ACC tactical (old SAC Charlie Alpha),20.846,USB,F1
+Navy anti submarine warfare ops.,8.872,USB,F1
+Air Mobility Command (AMC) ops.,5.197,USB,F1
+AMC ops.,18.027,USB,F1
+NORAD,11.214,USB,F1
+NORAD,5.297,USB,F1
+NORAD,9.793,USB,F1
+NORAD,10.194,USB,F1
+NORAD,10.452,USB,F1
+STRATCOM,5.328,USB,F1
+NORAD,11.441,USB,F1
+NORAD,14.364,USB,F1
+NORAD,20.855,USB,F1
+STRATCOM Papa 382,5.826,USB,F1
+STRATCOM Golf,6.826,USB,F1
+STRATCOM X-ray-Yankee,7.330,USB,F1
+STRATCOM Foxtrot Charlie,7.983,USB,F1
+STRATCOM Alpha Papa,8.101,USB,F1
+STRATCOM Sierra 309,9.057,USB,F1
+STRATCOM Oscar,10.452,USB,F1
+NORAD Charlie Two,6.735,USB,F1
+NORAD/CAP,9.232,USB,F1
+NORAD,14.894,USB,F1
+NORAD,20.855,USB,F1
+ACC,3.383,USB,F1
+ACC,3.365,USB,F1
+ACC,3.394,USB,F1
+ACC,4.474,USB,F1
+ACC,11.016,USB,F1
+ACC,11.214,USB,F1
+Aerospace Rescue & Recovery Service,6.715,USB,F1
+Aerospace Rescue & Recovery Service,11.440,USB,F1
+Civil Air Patrol (emergency and calling),4.582,USB,F1
+Civil Air Patrol (CAP),4.466,USB,F1
+CAP,4.627,USB,F1
+ACC tactical ops.,5.700,USB,F1
+search & rescue,3.023,USB,F1
+Navy HICOM Pacific Fleet,4.416,USB,F1
+ACC tactical,8.711,USB,F1
+ACC,10.267,USB,F1
+ACC,10.665,USB,F1
+Navy Anti Submarine Warfare Pacific,4.700,USB,F1
+Navy Anti Submarine Warfare Atlantic,4.702,USB,F1
+USMC tactical nets,5.446,USB,F1
+USMC special convoys,6.687,USB,F1
+Navy HICOM Pacific,13.181,USB,F1
+Hurricane Hunters primary nights,6.673,USB,F1
+Hurricane Hunters primary days,13.267,USB,F1
+Hurricane Hunters secondary nights,5.562,USB,F1
+ACC,11.510,USB,F1
+ACC,11.240,USB,F1
+Royal Air Force,4.540,USB,F1
+Royal Air Force,5.729,USB,F1
+Royal Air Force,6.690,USB,F1
+Royal Air Force,6.730,USB,F1
+Royal Air Force,8.990,USB,F1
+Canadian Air Force,11.249,USB,F1
+Canadian Air Force,6.746,USB,F1
+Canadian Air Force,13.257,USB,F1
+ACC tactical/STRATCOM Whiskey 100,5.800,USB,F1
+ACC tactical,6.753,USB,F1
+ACC tactical (discrete),8.964,USB,F1
+ACC tactical,11.627,USB,F1
+Air Force GHFS,17.975,USB,F1
+STRATCOM (old SAC Mike channel),15.041,USB,F1
+STRATCOM/NORAD intercommunications,23.419,USB,F1

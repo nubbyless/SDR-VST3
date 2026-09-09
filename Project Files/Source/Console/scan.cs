@@ -102,6 +102,25 @@ namespace Thetis
         private void ScanControl_Load(object sender, EventArgs e)
         {
 
+            // safeguard: clear any stale scan state left over from a previous session
+            ScanRun = false;
+            ScanPause = false;
+            ScanStop = 0;
+            ScanStop2 = 0;
+            ScanRST = 0;
+            scanstop = false;
+            scanstop2 = false;
+            SP5_Active = 0;
+            ScanVFOB = false;
+            ST2.Stop();
+            ST2.Reset();
+            ST3.Stop();
+            ST3.Reset();
+            btnBandstack.BackColor = SystemColors.ControlLight;
+            btnGroupMemory.BackColor = SystemColors.ControlLight;
+            btnCustomList.BackColor = SystemColors.ControlLight;
+            pausebtn.BackColor = SystemColors.ControlLight;
+
             comboMemGroupName.DataSource = console.MemoryList.List; // upon loading, load up the current memory listing into the combobox
             comboMemGroupName.DisplayMember = "Group";
             comboMemGroupName.ValueMember = "Group";

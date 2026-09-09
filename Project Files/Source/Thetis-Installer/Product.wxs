@@ -82,6 +82,7 @@
       <ComponentGroupRef Id="ProductComponents" />
       <ComponentGroupRef Id="LspComponents" />
       <ComponentGroupRef Id="SDRVST3SkinComponents" />
+      <ComponentGroupRef Id="HfgcsComponents" />
       <ComponentGroupRef Id="RuntimeAssets" />
       <ComponentGroupRef Id="LicensesComponents" />
       <ComponentRef Id="StartMenuShortcut" />
@@ -138,6 +139,14 @@
       <Component Guid="*" Directory="LicensesDir"><File Id="NoticeFTDI" Source="$(var.LicensesPath)NOTICE-FTDI2XX.txt" KeyPath="yes"/></Component>
       <Component Guid="*" Directory="LicensesDir"><File Id="LicPortAudio" Source="$(var.LicensesPath)LICENSE-PortAudio.txt" KeyPath="yes"/></Component>
       <Component Guid="*" Directory="LicensesDir"><File Id="LicSpecbleach" Source="$(var.LicensesPath)LICENSE-libspecbleach.txt" KeyPath="yes"/></Component>
+    </ComponentGroup>
+
+    <!-- default GCS (global communications system) scanner list shipped to the user's AppData
+         so the Custom Scanner List is ready to use after install; ~/.config path on x64 -->
+    <ComponentGroup Id="HfgcsComponents">
+      <Component Id="HfgcsTxt" Guid="*" Directory="CustomScannerListDir">
+        <File Id="HfgcsTxtFile" Source="CustomScannerList\hfgcs.txt" KeyPath="yes" />
+      </Component>
     </ComponentGroup>
 
     <Feature Id="VC145Redist" Title="Visual C++ 14.5 Runtime" AllowAdvertise="no" Display="hidden" Level="1">
@@ -229,6 +238,14 @@
       </Directory>
       
     </Directory>
+  </Fragment>
+
+  <Fragment>
+    <DirectoryRef Id="OpenHPSDRAppData">
+      <Directory Id="SDRVST3x64AppData" Name="SDR-VST3-x64">
+        <Directory Id="CustomScannerListDir" Name="CustomScannerList" />
+      </Directory>
+    </DirectoryRef>
   </Fragment>
 
   <Fragment>
