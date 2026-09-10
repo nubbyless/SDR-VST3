@@ -53460,7 +53460,7 @@
             this.clrbtnBandBackground.Automatic = "Automatic";
             this.clrbtnBandBackground.Color = System.Drawing.Color.Black;
             this.clrbtnBandBackground.Image = null;
-            this.clrbtnBandBackground.Location = new System.Drawing.Point(88, 76);
+            this.clrbtnBandBackground.Location = new System.Drawing.Point(102, 76);
             this.clrbtnBandBackground.MoreColors = "More Colors...";
             this.clrbtnBandBackground.Name = "clrbtnBandBackground";
             this.clrbtnBandBackground.Selectable = true;
@@ -53473,7 +53473,7 @@
             this.lblBandBackground.Image = null;
             this.lblBandBackground.Location = new System.Drawing.Point(14, 81);
             this.lblBandBackground.Name = "lblBandBackground";
-            this.lblBandBackground.Size = new System.Drawing.Size(72, 24);
+            this.lblBandBackground.Size = new System.Drawing.Size(86, 24);
             this.lblBandBackground.TabIndex = 74;
             this.lblBandBackground.Text = "Background:";
             // 
@@ -53482,7 +53482,7 @@
             this.clrbtnBandLight.Automatic = "Automatic";
             this.clrbtnBandLight.Color = System.Drawing.Color.Lime;
             this.clrbtnBandLight.Image = null;
-            this.clrbtnBandLight.Location = new System.Drawing.Point(88, 46);
+            this.clrbtnBandLight.Location = new System.Drawing.Point(102, 46);
             this.clrbtnBandLight.MoreColors = "More Colors...";
             this.clrbtnBandLight.Name = "clrbtnBandLight";
             this.clrbtnBandLight.Selectable = true;
@@ -53495,7 +53495,7 @@
             this.clrbtnBandDark.Automatic = "Automatic";
             this.clrbtnBandDark.Color = System.Drawing.Color.Green;
             this.clrbtnBandDark.Image = null;
-            this.clrbtnBandDark.Location = new System.Drawing.Point(88, 17);
+            this.clrbtnBandDark.Location = new System.Drawing.Point(102, 17);
             this.clrbtnBandDark.MoreColors = "More Colors...";
             this.clrbtnBandDark.Name = "clrbtnBandDark";
             this.clrbtnBandDark.Selectable = true;
@@ -53508,7 +53508,7 @@
             this.lblBandLight.Image = null;
             this.lblBandLight.Location = new System.Drawing.Point(14, 51);
             this.lblBandLight.Name = "lblBandLight";
-            this.lblBandLight.Size = new System.Drawing.Size(64, 24);
+            this.lblBandLight.Size = new System.Drawing.Size(86, 24);
             this.lblBandLight.TabIndex = 63;
             this.lblBandLight.Text = "Active:";
             // 
@@ -53517,7 +53517,7 @@
             this.lblBandDark.Image = null;
             this.lblBandDark.Location = new System.Drawing.Point(14, 22);
             this.lblBandDark.Name = "lblBandDark";
-            this.lblBandDark.Size = new System.Drawing.Size(64, 24);
+            this.lblBandDark.Size = new System.Drawing.Size(86, 24);
             this.lblBandDark.TabIndex = 61;
             this.lblBandDark.Text = "Inactive:";
             // 
@@ -53526,7 +53526,7 @@
             this.clrbtnOutOfBand.Automatic = "Automatic";
             this.clrbtnOutOfBand.Color = System.Drawing.Color.DimGray;
             this.clrbtnOutOfBand.Image = null;
-            this.clrbtnOutOfBand.Location = new System.Drawing.Point(88, 106);
+            this.clrbtnOutOfBand.Location = new System.Drawing.Point(102, 106);
             this.clrbtnOutOfBand.MoreColors = "More Colors...";
             this.clrbtnOutOfBand.Name = "clrbtnOutOfBand";
             this.clrbtnOutOfBand.Selectable = true;
@@ -53539,7 +53539,7 @@
             this.lblOutOfBand.Image = null;
             this.lblOutOfBand.Location = new System.Drawing.Point(14, 111);
             this.lblOutOfBand.Name = "lblOutOfBand";
-            this.lblOutOfBand.Size = new System.Drawing.Size(72, 24);
+            this.lblOutOfBand.Size = new System.Drawing.Size(86, 24);
             this.lblOutOfBand.TabIndex = 72;
             this.lblOutOfBand.Text = "Out Of Band:";
             // 
@@ -53568,7 +53568,7 @@
             this.clrbtnInfoButtonsColor.Automatic = "Automatic";
             this.clrbtnInfoButtonsColor.Color = System.Drawing.Color.DarkOrange;
             this.clrbtnInfoButtonsColor.Image = null;
-            this.clrbtnInfoButtonsColor.Location = new System.Drawing.Point(88, 210);
+            this.clrbtnInfoButtonsColor.Location = new System.Drawing.Point(102, 210);
             this.clrbtnInfoButtonsColor.MoreColors = "More Colors...";
             this.clrbtnInfoButtonsColor.Name = "clrbtnInfoButtonsColor";
             this.clrbtnInfoButtonsColor.Selectable = true;
@@ -53581,7 +53581,7 @@
             this.labelTS58.Image = null;
             this.labelTS58.Location = new System.Drawing.Point(13, 215);
             this.labelTS58.Name = "labelTS58";
-            this.labelTS58.Size = new System.Drawing.Size(60, 23);
+            this.labelTS58.Size = new System.Drawing.Size(86, 23);
             this.labelTS58.TabIndex = 74;
             this.labelTS58.Text = "Info Color:";
             // 
@@ -53590,7 +53590,7 @@
             this.clrbtnVFOBackground.Automatic = "Automatic";
             this.clrbtnVFOBackground.Color = System.Drawing.Color.Black;
             this.clrbtnVFOBackground.Image = null;
-            this.clrbtnVFOBackground.Location = new System.Drawing.Point(88, 76);
+            this.clrbtnVFOBackground.Location = new System.Drawing.Point(102, 76);
             this.clrbtnVFOBackground.MoreColors = "More Colors...";
             this.clrbtnVFOBackground.Name = "clrbtnVFOBackground";
             this.clrbtnVFOBackground.Selectable = true;
@@ -53603,7 +53603,7 @@
             this.lblVFOBackground.Image = null;
             this.lblVFOBackground.Location = new System.Drawing.Point(13, 81);
             this.lblVFOBackground.Name = "lblVFOBackground";
-            this.lblVFOBackground.Size = new System.Drawing.Size(72, 24);
+            this.lblVFOBackground.Size = new System.Drawing.Size(86, 24);
             this.lblVFOBackground.TabIndex = 72;
             this.lblVFOBackground.Text = "Background:";
             // 
@@ -53612,7 +53612,7 @@
             this.clrbtnVFOSmallColor.Automatic = "Automatic";
             this.clrbtnVFOSmallColor.Color = System.Drawing.Color.OrangeRed;
             this.clrbtnVFOSmallColor.Image = null;
-            this.clrbtnVFOSmallColor.Location = new System.Drawing.Point(88, 181);
+            this.clrbtnVFOSmallColor.Location = new System.Drawing.Point(102, 181);
             this.clrbtnVFOSmallColor.MoreColors = "More Colors...";
             this.clrbtnVFOSmallColor.Name = "clrbtnVFOSmallColor";
             this.clrbtnVFOSmallColor.Selectable = true;
@@ -53625,7 +53625,7 @@
             this.lblVFOSmallColor.Image = null;
             this.lblVFOSmallColor.Location = new System.Drawing.Point(13, 186);
             this.lblVFOSmallColor.Name = "lblVFOSmallColor";
-            this.lblVFOSmallColor.Size = new System.Drawing.Size(72, 24);
+            this.lblVFOSmallColor.Size = new System.Drawing.Size(86, 24);
             this.lblVFOSmallColor.TabIndex = 70;
             this.lblVFOSmallColor.Text = "Small Color:";
             // 
@@ -53646,7 +53646,7 @@
             this.clrbtnVFOLight.Automatic = "Automatic";
             this.clrbtnVFOLight.Color = System.Drawing.Color.Yellow;
             this.clrbtnVFOLight.Image = null;
-            this.clrbtnVFOLight.Location = new System.Drawing.Point(88, 46);
+            this.clrbtnVFOLight.Location = new System.Drawing.Point(102, 46);
             this.clrbtnVFOLight.MoreColors = "More Colors...";
             this.clrbtnVFOLight.Name = "clrbtnVFOLight";
             this.clrbtnVFOLight.Selectable = true;
@@ -53659,7 +53659,7 @@
             this.clrbtnVFODark.Automatic = "Automatic";
             this.clrbtnVFODark.Color = System.Drawing.Color.Olive;
             this.clrbtnVFODark.Image = null;
-            this.clrbtnVFODark.Location = new System.Drawing.Point(88, 17);
+            this.clrbtnVFODark.Location = new System.Drawing.Point(102, 17);
             this.clrbtnVFODark.MoreColors = "More Colors...";
             this.clrbtnVFODark.Name = "clrbtnVFODark";
             this.clrbtnVFODark.Selectable = true;
@@ -53672,7 +53672,7 @@
             this.lblVFOPowerOn.Image = null;
             this.lblVFOPowerOn.Location = new System.Drawing.Point(13, 51);
             this.lblVFOPowerOn.Name = "lblVFOPowerOn";
-            this.lblVFOPowerOn.Size = new System.Drawing.Size(64, 24);
+            this.lblVFOPowerOn.Size = new System.Drawing.Size(86, 24);
             this.lblVFOPowerOn.TabIndex = 59;
             this.lblVFOPowerOn.Text = "Active:";
             // 
@@ -53681,7 +53681,7 @@
             this.lblVFOPowerOff.Image = null;
             this.lblVFOPowerOff.Location = new System.Drawing.Point(13, 22);
             this.lblVFOPowerOff.Name = "lblVFOPowerOff";
-            this.lblVFOPowerOff.Size = new System.Drawing.Size(64, 24);
+            this.lblVFOPowerOff.Size = new System.Drawing.Size(86, 24);
             this.lblVFOPowerOff.TabIndex = 57;
             this.lblVFOPowerOff.Text = "Inactive:";
             // 
