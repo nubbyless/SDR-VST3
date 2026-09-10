@@ -411,6 +411,10 @@ Project Files/Source/Thetis-Installer/redist/*.exe
 HANDOFF.md
 MIGRATION_HANDOFF.md
 WDSP2_CONVERSION_PLAN.md
+LAYOUTCHECK_HANDOFF.md
+
+# LayoutCheck is a local-only dev tool - never publish to GitHub
+Project Files/Source/LayoutCheck/
 
 # Release change-log PDFs/docs are published via releases, not kept in the repo
 /*.pdf
