@@ -783,6 +783,7 @@ namespace Thetis
 
             //RestoreSettings();
             Common.RestoreForm(this, "CWX", true);
+            NormalizeSize();
 
             //		cwxwpm = 20;
             //		udWPM.Value = cwxwpm;
@@ -1008,7 +1009,7 @@ namespace Thetis
             this.clearButton.Location = new System.Drawing.Point(120, 152);
             this.clearButton.Name = "clearButton";
             this.clearButton.Selectable = true;
-            this.clearButton.Size = new System.Drawing.Size(75, 23);
+            this.clearButton.Size = new System.Drawing.Size(78, 23);
             this.clearButton.TabIndex = 46;
             this.clearButton.Text = "Clear (F12)";
             this.toolTip1.SetToolTip(this.clearButton, " Clear the keyboard buffer.");
@@ -1121,7 +1122,7 @@ namespace Thetis
             this.dropdelaylabel.Image = null;
             this.dropdelaylabel.Location = new System.Drawing.Point(384, 32);
             this.dropdelaylabel.Name = "dropdelaylabel";
-            this.dropdelaylabel.Size = new System.Drawing.Size(64, 16);
+            this.dropdelaylabel.Size = new System.Drawing.Size(68, 16);
             this.dropdelaylabel.TabIndex = 36;
             this.dropdelaylabel.Text = "Drop Delay";
             this.toolTip1.SetToolTip(this.dropdelaylabel, " Set break in drop out in milliseconds. Minimum allowed is PTT Delay * 1.5 .");
@@ -1172,7 +1173,7 @@ namespace Thetis
             this.stopButton.Location = new System.Drawing.Point(48, 8);
             this.stopButton.Name = "stopButton";
             this.stopButton.Selectable = true;
-            this.stopButton.Size = new System.Drawing.Size(72, 24);
+            this.stopButton.Size = new System.Drawing.Size(76, 24);
             this.stopButton.TabIndex = 26;
             this.stopButton.Text = "Stop (Esc)";
             this.toolTip1.SetToolTip(this.stopButton, "Stop all keying.");
@@ -1320,7 +1321,7 @@ namespace Thetis
             this.chkAlwaysOnTop.Image = null;
             this.chkAlwaysOnTop.Location = new System.Drawing.Point(528, 8);
             this.chkAlwaysOnTop.Name = "chkAlwaysOnTop";
-            this.chkAlwaysOnTop.Size = new System.Drawing.Size(104, 24);
+            this.chkAlwaysOnTop.Size = new System.Drawing.Size(112, 24);
             this.chkAlwaysOnTop.TabIndex = 57;
             this.chkAlwaysOnTop.Text = "Always On Top";
             this.chkAlwaysOnTop.CheckedChanged += new System.EventHandler(this.chkAlwaysOnTop_CheckedChanged);
@@ -1499,7 +1500,7 @@ namespace Thetis
             this.chkFocusRequired.Checked = true;
             this.chkFocusRequired.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkFocusRequired.Image = null;
-            this.chkFocusRequired.Location = new System.Drawing.Point(637, 12);
+            this.chkFocusRequired.Location = new System.Drawing.Point(646, 12);
             this.chkFocusRequired.Name = "chkFocusRequired";
             this.chkFocusRequired.Size = new System.Drawing.Size(55, 17);
             this.chkFocusRequired.TabIndex = 59;
@@ -1508,7 +1509,8 @@ namespace Thetis
             this.chkFocusRequired.UseVisualStyleBackColor = true;
             // CWX
             // 
-            this.AutoScaleBaseSize = new System.Drawing.Size(5, 13);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(704, 281);
             this.Controls.Add(this.chkFocusRequired);
             this.Controls.Add(this.chkForceToCWmode);
@@ -1581,22 +1583,41 @@ namespace Thetis
 
         private void expandButton_Click(object sender, System.EventArgs e)
         {
-
-            if (this.Width > 500)
+            if (this.ClientSize.Width > 500)
             {
-                this.Width = 466;
-                this.Height = 190;
-                expandButton.Left = 432;
-                expandButton.Top = 132;
-                toolTip1.SetToolTip(expandButton, "Expand Form");
+                CollapseForm();
             }
             else
             {
-                this.Width = 720;
-                this.Height = 320;
-                expandButton.Left = 688;
-                expandButton.Top = 266;
-                toolTip1.SetToolTip(expandButton, "Compress Form");
+                ExpandForm();
+            }
+        }
+
+        private void ExpandForm()
+        {
+            this.ClientSize = new System.Drawing.Size(820, 340);
+            expandButton.Left = 796;
+            expandButton.Top = 316;
+            toolTip1.SetToolTip(expandButton, "Compress Form");
+        }
+
+        private void CollapseForm()
+        {
+            this.ClientSize = new System.Drawing.Size(450, 151);
+            expandButton.Left = 432;
+            expandButton.Top = 132;
+            toolTip1.SetToolTip(expandButton, "Expand Form");
+        }
+
+        private void NormalizeSize()
+        {
+            if (this.ClientSize.Width > 500)
+            {
+                ExpandForm();
+            }
+            else
+            {
+                CollapseForm();
             }
         }
 
@@ -2020,52 +2041,74 @@ namespace Thetis
             string s;
             int i;
             int x, y, dx, dy;
-            int kyrx = kylx + kyxsz + 1;
-            int kyby = kyty + kyysz + 1;
+            int kyrx;
+            int kyby;
 
             lock (m_objLock)
             {
-                y = kyty + 2;
-                dx = 11; dy = 19;
-
                 if (this.Disposing || this.IsDisposed) return;
                 if (formGraphics == null) formGraphics = this.CreateGraphics(); //MW0LGE
 
-                System.Drawing.Font drawFont = new System.Drawing.Font("Courier New", 14, FontStyle.Bold);
+                float sfx = 1f;
+                float sfy = 1f;
+                try
+                {
+                    if (txtdummy1 != null && txtdummy1.Width > 0 && txtdummy1.Height > 0)
+                    {
+                        sfx = txtdummy1.Width / (float)kyxsz;
+                        sfy = txtdummy1.Height / (float)kyysz;
+                        if (sfx < 0.5f || sfy < 0.5f) { sfx = 1f; sfy = 1f; }
+                    }
+                }
+                catch { }
+                if (sfx < 1f) sfx = 1f;
+                if (sfy < 1f) sfy = 1f;
+
+                int padX = (txtdummy1 != null) ? txtdummy1.Left : kylx;
+                int padY = (txtdummy1 != null) ? txtdummy1.Top : kyty;
+                int padW = (txtdummy1 != null) ? txtdummy1.Width + 1 : kyxsz + 1;
+                int padH = (txtdummy1 != null) ? txtdummy1.Height + 1 : kyysz + 1;
+                kyrx = padX + padW;
+                kyby = padY + padH;
+
+                y = padY + (int)(2 * sfy);
+                dx = (int)(11 * sfx); dy = (int)(19 * sfy);
+
+                System.Drawing.Font drawFont = new System.Drawing.Font("Courier New", 14f * sfy * 72f / (formGraphics.DpiY > 0 ? formGraphics.DpiY : 96f), FontStyle.Bold);
                 System.Drawing.SolidBrush drawBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Black);
                 System.Drawing.SolidBrush grayBrush = new System.Drawing.SolidBrush(System.Drawing.Color.Gray);
                 System.Drawing.SolidBrush whiteBrush = new System.Drawing.SolidBrush(System.Drawing.Color.White);
-                formGraphics.FillRectangle(whiteBrush, new Rectangle(kylx, kyty, kyxsz + 1, kyysz + 1));
+                formGraphics.FillRectangle(whiteBrush, new Rectangle(padX, padY, padW, padH));
 
                 // draw a box around the area
                 Pen myPen = new Pen(Color.Gray, 1);
-                formGraphics.DrawLine(myPen, kylx, kyty, kyrx, kyty);
-                formGraphics.DrawLine(myPen, kyrx, kyty, kyrx, kyby);
-                formGraphics.DrawLine(myPen, kyrx, kyby, kylx, kyby);
-                formGraphics.DrawLine(myPen, kylx, kyby, kylx, kyty);
+                formGraphics.DrawLine(myPen, padX, padY, kyrx, padY);
+                formGraphics.DrawLine(myPen, kyrx, padY, kyrx, kyby);
+                formGraphics.DrawLine(myPen, kyrx, kyby, padX, kyby);
+                formGraphics.DrawLine(myPen, padX, kyby, padX, padY);
                 myPen.Dispose();
 
                 keydisplay.WaitOne();
-                x = kylx;
+                x = padX;
                 for (i = 0; i < NKEYS; i++)
                 {
                     s = kbufold.GetValue(i).ToString();
                     formGraphics.DrawString(s, drawFont, grayBrush, (float)x, (float)y);
                     if ((i % NKPL) == (NKPL - 1))
                     {
-                        x = kylx; y += dy;
+                        x = padX; y += dy;
                     }
                     else x += dx;
                 }
 
-                x = kylx;
+                x = padX;
                 for (i = 0; i < NKEYS; i++)
                 {
                     s = kbufnew.GetValue(i).ToString();
                     formGraphics.DrawString(s, drawFont, drawBrush, (float)x, (float)y);
                     if ((i % NKPL) == (NKPL - 1))
                     {
-                        x = kylx; y += dy;
+                        x = padX; y += dy;
                     }
                     else x += dx;
                 }

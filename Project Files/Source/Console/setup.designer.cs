@@ -6118,7 +6118,7 @@
             this.chkAlexAntCtrl.Image = null;
             this.chkAlexAntCtrl.Location = new System.Drawing.Point(337, 283);
             this.chkAlexAntCtrl.Name = "chkAlexAntCtrl";
-            this.chkAlexAntCtrl.Size = new System.Drawing.Size(95, 23);
+            this.chkAlexAntCtrl.Size = new System.Drawing.Size(109, 23);
             this.chkAlexAntCtrl.TabIndex = 1;
             this.chkAlexAntCtrl.Text = "Antenna Control";
             this.chkAlexAntCtrl.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -6289,7 +6289,7 @@
             this.labelTS115.Image = null;
             this.labelTS115.Location = new System.Drawing.Point(19, 24);
             this.labelTS115.Name = "labelTS115";
-            this.labelTS115.Size = new System.Drawing.Size(32, 16);
+            this.labelTS115.Size = new System.Drawing.Size(36, 16);
             this.labelTS115.TabIndex = 248;
             this.labelTS115.Text = "Band";
             // 
@@ -7507,7 +7507,7 @@
             this.labelTS22.Image = null;
             this.labelTS22.Location = new System.Drawing.Point(20, 24);
             this.labelTS22.Name = "labelTS22";
-            this.labelTS22.Size = new System.Drawing.Size(32, 16);
+            this.labelTS22.Size = new System.Drawing.Size(36, 16);
             this.labelTS22.TabIndex = 199;
             this.labelTS22.Text = "Band";
             // 
@@ -8546,7 +8546,7 @@
             this.chkNetworkWDT.Image = null;
             this.chkNetworkWDT.Location = new System.Drawing.Point(323, 23);
             this.chkNetworkWDT.Name = "chkNetworkWDT";
-            this.chkNetworkWDT.Size = new System.Drawing.Size(120, 17);
+            this.chkNetworkWDT.Size = new System.Drawing.Size(134, 17);
             this.chkNetworkWDT.TabIndex = 16;
             this.chkNetworkWDT.Text = "Network Watchdog";
             this.toolTip1.SetToolTip(this.chkNetworkWDT, "Resets software/firmware if network becomes inactive.");
@@ -8634,7 +8634,7 @@
             this.chkNetworkThrottleIndexTweak.Image = null;
             this.chkNetworkThrottleIndexTweak.Location = new System.Drawing.Point(312, 42);
             this.chkNetworkThrottleIndexTweak.Name = "chkNetworkThrottleIndexTweak";
-            this.chkNetworkThrottleIndexTweak.Size = new System.Drawing.Size(186, 16);
+            this.chkNetworkThrottleIndexTweak.Size = new System.Drawing.Size(189, 16);
             this.chkNetworkThrottleIndexTweak.TabIndex = 18;
             this.chkNetworkThrottleIndexTweak.Text = "Network Throttle Index Tweak";
             this.toolTip1.SetToolTip(this.chkNetworkThrottleIndexTweak, resources.GetString("chkNetworkThrottleIndexTweak.ToolTip"));
@@ -8695,7 +8695,7 @@
             this.chkGeneralRXOnly.Image = null;
             this.chkGeneralRXOnly.Location = new System.Drawing.Point(6, 51);
             this.chkGeneralRXOnly.Name = "chkGeneralRXOnly";
-            this.chkGeneralRXOnly.Size = new System.Drawing.Size(96, 16);
+            this.chkGeneralRXOnly.Size = new System.Drawing.Size(100, 16);
             this.chkGeneralRXOnly.TabIndex = 11;
             this.chkGeneralRXOnly.Text = "Receive Only";
             this.toolTip1.SetToolTip(this.chkGeneralRXOnly, "Check to disable transmit functionality.");
@@ -9366,7 +9366,7 @@
             this.lblMoxDelay.Image = null;
             this.lblMoxDelay.Location = new System.Drawing.Point(8, 130);
             this.lblMoxDelay.Name = "lblMoxDelay";
-            this.lblMoxDelay.Size = new System.Drawing.Size(65, 23);
+            this.lblMoxDelay.Size = new System.Drawing.Size(70, 23);
             this.lblMoxDelay.TabIndex = 21;
             this.lblMoxDelay.Text = "MOX Delay";
             this.lblMoxDelay.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -9435,7 +9435,7 @@
             this.lblADCLinked.Image = null;
             this.lblADCLinked.Location = new System.Drawing.Point(44, 45);
             this.lblADCLinked.Name = "lblADCLinked";
-            this.lblADCLinked.Size = new System.Drawing.Size(59, 17);
+            this.lblADCLinked.Size = new System.Drawing.Size(64, 17);
             this.lblADCLinked.TabIndex = 13;
             this.lblADCLinked.Text = "adc linked";
             this.lblADCLinked.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -9477,7 +9477,7 @@
             this.chkRX2StepAtt.Image = null;
             this.chkRX2StepAtt.Location = new System.Drawing.Point(8, 69);
             this.chkRX2StepAtt.Name = "chkRX2StepAtt";
-            this.chkRX2StepAtt.Size = new System.Drawing.Size(88, 16);
+            this.chkRX2StepAtt.Size = new System.Drawing.Size(92, 16);
             this.chkRX2StepAtt.TabIndex = 4;
             this.chkRX2StepAtt.Text = "Enable RX2";
             this.toolTip1.SetToolTip(this.chkRX2StepAtt, "Enable the step attenuator.");
@@ -9518,7 +9518,7 @@
             this.chkHermesStepAttenuator.Image = null;
             this.chkHermesStepAttenuator.Location = new System.Drawing.Point(8, 25);
             this.chkHermesStepAttenuator.Name = "chkHermesStepAttenuator";
-            this.chkHermesStepAttenuator.Size = new System.Drawing.Size(88, 16);
+            this.chkHermesStepAttenuator.Size = new System.Drawing.Size(92, 16);
             this.chkHermesStepAttenuator.TabIndex = 2;
             this.chkHermesStepAttenuator.Text = "Enable RX1";
             this.toolTip1.SetToolTip(this.chkHermesStepAttenuator, "Enable the step attenuator.");
@@ -9542,7 +9542,7 @@
             this.labelTS322.Image = null;
             this.labelTS322.Location = new System.Drawing.Point(8, 22);
             this.labelTS322.Name = "labelTS322";
-            this.labelTS322.Size = new System.Drawing.Size(66, 13);
+            this.labelTS322.Size = new System.Drawing.Size(77, 13);
             this.labelTS322.TabIndex = 38;
             this.labelTS322.Text = "Key-Up (mS)";
             this.labelTS322.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -9552,7 +9552,7 @@
             this.labelTS325.Image = null;
             this.labelTS325.Location = new System.Drawing.Point(8, 52);
             this.labelTS325.Name = "labelTS325";
-            this.labelTS325.Size = new System.Drawing.Size(80, 13);
+            this.labelTS325.Size = new System.Drawing.Size(95, 13);
             this.labelTS325.TabIndex = 31;
             this.labelTS325.Text = "Key-Down (mS)";
             this.labelTS325.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -9594,7 +9594,7 @@
             0,
             0,
             0});
-            this.udHWKeyDownDelay.Location = new System.Drawing.Point(93, 50);
+            this.udHWKeyDownDelay.Location = new System.Drawing.Point(103, 50);
             this.udHWKeyDownDelay.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -9712,9 +9712,9 @@
             // 
             this.chkCTLimitDragMouseOnly.Enabled = false;
             this.chkCTLimitDragMouseOnly.Image = null;
-            this.chkCTLimitDragMouseOnly.Location = new System.Drawing.Point(145, 203);
+            this.chkCTLimitDragMouseOnly.Location = new System.Drawing.Point(155, 203);
             this.chkCTLimitDragMouseOnly.Name = "chkCTLimitDragMouseOnly";
-            this.chkCTLimitDragMouseOnly.Size = new System.Drawing.Size(109, 16);
+            this.chkCTLimitDragMouseOnly.Size = new System.Drawing.Size(121, 16);
             this.chkCTLimitDragMouseOnly.TabIndex = 17;
             this.chkCTLimitDragMouseOnly.Text = "Mouse drag only";
             this.toolTip1.SetToolTip(this.chkCTLimitDragMouseOnly, "Only limit when dragging with the mouse");
@@ -9726,7 +9726,7 @@
             this.chkCTLimitDragToSpectral.Image = null;
             this.chkCTLimitDragToSpectral.Location = new System.Drawing.Point(34, 203);
             this.chkCTLimitDragToSpectral.Name = "chkCTLimitDragToSpectral";
-            this.chkCTLimitDragToSpectral.Size = new System.Drawing.Size(107, 16);
+            this.chkCTLimitDragToSpectral.Size = new System.Drawing.Size(117, 16);
             this.chkCTLimitDragToSpectral.TabIndex = 16;
             this.chkCTLimitDragToSpectral.Text = "Limit to Spectral";
             this.toolTip1.SetToolTip(this.chkCTLimitDragToSpectral, "When changing frequency, the VFOs are limited to the spectral area.");
@@ -10144,7 +10144,7 @@
             this.btnRX2PBsnrReset.Location = new System.Drawing.Point(201, 42);
             this.btnRX2PBsnrReset.Name = "btnRX2PBsnrReset";
             this.btnRX2PBsnrReset.Selectable = true;
-            this.btnRX2PBsnrReset.Size = new System.Drawing.Size(47, 23);
+            this.btnRX2PBsnrReset.Size = new System.Drawing.Size(50, 23);
             this.btnRX2PBsnrReset.TabIndex = 22;
             this.btnRX2PBsnrReset.Text = "Reset";
             this.toolTip1.SetToolTip(this.btnRX2PBsnrReset, "Set to 0.0dBm");
@@ -10170,7 +10170,7 @@
             this.btnRX1PBsnrReset.Location = new System.Drawing.Point(201, 16);
             this.btnRX1PBsnrReset.Name = "btnRX1PBsnrReset";
             this.btnRX1PBsnrReset.Selectable = true;
-            this.btnRX1PBsnrReset.Size = new System.Drawing.Size(47, 23);
+            this.btnRX1PBsnrReset.Size = new System.Drawing.Size(50, 23);
             this.btnRX1PBsnrReset.TabIndex = 21;
             this.btnRX1PBsnrReset.Text = "Reset";
             this.toolTip1.SetToolTip(this.btnRX1PBsnrReset, "Set to 0.0dBm");
@@ -10284,7 +10284,7 @@
             this.btnPingDef.Location = new System.Drawing.Point(121, 73);
             this.btnPingDef.Name = "btnPingDef";
             this.btnPingDef.Selectable = true;
-            this.btnPingDef.Size = new System.Drawing.Size(37, 26);
+            this.btnPingDef.Size = new System.Drawing.Size(41, 26);
             this.btnPingDef.TabIndex = 15;
             this.btnPingDef.Text = "Def";
             this.toolTip1.SetToolTip(this.btnPingDef, "Default value of 8.8.8.8 (Google DNS)");
@@ -10480,11 +10480,11 @@
             // labelQuickSplitInfo
             // 
             this.labelQuickSplitInfo.Image = null;
-            this.labelQuickSplitInfo.Location = new System.Drawing.Point(139, 139);
+            this.labelQuickSplitInfo.Location = new System.Drawing.Point(84, 142);
             this.labelQuickSplitInfo.Name = "labelQuickSplitInfo";
-            this.labelQuickSplitInfo.Size = new System.Drawing.Size(112, 39);
+            this.labelQuickSplitInfo.Size = new System.Drawing.Size(165, 34);
             this.labelQuickSplitInfo.TabIndex = 45;
-            this.labelQuickSplitInfo.Text = "note: options are\r\napplied when QSPLT\r\nis changed to on state";
+            this.labelQuickSplitInfo.Text = "note: options are\r\napplied when QSPLT ON";
             this.labelQuickSplitInfo.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // btnQuickSplitUp5
@@ -10619,7 +10619,7 @@
             this.btnResetNFShift.Location = new System.Drawing.Point(164, 42);
             this.btnResetNFShift.Name = "btnResetNFShift";
             this.btnResetNFShift.Selectable = true;
-            this.btnResetNFShift.Size = new System.Drawing.Size(47, 23);
+            this.btnResetNFShift.Size = new System.Drawing.Size(50, 23);
             this.btnResetNFShift.TabIndex = 16;
             this.btnResetNFShift.Text = "Reset";
             this.toolTip1.SetToolTip(this.btnResetNFShift, "Set to 0.0dBm");
@@ -12093,7 +12093,7 @@
             this.labelTS159.Image = null;
             this.labelTS159.Location = new System.Drawing.Point(8, 52);
             this.labelTS159.Name = "labelTS159";
-            this.labelTS159.Size = new System.Drawing.Size(57, 13);
+            this.labelTS159.Size = new System.Drawing.Size(65, 13);
             this.labelTS159.TabIndex = 3;
             this.labelTS159.Text = "Sensitivity:";
             this.labelTS159.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -12886,7 +12886,7 @@
             this.labelTS86.Image = null;
             this.labelTS86.Location = new System.Drawing.Point(8, 47);
             this.labelTS86.Name = "labelTS86";
-            this.labelTS86.Size = new System.Drawing.Size(104, 16);
+            this.labelTS86.Size = new System.Drawing.Size(112, 16);
             this.labelTS86.TabIndex = 11;
             this.labelTS86.Text = "Width Slider Mode:";
             this.labelTS86.Visible = false;
@@ -12926,7 +12926,7 @@
             this.labelTS87.Image = null;
             this.labelTS87.Location = new System.Drawing.Point(8, 23);
             this.labelTS87.Name = "labelTS87";
-            this.labelTS87.Size = new System.Drawing.Size(120, 23);
+            this.labelTS87.Size = new System.Drawing.Size(125, 23);
             this.labelTS87.TabIndex = 10;
             this.labelTS87.Text = "Max Filter Width (Hz):";
             this.labelTS87.Visible = false;
@@ -12936,7 +12936,7 @@
             this.checkBoxTS2.Image = null;
             this.checkBoxTS2.Location = new System.Drawing.Point(11, 95);
             this.checkBoxTS2.Name = "checkBoxTS2";
-            this.checkBoxTS2.Size = new System.Drawing.Size(176, 16);
+            this.checkBoxTS2.Size = new System.Drawing.Size(182, 16);
             this.checkBoxTS2.TabIndex = 15;
             this.checkBoxTS2.Text = "Save Slider/Display Changes";
             this.toolTip1.SetToolTip(this.checkBoxTS2, "If checked, changes made to the filters via the display or sliders will be saved " +
@@ -13111,7 +13111,7 @@
             this.chkOptFilterSaveChanges.Image = null;
             this.chkOptFilterSaveChanges.Location = new System.Drawing.Point(11, 107);
             this.chkOptFilterSaveChanges.Name = "chkOptFilterSaveChanges";
-            this.chkOptFilterSaveChanges.Size = new System.Drawing.Size(176, 16);
+            this.chkOptFilterSaveChanges.Size = new System.Drawing.Size(182, 16);
             this.chkOptFilterSaveChanges.TabIndex = 15;
             this.chkOptFilterSaveChanges.Text = "Save Slider/Display Changes";
             this.toolTip1.SetToolTip(this.chkOptFilterSaveChanges, "If checked, changes made to the filters via the display or sliders will be saved " +
@@ -16955,7 +16955,7 @@
             this.labelTS40.Image = null;
             this.labelTS40.Location = new System.Drawing.Point(5, 26);
             this.labelTS40.Name = "labelTS40";
-            this.labelTS40.Size = new System.Drawing.Size(32, 16);
+            this.labelTS40.Size = new System.Drawing.Size(36, 16);
             this.labelTS40.TabIndex = 16;
             this.labelTS40.Text = "Band";
             // 
@@ -17151,7 +17151,7 @@
             this.chkHERCULES.Image = null;
             this.chkHERCULES.Location = new System.Drawing.Point(206, 346);
             this.chkHERCULES.Name = "chkHERCULES";
-            this.chkHERCULES.Size = new System.Drawing.Size(90, 23);
+            this.chkHERCULES.Size = new System.Drawing.Size(96, 23);
             this.chkHERCULES.TabIndex = 2;
             this.chkHERCULES.Text = "Hercules Amp";
             this.chkHERCULES.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
@@ -17168,7 +17168,7 @@
             this.btnPennyCtrlReset.Location = new System.Drawing.Point(234, 290);
             this.btnPennyCtrlReset.Name = "btnPennyCtrlReset";
             this.btnPennyCtrlReset.Selectable = true;
-            this.btnPennyCtrlReset.Size = new System.Drawing.Size(62, 23);
+            this.btnPennyCtrlReset.Size = new System.Drawing.Size(68, 23);
             this.btnPennyCtrlReset.TabIndex = 4;
             this.btnPennyCtrlReset.Text = "HF Reset";
             this.toolTip1.SetToolTip(this.btnPennyCtrlReset, "Clears to Default");
@@ -17923,7 +17923,7 @@
             this.labelTS71.Image = null;
             this.labelTS71.Location = new System.Drawing.Point(5, 26);
             this.labelTS71.Name = "labelTS71";
-            this.labelTS71.Size = new System.Drawing.Size(32, 16);
+            this.labelTS71.Size = new System.Drawing.Size(36, 16);
             this.labelTS71.TabIndex = 395;
             this.labelTS71.Text = "Band";
             // 
@@ -20066,7 +20066,7 @@
             this.btnPennyCtrlVHFReset.Location = new System.Drawing.Point(234, 290);
             this.btnPennyCtrlVHFReset.Name = "btnPennyCtrlVHFReset";
             this.btnPennyCtrlVHFReset.Selectable = true;
-            this.btnPennyCtrlVHFReset.Size = new System.Drawing.Size(62, 23);
+            this.btnPennyCtrlVHFReset.Size = new System.Drawing.Size(75, 23);
             this.btnPennyCtrlVHFReset.TabIndex = 7;
             this.btnPennyCtrlVHFReset.Text = "VHF Reset";
             this.toolTip1.SetToolTip(this.btnPennyCtrlVHFReset, "Clears to Default");
@@ -20618,7 +20618,7 @@
             this.btnCtrlSWLReset.Location = new System.Drawing.Point(234, 290);
             this.btnCtrlSWLReset.Name = "btnCtrlSWLReset";
             this.btnCtrlSWLReset.Selectable = true;
-            this.btnCtrlSWLReset.Size = new System.Drawing.Size(62, 23);
+            this.btnCtrlSWLReset.Size = new System.Drawing.Size(77, 23);
             this.btnCtrlSWLReset.TabIndex = 9;
             this.btnCtrlSWLReset.Text = "SWL Reset";
             this.toolTip1.SetToolTip(this.btnCtrlSWLReset, "Clears to Default");
@@ -23163,7 +23163,7 @@
             this.labelTS496.Image = null;
             this.labelTS496.Location = new System.Drawing.Point(5, 26);
             this.labelTS496.Name = "labelTS496";
-            this.labelTS496.Size = new System.Drawing.Size(32, 16);
+            this.labelTS496.Size = new System.Drawing.Size(36, 16);
             this.labelTS496.TabIndex = 16;
             this.labelTS496.Text = "Band";
             // 
@@ -23710,7 +23710,7 @@
             this.chkMercRandom.Image = null;
             this.chkMercRandom.Location = new System.Drawing.Point(8, 48);
             this.chkMercRandom.Name = "chkMercRandom";
-            this.chkMercRandom.Size = new System.Drawing.Size(112, 16);
+            this.chkMercRandom.Size = new System.Drawing.Size(123, 16);
             this.chkMercRandom.TabIndex = 1;
             this.chkMercRandom.Text = "Random Enabled";
             this.toolTip1.SetToolTip(this.chkMercRandom, "Digital output randomiser that minimises digital feedback from the data output bu" +
@@ -23723,7 +23723,7 @@
             this.chkMercDither.Image = null;
             this.chkMercDither.Location = new System.Drawing.Point(8, 24);
             this.chkMercDither.Name = "chkMercDither";
-            this.chkMercDither.Size = new System.Drawing.Size(104, 16);
+            this.chkMercDither.Size = new System.Drawing.Size(111, 16);
             this.chkMercDither.TabIndex = 0;
             this.chkMercDither.Text = "Dither Enabled";
             this.toolTip1.SetToolTip(this.chkMercDither, "Address ADC nonlinearity errors");
@@ -28470,7 +28470,7 @@
             this.chkSPACEAllowBypass.Image = null;
             this.chkSPACEAllowBypass.Location = new System.Drawing.Point(249, 169);
             this.chkSPACEAllowBypass.Name = "chkSPACEAllowBypass";
-            this.chkSPACEAllowBypass.Size = new System.Drawing.Size(271, 16);
+            this.chkSPACEAllowBypass.Size = new System.Drawing.Size(280, 16);
             this.chkSPACEAllowBypass.TabIndex = 81;
             this.chkSPACEAllowBypass.Text = "Allow SPACE to override/bypass VAC for Phone";
             this.toolTip1.SetToolTip(this.chkSPACEAllowBypass, "Using theSPACE BAR will override the PTT input to allow for easy phone operation " +
@@ -28519,7 +28519,7 @@
             this.chkAudioCorrectIQ.Image = null;
             this.chkAudioCorrectIQ.Location = new System.Drawing.Point(93, 46);
             this.chkAudioCorrectIQ.Name = "chkAudioCorrectIQ";
-            this.chkAudioCorrectIQ.Size = new System.Drawing.Size(88, 16);
+            this.chkAudioCorrectIQ.Size = new System.Drawing.Size(100, 16);
             this.chkAudioCorrectIQ.TabIndex = 1;
             this.chkAudioCorrectIQ.Text = "Calibrate I/Q";
             this.chkAudioCorrectIQ.Visible = false;
@@ -28530,7 +28530,7 @@
             this.chkAudioIQtoVAC.Image = null;
             this.chkAudioIQtoVAC.Location = new System.Drawing.Point(16, 24);
             this.chkAudioIQtoVAC.Name = "chkAudioIQtoVAC";
-            this.chkAudioIQtoVAC.Size = new System.Drawing.Size(96, 16);
+            this.chkAudioIQtoVAC.Size = new System.Drawing.Size(108, 16);
             this.chkAudioIQtoVAC.TabIndex = 0;
             this.chkAudioIQtoVAC.Text = "Output to VAC";
             this.chkAudioIQtoVAC.CheckedChanged += new System.EventHandler(this.chkAudioIQtoVAC_CheckedChanged);
@@ -28718,7 +28718,7 @@
             this.grpAudioLatency2.Controls.Add(this.udAudioLatency2);
             this.grpAudioLatency2.Location = new System.Drawing.Point(550, 112);
             this.grpAudioLatency2.Name = "grpAudioLatency2";
-            this.grpAudioLatency2.Size = new System.Drawing.Size(150, 155);
+            this.grpAudioLatency2.Size = new System.Drawing.Size(150, 171);
             this.grpAudioLatency2.TabIndex = 67;
             this.grpAudioLatency2.TabStop = false;
             this.grpAudioLatency2.Text = "Buffer Latency (ms)";
@@ -28727,7 +28727,7 @@
             // 
             this.labelTS364.AutoSize = true;
             this.labelTS364.Image = null;
-            this.labelTS364.Location = new System.Drawing.Point(78, 105);
+            this.labelTS364.Location = new System.Drawing.Point(78, 111);
             this.labelTS364.Name = "labelTS364";
             this.labelTS364.Size = new System.Drawing.Size(27, 13);
             this.labelTS364.TabIndex = 48;
@@ -28737,7 +28737,7 @@
             // 
             this.labelTS365.AutoSize = true;
             this.labelTS365.Image = null;
-            this.labelTS365.Location = new System.Drawing.Point(5, 105);
+            this.labelTS365.Location = new System.Drawing.Point(5, 111);
             this.labelTS365.Name = "labelTS365";
             this.labelTS365.Size = new System.Drawing.Size(19, 13);
             this.labelTS365.TabIndex = 47;
@@ -28746,9 +28746,9 @@
             // chkAudioLatencyPAOutManual
             // 
             this.chkAudioLatencyPAOutManual.Image = null;
-            this.chkAudioLatencyPAOutManual.Location = new System.Drawing.Point(84, 124);
+            this.chkAudioLatencyPAOutManual.Location = new System.Drawing.Point(84, 134);
             this.chkAudioLatencyPAOutManual.Name = "chkAudioLatencyPAOutManual";
-            this.chkAudioLatencyPAOutManual.Size = new System.Drawing.Size(64, 16);
+            this.chkAudioLatencyPAOutManual.Size = new System.Drawing.Size(64, 17);
             this.chkAudioLatencyPAOutManual.TabIndex = 46;
             this.chkAudioLatencyPAOutManual.Text = "Manual";
             this.chkAudioLatencyPAOutManual.CheckedChanged += new System.EventHandler(this.chkAudioLatencyPAOutManual_CheckedChanged);
@@ -28761,7 +28761,7 @@
             0,
             0,
             0});
-            this.udAudioLatencyPAOut.Location = new System.Drawing.Point(108, 103);
+            this.udAudioLatencyPAOut.Location = new System.Drawing.Point(108, 107);
             this.udAudioLatencyPAOut.Maximum = new decimal(new int[] {
             240,
             0,
@@ -28786,9 +28786,9 @@
             // chkAudioLatencyPAInManual
             // 
             this.chkAudioLatencyPAInManual.Image = null;
-            this.chkAudioLatencyPAInManual.Location = new System.Drawing.Point(11, 124);
+            this.chkAudioLatencyPAInManual.Location = new System.Drawing.Point(11, 134);
             this.chkAudioLatencyPAInManual.Name = "chkAudioLatencyPAInManual";
-            this.chkAudioLatencyPAInManual.Size = new System.Drawing.Size(64, 16);
+            this.chkAudioLatencyPAInManual.Size = new System.Drawing.Size(64, 17);
             this.chkAudioLatencyPAInManual.TabIndex = 43;
             this.chkAudioLatencyPAInManual.Text = "Manual";
             this.chkAudioLatencyPAInManual.CheckedChanged += new System.EventHandler(this.chkAudioLatencyPAInManual_CheckedChanged);
@@ -28801,7 +28801,7 @@
             0,
             0,
             0});
-            this.udAudioLatencyPAIn.Location = new System.Drawing.Point(25, 103);
+            this.udAudioLatencyPAIn.Location = new System.Drawing.Point(25, 107);
             this.udAudioLatencyPAIn.Maximum = new decimal(new int[] {
             240,
             0,
@@ -28827,7 +28827,7 @@
             // 
             this.labelTS363.AutoSize = true;
             this.labelTS363.Image = null;
-            this.labelTS363.Location = new System.Drawing.Point(45, 87);
+            this.labelTS363.Location = new System.Drawing.Point(45, 93);
             this.labelTS363.Name = "labelTS363";
             this.labelTS363.Size = new System.Drawing.Size(53, 13);
             this.labelTS363.TabIndex = 42;
@@ -28837,7 +28837,7 @@
             // 
             this.labelTS362.AutoSize = true;
             this.labelTS362.Image = null;
-            this.labelTS362.Location = new System.Drawing.Point(45, 16);
+            this.labelTS362.Location = new System.Drawing.Point(45, 22);
             this.labelTS362.Name = "labelTS362";
             this.labelTS362.Size = new System.Drawing.Size(57, 13);
             this.labelTS362.TabIndex = 41;
@@ -28847,7 +28847,7 @@
             // 
             this.labelTS361.AutoSize = true;
             this.labelTS361.Image = null;
-            this.labelTS361.Location = new System.Drawing.Point(78, 37);
+            this.labelTS361.Location = new System.Drawing.Point(78, 43);
             this.labelTS361.Name = "labelTS361";
             this.labelTS361.Size = new System.Drawing.Size(27, 13);
             this.labelTS361.TabIndex = 40;
@@ -28857,7 +28857,7 @@
             // 
             this.labelTS360.AutoSize = true;
             this.labelTS360.Image = null;
-            this.labelTS360.Location = new System.Drawing.Point(5, 37);
+            this.labelTS360.Location = new System.Drawing.Point(5, 43);
             this.labelTS360.Name = "labelTS360";
             this.labelTS360.Size = new System.Drawing.Size(19, 13);
             this.labelTS360.TabIndex = 39;
@@ -28866,9 +28866,9 @@
             // chkAudioLatencyManual2_Out
             // 
             this.chkAudioLatencyManual2_Out.Image = null;
-            this.chkAudioLatencyManual2_Out.Location = new System.Drawing.Point(84, 56);
+            this.chkAudioLatencyManual2_Out.Location = new System.Drawing.Point(84, 66);
             this.chkAudioLatencyManual2_Out.Name = "chkAudioLatencyManual2_Out";
-            this.chkAudioLatencyManual2_Out.Size = new System.Drawing.Size(64, 16);
+            this.chkAudioLatencyManual2_Out.Size = new System.Drawing.Size(64, 17);
             this.chkAudioLatencyManual2_Out.TabIndex = 38;
             this.chkAudioLatencyManual2_Out.Text = "Manual";
             this.chkAudioLatencyManual2_Out.CheckedChanged += new System.EventHandler(this.chkAudioLatencyManual2_Out_CheckedChanged);
@@ -28881,7 +28881,7 @@
             0,
             0,
             0});
-            this.udAudioLatency2_Out.Location = new System.Drawing.Point(108, 35);
+            this.udAudioLatency2_Out.Location = new System.Drawing.Point(108, 39);
             this.udAudioLatency2_Out.Maximum = new decimal(new int[] {
             240,
             0,
@@ -28906,9 +28906,9 @@
             // chkAudioLatencyManual2
             // 
             this.chkAudioLatencyManual2.Image = null;
-            this.chkAudioLatencyManual2.Location = new System.Drawing.Point(11, 56);
+            this.chkAudioLatencyManual2.Location = new System.Drawing.Point(11, 66);
             this.chkAudioLatencyManual2.Name = "chkAudioLatencyManual2";
-            this.chkAudioLatencyManual2.Size = new System.Drawing.Size(64, 16);
+            this.chkAudioLatencyManual2.Size = new System.Drawing.Size(64, 17);
             this.chkAudioLatencyManual2.TabIndex = 5;
             this.chkAudioLatencyManual2.Text = "Manual";
             this.chkAudioLatencyManual2.CheckedChanged += new System.EventHandler(this.chkAudioLatencyManual2_CheckedChanged);
@@ -28921,7 +28921,7 @@
             0,
             0,
             0});
-            this.udAudioLatency2.Location = new System.Drawing.Point(25, 35);
+            this.udAudioLatency2.Location = new System.Drawing.Point(25, 39);
             this.udAudioLatency2.Maximum = new decimal(new int[] {
             240,
             0,
@@ -29120,7 +29120,7 @@
             this.chkAudioEnableVAC.Image = null;
             this.chkAudioEnableVAC.Location = new System.Drawing.Point(227, 16);
             this.chkAudioEnableVAC.Name = "chkAudioEnableVAC";
-            this.chkAudioEnableVAC.Size = new System.Drawing.Size(99, 24);
+            this.chkAudioEnableVAC.Size = new System.Drawing.Size(102, 24);
             this.chkAudioEnableVAC.TabIndex = 25;
             this.chkAudioEnableVAC.Text = "Enable VAC 1";
             this.toolTip1.SetToolTip(this.chkAudioEnableVAC, "Enable Virtual Audio Cable Support using the settings on this form.");
@@ -29234,7 +29234,7 @@
             this.chkVAC2onSplit.Image = null;
             this.chkVAC2onSplit.Location = new System.Drawing.Point(249, 149);
             this.chkVAC2onSplit.Name = "chkVAC2onSplit";
-            this.chkVAC2onSplit.Size = new System.Drawing.Size(117, 16);
+            this.chkVAC2onSplit.Size = new System.Drawing.Size(126, 16);
             this.chkVAC2onSplit.TabIndex = 91;
             this.chkVAC2onSplit.Text = "Use VAC2 on Split";
             this.toolTip1.SetToolTip(this.chkVAC2onSplit, "Use VAC2 for transmit audio when VFOB is used for transmit.");
@@ -29756,7 +29756,7 @@
             this.chkVAC2DirectIQCal.Image = null;
             this.chkVAC2DirectIQCal.Location = new System.Drawing.Point(93, 46);
             this.chkVAC2DirectIQCal.Name = "chkVAC2DirectIQCal";
-            this.chkVAC2DirectIQCal.Size = new System.Drawing.Size(88, 16);
+            this.chkVAC2DirectIQCal.Size = new System.Drawing.Size(100, 16);
             this.chkVAC2DirectIQCal.TabIndex = 1;
             this.chkVAC2DirectIQCal.Text = "Calibrate I/Q";
             this.chkVAC2DirectIQCal.Visible = false;
@@ -29767,7 +29767,7 @@
             this.chkVAC2DirectIQ.Image = null;
             this.chkVAC2DirectIQ.Location = new System.Drawing.Point(16, 24);
             this.chkVAC2DirectIQ.Name = "chkVAC2DirectIQ";
-            this.chkVAC2DirectIQ.Size = new System.Drawing.Size(96, 16);
+            this.chkVAC2DirectIQ.Size = new System.Drawing.Size(108, 16);
             this.chkVAC2DirectIQ.TabIndex = 0;
             this.chkVAC2DirectIQ.Text = "Output to VAC";
             this.chkVAC2DirectIQ.CheckedChanged += new System.EventHandler(this.chkVAC2DirectIQ_CheckedChanged);
@@ -29938,7 +29938,7 @@
             this.grpVAC2LatencyManual.Controls.Add(this.udVAC2Latency);
             this.grpVAC2LatencyManual.Location = new System.Drawing.Point(550, 112);
             this.grpVAC2LatencyManual.Name = "grpVAC2LatencyManual";
-            this.grpVAC2LatencyManual.Size = new System.Drawing.Size(150, 155);
+            this.grpVAC2LatencyManual.Size = new System.Drawing.Size(150, 171);
             this.grpVAC2LatencyManual.TabIndex = 83;
             this.grpVAC2LatencyManual.TabStop = false;
             this.grpVAC2LatencyManual.Text = "Buffer Latency (ms)";
@@ -29947,7 +29947,7 @@
             // 
             this.labelTS369.AutoSize = true;
             this.labelTS369.Image = null;
-            this.labelTS369.Location = new System.Drawing.Point(78, 105);
+            this.labelTS369.Location = new System.Drawing.Point(78, 111);
             this.labelTS369.Name = "labelTS369";
             this.labelTS369.Size = new System.Drawing.Size(27, 13);
             this.labelTS369.TabIndex = 55;
@@ -29957,7 +29957,7 @@
             // 
             this.labelTS370.AutoSize = true;
             this.labelTS370.Image = null;
-            this.labelTS370.Location = new System.Drawing.Point(5, 105);
+            this.labelTS370.Location = new System.Drawing.Point(5, 111);
             this.labelTS370.Name = "labelTS370";
             this.labelTS370.Size = new System.Drawing.Size(19, 13);
             this.labelTS370.TabIndex = 54;
@@ -29966,9 +29966,9 @@
             // chkVAC2LatencyPAOutManual
             // 
             this.chkVAC2LatencyPAOutManual.Image = null;
-            this.chkVAC2LatencyPAOutManual.Location = new System.Drawing.Point(84, 124);
+            this.chkVAC2LatencyPAOutManual.Location = new System.Drawing.Point(84, 134);
             this.chkVAC2LatencyPAOutManual.Name = "chkVAC2LatencyPAOutManual";
-            this.chkVAC2LatencyPAOutManual.Size = new System.Drawing.Size(64, 16);
+            this.chkVAC2LatencyPAOutManual.Size = new System.Drawing.Size(64, 17);
             this.chkVAC2LatencyPAOutManual.TabIndex = 53;
             this.chkVAC2LatencyPAOutManual.Text = "Manual";
             this.chkVAC2LatencyPAOutManual.CheckedChanged += new System.EventHandler(this.chkVAC2LatencyPAOutManual_CheckedChanged);
@@ -29981,7 +29981,7 @@
             0,
             0,
             0});
-            this.udVAC2LatencyPAOut.Location = new System.Drawing.Point(108, 103);
+            this.udVAC2LatencyPAOut.Location = new System.Drawing.Point(108, 107);
             this.udVAC2LatencyPAOut.Maximum = new decimal(new int[] {
             240,
             0,
@@ -30006,9 +30006,9 @@
             // chkVAC2LatencyPAInManual
             // 
             this.chkVAC2LatencyPAInManual.Image = null;
-            this.chkVAC2LatencyPAInManual.Location = new System.Drawing.Point(11, 124);
+            this.chkVAC2LatencyPAInManual.Location = new System.Drawing.Point(11, 134);
             this.chkVAC2LatencyPAInManual.Name = "chkVAC2LatencyPAInManual";
-            this.chkVAC2LatencyPAInManual.Size = new System.Drawing.Size(64, 16);
+            this.chkVAC2LatencyPAInManual.Size = new System.Drawing.Size(64, 17);
             this.chkVAC2LatencyPAInManual.TabIndex = 50;
             this.chkVAC2LatencyPAInManual.Text = "Manual";
             this.chkVAC2LatencyPAInManual.CheckedChanged += new System.EventHandler(this.chkVAC2LatencyPAInManual_CheckedChanged);
@@ -30021,7 +30021,7 @@
             0,
             0,
             0});
-            this.udVAC2LatencyPAIn.Location = new System.Drawing.Point(25, 103);
+            this.udVAC2LatencyPAIn.Location = new System.Drawing.Point(25, 107);
             this.udVAC2LatencyPAIn.Maximum = new decimal(new int[] {
             240,
             0,
@@ -30047,7 +30047,7 @@
             // 
             this.labelTS371.AutoSize = true;
             this.labelTS371.Image = null;
-            this.labelTS371.Location = new System.Drawing.Point(45, 87);
+            this.labelTS371.Location = new System.Drawing.Point(45, 93);
             this.labelTS371.Name = "labelTS371";
             this.labelTS371.Size = new System.Drawing.Size(53, 13);
             this.labelTS371.TabIndex = 49;
@@ -30056,9 +30056,9 @@
             // chkVAC2LatencyOutManual
             // 
             this.chkVAC2LatencyOutManual.Image = null;
-            this.chkVAC2LatencyOutManual.Location = new System.Drawing.Point(84, 56);
+            this.chkVAC2LatencyOutManual.Location = new System.Drawing.Point(84, 66);
             this.chkVAC2LatencyOutManual.Name = "chkVAC2LatencyOutManual";
-            this.chkVAC2LatencyOutManual.Size = new System.Drawing.Size(64, 16);
+            this.chkVAC2LatencyOutManual.Size = new System.Drawing.Size(64, 17);
             this.chkVAC2LatencyOutManual.TabIndex = 46;
             this.chkVAC2LatencyOutManual.Text = "Manual";
             this.chkVAC2LatencyOutManual.CheckedChanged += new System.EventHandler(this.chkVAC2LatencyOutManual_CheckedChanged);
@@ -30071,7 +30071,7 @@
             0,
             0,
             0});
-            this.udVAC2LatencyOut.Location = new System.Drawing.Point(108, 35);
+            this.udVAC2LatencyOut.Location = new System.Drawing.Point(108, 39);
             this.udVAC2LatencyOut.Maximum = new decimal(new int[] {
             240,
             0,
@@ -30097,7 +30097,7 @@
             // 
             this.labelTS368.AutoSize = true;
             this.labelTS368.Image = null;
-            this.labelTS368.Location = new System.Drawing.Point(78, 37);
+            this.labelTS368.Location = new System.Drawing.Point(78, 43);
             this.labelTS368.Name = "labelTS368";
             this.labelTS368.Size = new System.Drawing.Size(27, 13);
             this.labelTS368.TabIndex = 44;
@@ -30107,7 +30107,7 @@
             // 
             this.labelTS367.AutoSize = true;
             this.labelTS367.Image = null;
-            this.labelTS367.Location = new System.Drawing.Point(5, 37);
+            this.labelTS367.Location = new System.Drawing.Point(5, 43);
             this.labelTS367.Name = "labelTS367";
             this.labelTS367.Size = new System.Drawing.Size(19, 13);
             this.labelTS367.TabIndex = 43;
@@ -30117,7 +30117,7 @@
             // 
             this.labelTS366.AutoSize = true;
             this.labelTS366.Image = null;
-            this.labelTS366.Location = new System.Drawing.Point(45, 16);
+            this.labelTS366.Location = new System.Drawing.Point(45, 22);
             this.labelTS366.Name = "labelTS366";
             this.labelTS366.Size = new System.Drawing.Size(57, 13);
             this.labelTS366.TabIndex = 42;
@@ -30126,9 +30126,9 @@
             // chkVAC2LatencyManual
             // 
             this.chkVAC2LatencyManual.Image = null;
-            this.chkVAC2LatencyManual.Location = new System.Drawing.Point(11, 56);
+            this.chkVAC2LatencyManual.Location = new System.Drawing.Point(11, 66);
             this.chkVAC2LatencyManual.Name = "chkVAC2LatencyManual";
-            this.chkVAC2LatencyManual.Size = new System.Drawing.Size(64, 16);
+            this.chkVAC2LatencyManual.Size = new System.Drawing.Size(64, 17);
             this.chkVAC2LatencyManual.TabIndex = 5;
             this.chkVAC2LatencyManual.Text = "Manual";
             this.chkVAC2LatencyManual.CheckedChanged += new System.EventHandler(this.chkVAC2LatencyManual_CheckedChanged);
@@ -30141,7 +30141,7 @@
             0,
             0,
             0});
-            this.udVAC2Latency.Location = new System.Drawing.Point(25, 35);
+            this.udVAC2Latency.Location = new System.Drawing.Point(25, 39);
             this.udVAC2Latency.Maximum = new decimal(new int[] {
             240,
             0,
@@ -30340,7 +30340,7 @@
             this.chkVAC2Enable.Image = null;
             this.chkVAC2Enable.Location = new System.Drawing.Point(227, 16);
             this.chkVAC2Enable.Name = "chkVAC2Enable";
-            this.chkVAC2Enable.Size = new System.Drawing.Size(99, 24);
+            this.chkVAC2Enable.Size = new System.Drawing.Size(102, 24);
             this.chkVAC2Enable.TabIndex = 79;
             this.chkVAC2Enable.Text = "Enable VAC 2";
             this.toolTip1.SetToolTip(this.chkVAC2Enable, "Enable Virtual Audio Cable for VAC 2 (RX2 Only)");
@@ -32285,7 +32285,7 @@
             this.groupBoxStreamOut.Controls.Add(this.chkStreamOutRxEnable);
             this.groupBoxStreamOut.Location = new System.Drawing.Point(12, 12);
             this.groupBoxStreamOut.Name = "groupBoxStreamOut";
-            this.groupBoxStreamOut.Size = new System.Drawing.Size(688, 210);
+            this.groupBoxStreamOut.Size = new System.Drawing.Size(688, 216);
             this.groupBoxStreamOut.TabIndex = 0;
             this.groupBoxStreamOut.TabStop = false;
             this.groupBoxStreamOut.Text = "Streaming Output";
@@ -32400,7 +32400,7 @@
             this.btnStreamOutRefresh.Location = new System.Drawing.Point(564, 168);
             this.btnStreamOutRefresh.Name = "btnStreamOutRefresh";
             this.btnStreamOutRefresh.Selectable = true;
-            this.btnStreamOutRefresh.Size = new System.Drawing.Size(100, 25);
+            this.btnStreamOutRefresh.Size = new System.Drawing.Size(105, 25);
             this.btnStreamOutRefresh.TabIndex = 12;
             this.btnStreamOutRefresh.Text = "Refresh Devices";
             this.btnStreamOutRefresh.UseVisualStyleBackColor = true;
@@ -32410,9 +32410,9 @@
             // 
             this.labelStreamOutHint.AutoSize = false;
             this.labelStreamOutHint.Image = null;
-            this.labelStreamOutHint.Location = new System.Drawing.Point(14, 176);
+            this.labelStreamOutHint.Location = new System.Drawing.Point(14, 166);
             this.labelStreamOutHint.Name = "labelStreamOutHint";
-            this.labelStreamOutHint.Size = new System.Drawing.Size(540, 30);
+            this.labelStreamOutHint.Size = new System.Drawing.Size(540, 48);
             this.labelStreamOutHint.TabIndex = 13;
             this.labelStreamOutHint.Text = "Sends a copy of the radio audio to the selected Windows output device. Pick a virtual audio cable (e.g. VB-CABLE) or your sound card and capture it in OBS Studio with an Audio Output Capture (WASAPI) source.";
             // 
@@ -33490,9 +33490,9 @@
             // 
             this.grpSpectralWarningLeds.Controls.Add(this.chkSpecWarningLEDGetPixels);
             this.grpSpectralWarningLeds.Controls.Add(this.chkSpecWarningLEDRenderDelay);
-            this.grpSpectralWarningLeds.Location = new System.Drawing.Point(394, 296);
+            this.grpSpectralWarningLeds.Location = new System.Drawing.Point(365, 296);
             this.grpSpectralWarningLeds.Name = "grpSpectralWarningLeds";
-            this.grpSpectralWarningLeds.Size = new System.Drawing.Size(147, 97);
+            this.grpSpectralWarningLeds.Size = new System.Drawing.Size(176, 97);
             this.grpSpectralWarningLeds.TabIndex = 94;
             this.grpSpectralWarningLeds.TabStop = false;
             this.grpSpectralWarningLeds.Text = "Spectral Warning LEDs";
@@ -33518,7 +33518,7 @@
             this.chkSpecWarningLEDRenderDelay.Image = null;
             this.chkSpecWarningLEDRenderDelay.Location = new System.Drawing.Point(8, 22);
             this.chkSpecWarningLEDRenderDelay.Name = "chkSpecWarningLEDRenderDelay";
-            this.chkSpecWarningLEDRenderDelay.Size = new System.Drawing.Size(131, 17);
+            this.chkSpecWarningLEDRenderDelay.Size = new System.Drawing.Size(159, 17);
             this.chkSpecWarningLEDRenderDelay.TabIndex = 51;
             this.chkSpecWarningLEDRenderDelay.Text = "Unable to render in time";
             this.toolTip1.SetToolTip(this.chkSpecWarningLEDRenderDelay, "The display engine is unable to render at the requested frame rate");
@@ -33790,9 +33790,9 @@
             this.grpDisplayDriverEngine.Controls.Add(this.chkAntiAlias);
             this.grpDisplayDriverEngine.Controls.Add(this.comboDisplayThreadPriority);
             this.grpDisplayDriverEngine.Controls.Add(this.chkShowFPS);
-            this.grpDisplayDriverEngine.Location = new System.Drawing.Point(566, 166);
+            this.grpDisplayDriverEngine.Location = new System.Drawing.Point(541, 166);
             this.grpDisplayDriverEngine.Name = "grpDisplayDriverEngine";
-            this.grpDisplayDriverEngine.Size = new System.Drawing.Size(147, 175);
+            this.grpDisplayDriverEngine.Size = new System.Drawing.Size(172, 175);
             this.grpDisplayDriverEngine.TabIndex = 46;
             this.grpDisplayDriverEngine.TabStop = false;
             this.grpDisplayDriverEngine.Text = "DirectX Display Settings";
@@ -34061,7 +34061,7 @@
             this.chkDisplayMeterShowDecimal.Image = null;
             this.chkDisplayMeterShowDecimal.Location = new System.Drawing.Point(200, 17);
             this.chkDisplayMeterShowDecimal.Name = "chkDisplayMeterShowDecimal";
-            this.chkDisplayMeterShowDecimal.Size = new System.Drawing.Size(96, 16);
+            this.chkDisplayMeterShowDecimal.Size = new System.Drawing.Size(108, 16);
             this.chkDisplayMeterShowDecimal.TabIndex = 40;
             this.chkDisplayMeterShowDecimal.Text = "Show Decimal";
             this.toolTip1.SetToolTip(this.chkDisplayMeterShowDecimal, "Check to show detailed meter info");
@@ -34074,7 +34074,7 @@
             0,
             0,
             0});
-            this.udMeterDigitalDelay.Location = new System.Drawing.Point(136, 112);
+            this.udMeterDigitalDelay.Location = new System.Drawing.Point(146, 112);
             this.udMeterDigitalDelay.Maximum = new decimal(new int[] {
             5000,
             0,
@@ -34113,7 +34113,7 @@
             0,
             0,
             0});
-            this.udDisplayMeterAvg.Location = new System.Drawing.Point(136, 64);
+            this.udDisplayMeterAvg.Location = new System.Drawing.Point(146, 64);
             this.udDisplayMeterAvg.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -34154,7 +34154,7 @@
             0,
             0,
             0});
-            this.udDisplayMultiTextHoldTime.Location = new System.Drawing.Point(136, 40);
+            this.udDisplayMultiTextHoldTime.Location = new System.Drawing.Point(146, 40);
             this.udDisplayMultiTextHoldTime.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -34184,7 +34184,7 @@
             this.lblDisplayMeterTextHoldTime.Image = null;
             this.lblDisplayMeterTextHoldTime.Location = new System.Drawing.Point(8, 42);
             this.lblDisplayMeterTextHoldTime.Name = "lblDisplayMeterTextHoldTime";
-            this.lblDisplayMeterTextHoldTime.Size = new System.Drawing.Size(120, 16);
+            this.lblDisplayMeterTextHoldTime.Size = new System.Drawing.Size(131, 16);
             this.lblDisplayMeterTextHoldTime.TabIndex = 3;
             this.lblDisplayMeterTextHoldTime.Text = "Digital Peak Hold (ms):";
             // 
@@ -34195,7 +34195,7 @@
             0,
             0,
             0});
-            this.udDisplayMultiPeakHoldTime.Location = new System.Drawing.Point(136, 16);
+            this.udDisplayMultiPeakHoldTime.Location = new System.Drawing.Point(146, 16);
             this.udDisplayMultiPeakHoldTime.Maximum = new decimal(new int[] {
             99999,
             0,
@@ -34224,7 +34224,7 @@
             this.lblDisplayMultiPeakHoldTime.Image = null;
             this.lblDisplayMultiPeakHoldTime.Location = new System.Drawing.Point(8, 18);
             this.lblDisplayMultiPeakHoldTime.Name = "lblDisplayMultiPeakHoldTime";
-            this.lblDisplayMultiPeakHoldTime.Size = new System.Drawing.Size(128, 16);
+            this.lblDisplayMultiPeakHoldTime.Size = new System.Drawing.Size(134, 16);
             this.lblDisplayMultiPeakHoldTime.TabIndex = 0;
             this.lblDisplayMultiPeakHoldTime.Text = "Analog Peak Hold (ms):";
             // 
@@ -34235,7 +34235,7 @@
             0,
             0,
             0});
-            this.udDisplayMeterDelay.Location = new System.Drawing.Point(136, 88);
+            this.udDisplayMeterDelay.Location = new System.Drawing.Point(146, 88);
             this.udDisplayMeterDelay.Maximum = new decimal(new int[] {
             5000,
             0,
@@ -34759,7 +34759,7 @@
             this.lblWaterfallAGCOffsetRX1.Image = null;
             this.lblWaterfallAGCOffsetRX1.Location = new System.Drawing.Point(8, 69);
             this.lblWaterfallAGCOffsetRX1.Name = "lblWaterfallAGCOffsetRX1";
-            this.lblWaterfallAGCOffsetRX1.Size = new System.Drawing.Size(64, 16);
+            this.lblWaterfallAGCOffsetRX1.Size = new System.Drawing.Size(69, 16);
             this.lblWaterfallAGCOffsetRX1.TabIndex = 91;
             this.lblWaterfallAGCOffsetRX1.Text = "AGC Offset";
             // 
@@ -34771,7 +34771,7 @@
             0,
             0,
             65536});
-            this.udWaterfallAGCOffsetRX1.Location = new System.Drawing.Point(72, 68);
+            this.udWaterfallAGCOffsetRX1.Location = new System.Drawing.Point(77, 68);
             this.udWaterfallAGCOffsetRX1.Maximum = new decimal(new int[] {
             60,
             0,
@@ -34950,7 +34950,7 @@
             this.lblDisplayWaterfallUpdatePeriod.Image = null;
             this.lblDisplayWaterfallUpdatePeriod.Location = new System.Drawing.Point(8, 140);
             this.lblDisplayWaterfallUpdatePeriod.Name = "lblDisplayWaterfallUpdatePeriod";
-            this.lblDisplayWaterfallUpdatePeriod.Size = new System.Drawing.Size(76, 22);
+            this.lblDisplayWaterfallUpdatePeriod.Size = new System.Drawing.Size(80, 22);
             this.lblDisplayWaterfallUpdatePeriod.TabIndex = 72;
             this.lblDisplayWaterfallUpdatePeriod.Text = "Update every";
             this.toolTip1.SetToolTip(this.lblDisplayWaterfallUpdatePeriod, "How often to update (scroll another pixel line) on the waterfall display.  Note t" +
@@ -35939,7 +35939,7 @@
             this.lblWaterfallAGCOffsetRX2.Image = null;
             this.lblWaterfallAGCOffsetRX2.Location = new System.Drawing.Point(8, 69);
             this.lblWaterfallAGCOffsetRX2.Name = "lblWaterfallAGCOffsetRX2";
-            this.lblWaterfallAGCOffsetRX2.Size = new System.Drawing.Size(64, 16);
+            this.lblWaterfallAGCOffsetRX2.Size = new System.Drawing.Size(69, 16);
             this.lblWaterfallAGCOffsetRX2.TabIndex = 94;
             this.lblWaterfallAGCOffsetRX2.Text = "AGC Offset";
             // 
@@ -35951,7 +35951,7 @@
             0,
             0,
             65536});
-            this.udWaterfallAGCOffsetRX2.Location = new System.Drawing.Point(72, 68);
+            this.udWaterfallAGCOffsetRX2.Location = new System.Drawing.Point(77, 68);
             this.udWaterfallAGCOffsetRX2.Maximum = new decimal(new int[] {
             60,
             0,
@@ -37148,7 +37148,7 @@
             0,
             0,
             0});
-            this.udTXWFAmpMax.Location = new System.Drawing.Point(72, 42);
+            this.udTXWFAmpMax.Location = new System.Drawing.Point(77, 42);
             this.udTXWFAmpMax.Margin = new System.Windows.Forms.Padding(16);
             this.udTXWFAmpMax.Maximum = new decimal(new int[] {
             200,
@@ -37178,7 +37178,7 @@
             this.lblTXWFAmpMin.Location = new System.Drawing.Point(8, 20);
             this.lblTXWFAmpMin.Margin = new System.Windows.Forms.Padding(16, 0, 16, 0);
             this.lblTXWFAmpMin.Name = "lblTXWFAmpMin";
-            this.lblTXWFAmpMin.Size = new System.Drawing.Size(61, 18);
+            this.lblTXWFAmpMin.Size = new System.Drawing.Size(64, 18);
             this.lblTXWFAmpMin.TabIndex = 31;
             this.lblTXWFAmpMin.Text = "Low Level:";
             // 
@@ -37188,7 +37188,7 @@
             this.lblTXWFAmpMax.Location = new System.Drawing.Point(8, 43);
             this.lblTXWFAmpMax.Margin = new System.Windows.Forms.Padding(16, 0, 16, 0);
             this.lblTXWFAmpMax.Name = "lblTXWFAmpMax";
-            this.lblTXWFAmpMax.Size = new System.Drawing.Size(61, 19);
+            this.lblTXWFAmpMax.Size = new System.Drawing.Size(69, 19);
             this.lblTXWFAmpMax.TabIndex = 30;
             this.lblTXWFAmpMax.Text = "High Level:";
             // 
@@ -39130,7 +39130,7 @@
             this.chkStrictCharSpacing.Image = null;
             this.chkStrictCharSpacing.Location = new System.Drawing.Point(16, 201);
             this.chkStrictCharSpacing.Name = "chkStrictCharSpacing";
-            this.chkStrictCharSpacing.Size = new System.Drawing.Size(113, 16);
+            this.chkStrictCharSpacing.Size = new System.Drawing.Size(121, 16);
             this.chkStrictCharSpacing.TabIndex = 46;
             this.chkStrictCharSpacing.Text = "Strict Char Space";
             this.toolTip1.SetToolTip(this.chkStrictCharSpacing, "If enabled, will automatically force a full space after each character.");
@@ -39156,7 +39156,7 @@
             this.chkCWKeyerRevPdl.Image = null;
             this.chkCWKeyerRevPdl.Location = new System.Drawing.Point(16, 113);
             this.chkCWKeyerRevPdl.Name = "chkCWKeyerRevPdl";
-            this.chkCWKeyerRevPdl.Size = new System.Drawing.Size(113, 16);
+            this.chkCWKeyerRevPdl.Size = new System.Drawing.Size(116, 16);
             this.chkCWKeyerRevPdl.TabIndex = 38;
             this.chkCWKeyerRevPdl.Text = "Reverse Paddles";
             this.toolTip1.SetToolTip(this.chkCWKeyerRevPdl, "Reverses the input paddle -- Dot becomes Dash and vice versa.");
@@ -39191,7 +39191,7 @@
             this.chkCWAutoSwitchMode.Image = null;
             this.chkCWAutoSwitchMode.Location = new System.Drawing.Point(16, 157);
             this.chkCWAutoSwitchMode.Name = "chkCWAutoSwitchMode";
-            this.chkCWAutoSwitchMode.Size = new System.Drawing.Size(109, 16);
+            this.chkCWAutoSwitchMode.Size = new System.Drawing.Size(122, 16);
             this.chkCWAutoSwitchMode.TabIndex = 41;
             this.chkCWAutoSwitchMode.Text = "Auto Mode Swch";
             this.toolTip1.SetToolTip(this.chkCWAutoSwitchMode, "If enabled, will automatically switch to CW mode when paddles are used no matter " +
@@ -39232,7 +39232,7 @@
             this.lblCWBreakInDelay.Image = null;
             this.lblCWBreakInDelay.Location = new System.Drawing.Point(8, 48);
             this.lblCWBreakInDelay.Name = "lblCWBreakInDelay";
-            this.lblCWBreakInDelay.Size = new System.Drawing.Size(64, 16);
+            this.lblCWBreakInDelay.Size = new System.Drawing.Size(69, 16);
             this.lblCWBreakInDelay.TabIndex = 34;
             this.lblCWBreakInDelay.Text = "Delay (ms):";
             // 
@@ -39243,7 +39243,7 @@
             0,
             0,
             0});
-            this.udCWBreakInDelay.Location = new System.Drawing.Point(72, 48);
+            this.udCWBreakInDelay.Location = new System.Drawing.Point(77, 48);
             this.udCWBreakInDelay.Maximum = new decimal(new int[] {
             1000,
             0,
@@ -39385,7 +39385,7 @@
             0,
             0,
             0});
-            this.udRX2AutoAGCOffset.Location = new System.Drawing.Point(222, 55);
+            this.udRX2AutoAGCOffset.Location = new System.Drawing.Point(235, 55);
             this.udRX2AutoAGCOffset.Maximum = new decimal(new int[] {
             60,
             0,
@@ -39413,7 +39413,7 @@
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 6.75F);
             this.label1.ForeColor = System.Drawing.SystemColors.ControlText;
             this.label1.ImeMode = System.Windows.Forms.ImeMode.Off;
-            this.label1.Location = new System.Drawing.Point(224, 14);
+            this.label1.Location = new System.Drawing.Point(237, 14);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(48, 12);
             this.label1.TabIndex = 132;
@@ -39426,7 +39426,7 @@
             0,
             0,
             0});
-            this.udRX1AutoAGCOffset.Location = new System.Drawing.Point(222, 29);
+            this.udRX1AutoAGCOffset.Location = new System.Drawing.Point(235, 29);
             this.udRX1AutoAGCOffset.Maximum = new decimal(new int[] {
             60,
             0,
@@ -39455,7 +39455,7 @@
             this.chkAutoAGCRX2.Image = null;
             this.chkAutoAGCRX2.Location = new System.Drawing.Point(16, 55);
             this.chkAutoAGCRX2.Name = "chkAutoAGCRX2";
-            this.chkAutoAGCRX2.Size = new System.Drawing.Size(201, 17);
+            this.chkAutoAGCRX2.Size = new System.Drawing.Size(219, 17);
             this.chkAutoAGCRX2.TabIndex = 131;
             this.chkAutoAGCRX2.Text = "Auto AGC RX2 (requires pana/water)";
             this.toolTip1.SetToolTip(this.chkAutoAGCRX2, "Automatically adjust AGC based on Noise Floor");
@@ -39468,7 +39468,7 @@
             this.chkAutoAGCRX1.Image = null;
             this.chkAutoAGCRX1.Location = new System.Drawing.Point(16, 32);
             this.chkAutoAGCRX1.Name = "chkAutoAGCRX1";
-            this.chkAutoAGCRX1.Size = new System.Drawing.Size(201, 17);
+            this.chkAutoAGCRX1.Size = new System.Drawing.Size(219, 17);
             this.chkAutoAGCRX1.TabIndex = 130;
             this.chkAutoAGCRX1.Text = "Auto AGC RX1 (requires pana/water)";
             this.toolTip1.SetToolTip(this.chkAutoAGCRX1, "Automatically adjust AGC based on Noise Floor");
@@ -39765,7 +39765,7 @@
             this.chkAGCDisplayHangLine.Image = null;
             this.chkAGCDisplayHangLine.Location = new System.Drawing.Point(11, 256);
             this.chkAGCDisplayHangLine.Name = "chkAGCDisplayHangLine";
-            this.chkAGCDisplayHangLine.Size = new System.Drawing.Size(144, 18);
+            this.chkAGCDisplayHangLine.Size = new System.Drawing.Size(152, 18);
             this.chkAGCDisplayHangLine.TabIndex = 124;
             this.chkAGCDisplayHangLine.Text = "Display RX1 Hang Line";
             this.toolTip1.SetToolTip(this.chkAGCDisplayHangLine, "Check this box to Display the AGC Hang Threshold Control on the bandscope.");
@@ -39817,7 +39817,7 @@
             this.chkShowAGC.Image = null;
             this.chkShowAGC.Location = new System.Drawing.Point(11, 234);
             this.chkShowAGC.Name = "chkShowAGC";
-            this.chkShowAGC.Size = new System.Drawing.Size(144, 16);
+            this.chkShowAGC.Size = new System.Drawing.Size(147, 16);
             this.chkShowAGC.TabIndex = 122;
             this.chkShowAGC.Text = "Display RX1 Gain Line";
             this.toolTip1.SetToolTip(this.chkShowAGC, "Check this box to Display the AGC Controls on the bandscope.");
@@ -40050,7 +40050,7 @@
             this.lblDSPAGCHangThreshold.Image = null;
             this.lblDSPAGCHangThreshold.Location = new System.Drawing.Point(8, 151);
             this.lblDSPAGCHangThreshold.Name = "lblDSPAGCHangThreshold";
-            this.lblDSPAGCHangThreshold.Size = new System.Drawing.Size(88, 16);
+            this.lblDSPAGCHangThreshold.Size = new System.Drawing.Size(97, 16);
             this.lblDSPAGCHangThreshold.TabIndex = 46;
             this.lblDSPAGCHangThreshold.Text = "Hang Threshold:";
             // 
@@ -40254,7 +40254,7 @@
             this.lblDSPAGCFixed.Image = null;
             this.lblDSPAGCFixed.Location = new System.Drawing.Point(8, 124);
             this.lblDSPAGCFixed.Name = "lblDSPAGCFixed";
-            this.lblDSPAGCFixed.Size = new System.Drawing.Size(88, 16);
+            this.lblDSPAGCFixed.Size = new System.Drawing.Size(93, 16);
             this.lblDSPAGCFixed.TabIndex = 5;
             this.lblDSPAGCFixed.Text = "Fixed Gain (dB):";
             // 
@@ -40948,7 +40948,7 @@
             // 
             this.lblFMDetLimGain.AutoSize = true;
             this.lblFMDetLimGain.Image = null;
-            this.lblFMDetLimGain.Location = new System.Drawing.Point(5, 94);
+            this.lblFMDetLimGain.Location = new System.Drawing.Point(5, 88);
             this.lblFMDetLimGain.Name = "lblFMDetLimGain";
             this.lblFMDetLimGain.Size = new System.Drawing.Size(62, 13);
             this.lblFMDetLimGain.TabIndex = 52;
@@ -41705,7 +41705,7 @@
             this.labelRX2APFGain.Image = null;
             this.labelRX2APFGain.Location = new System.Drawing.Point(77, 14);
             this.labelRX2APFGain.Name = "labelRX2APFGain";
-            this.labelRX2APFGain.Size = new System.Drawing.Size(55, 16);
+            this.labelRX2APFGain.Size = new System.Drawing.Size(59, 16);
             this.labelRX2APFGain.TabIndex = 36;
             this.labelRX2APFGain.Text = "Gain (dB)";
             // 
@@ -41897,7 +41897,7 @@
             this.labelRX1subAPFGain.Image = null;
             this.labelRX1subAPFGain.Location = new System.Drawing.Point(77, 14);
             this.labelRX1subAPFGain.Name = "labelRX1subAPFGain";
-            this.labelRX1subAPFGain.Size = new System.Drawing.Size(55, 16);
+            this.labelRX1subAPFGain.Size = new System.Drawing.Size(59, 16);
             this.labelRX1subAPFGain.TabIndex = 36;
             this.labelRX1subAPFGain.Text = "Gain (dB)";
             // 
@@ -42089,7 +42089,7 @@
             this.labelRX1APFGain.Image = null;
             this.labelRX1APFGain.Location = new System.Drawing.Point(77, 14);
             this.labelRX1APFGain.Name = "labelRX1APFGain";
-            this.labelRX1APFGain.Size = new System.Drawing.Size(55, 16);
+            this.labelRX1APFGain.Size = new System.Drawing.Size(59, 16);
             this.labelRX1APFGain.TabIndex = 36;
             this.labelRX1APFGain.Text = "Gain (dB)";
             // 
@@ -43145,7 +43145,7 @@
             this.btnNR3_model_load.Location = new System.Drawing.Point(14, 37);
             this.btnNR3_model_load.Name = "btnNR3_model_load";
             this.btnNR3_model_load.Selectable = true;
-            this.btnNR3_model_load.Size = new System.Drawing.Size(75, 23);
+            this.btnNR3_model_load.Size = new System.Drawing.Size(78, 23);
             this.btnNR3_model_load.TabIndex = 2;
             this.btnNR3_model_load.Text = "Use Model";
             this.toolTip1.SetToolTip(this.btnNR3_model_load, "Select a model that RNnoise will use. Note: if the format is bad, SDR-VST3 will pro" +
@@ -47994,7 +47994,7 @@
             this.chkRecoverPAProfileFromTXProfile.Image = null;
             this.chkRecoverPAProfileFromTXProfile.Location = new System.Drawing.Point(23, 316);
             this.chkRecoverPAProfileFromTXProfile.Name = "chkRecoverPAProfileFromTXProfile";
-            this.chkRecoverPAProfileFromTXProfile.Size = new System.Drawing.Size(203, 18);
+            this.chkRecoverPAProfileFromTXProfile.Size = new System.Drawing.Size(210, 18);
             this.chkRecoverPAProfileFromTXProfile.TabIndex = 77;
             this.chkRecoverPAProfileFromTXProfile.Text = "Restore PA profile from TX Profile";
             this.toolTip1.SetToolTip(this.chkRecoverPAProfileFromTXProfile, "Restore the PA profile that was stored along stide this TX profile");
@@ -48020,7 +48020,7 @@
             this.chkRestoreVAC2DeviceDetailsFromTXProfile.Image = null;
             this.chkRestoreVAC2DeviceDetailsFromTXProfile.Location = new System.Drawing.Point(23, 284);
             this.chkRestoreVAC2DeviceDetailsFromTXProfile.Name = "chkRestoreVAC2DeviceDetailsFromTXProfile";
-            this.chkRestoreVAC2DeviceDetailsFromTXProfile.Size = new System.Drawing.Size(259, 18);
+            this.chkRestoreVAC2DeviceDetailsFromTXProfile.Size = new System.Drawing.Size(262, 18);
             this.chkRestoreVAC2DeviceDetailsFromTXProfile.TabIndex = 75;
             this.chkRestoreVAC2DeviceDetailsFromTXProfile.Text = "Restore VAC2 device details from TX Profile";
             this.toolTip1.SetToolTip(this.chkRestoreVAC2DeviceDetailsFromTXProfile, "Restore VAC device details that were stored against a TX Profile");
@@ -48030,7 +48030,7 @@
             this.chkRestoreVAC1DeviceDetailsFromTXProfile.Image = null;
             this.chkRestoreVAC1DeviceDetailsFromTXProfile.Location = new System.Drawing.Point(23, 260);
             this.chkRestoreVAC1DeviceDetailsFromTXProfile.Name = "chkRestoreVAC1DeviceDetailsFromTXProfile";
-            this.chkRestoreVAC1DeviceDetailsFromTXProfile.Size = new System.Drawing.Size(259, 18);
+            this.chkRestoreVAC1DeviceDetailsFromTXProfile.Size = new System.Drawing.Size(262, 18);
             this.chkRestoreVAC1DeviceDetailsFromTXProfile.TabIndex = 74;
             this.chkRestoreVAC1DeviceDetailsFromTXProfile.Text = "Restore VAC1 device details from TX Profile";
             this.toolTip1.SetToolTip(this.chkRestoreVAC1DeviceDetailsFromTXProfile, "Restore VAC device details that were stored against a TX Profile");
@@ -48099,7 +48099,7 @@
             this.chkTXInhibit.Image = null;
             this.chkTXInhibit.Location = new System.Drawing.Point(11, 24);
             this.chkTXInhibit.Name = "chkTXInhibit";
-            this.chkTXInhibit.Size = new System.Drawing.Size(161, 16);
+            this.chkTXInhibit.Size = new System.Drawing.Size(179, 16);
             this.chkTXInhibit.TabIndex = 68;
             this.chkTXInhibit.Text = "Update with TX Inhibit state";
             this.toolTip1.SetToolTip(this.chkTXInhibit, "SDR-VST3 will update on TX inhibit state change");
@@ -48121,7 +48121,7 @@
             this.chkSaveTXProfileOnExit.Image = null;
             this.chkSaveTXProfileOnExit.Location = new System.Drawing.Point(23, 349);
             this.chkSaveTXProfileOnExit.Name = "chkSaveTXProfileOnExit";
-            this.chkSaveTXProfileOnExit.Size = new System.Drawing.Size(215, 18);
+            this.chkSaveTXProfileOnExit.Size = new System.Drawing.Size(244, 18);
             this.chkSaveTXProfileOnExit.TabIndex = 67;
             this.chkSaveTXProfileOnExit.Text = "Auto Save TX Profile on SDR-VST3 close";
             this.toolTip1.SetToolTip(this.chkSaveTXProfileOnExit, "Automatically saves the current TX Profile when SDR-VST3 is closed");
@@ -48132,7 +48132,7 @@
             this.chkAutoSaveTXProfile.Image = null;
             this.chkAutoSaveTXProfile.Location = new System.Drawing.Point(23, 373);
             this.chkAutoSaveTXProfile.Name = "chkAutoSaveTXProfile";
-            this.chkAutoSaveTXProfile.Size = new System.Drawing.Size(189, 18);
+            this.chkAutoSaveTXProfile.Size = new System.Drawing.Size(198, 18);
             this.chkAutoSaveTXProfile.TabIndex = 66;
             this.chkAutoSaveTXProfile.Text = "Auto Save TX Profile on change";
             this.toolTip1.SetToolTip(this.chkAutoSaveTXProfile, "Automatically saves the current TX Profile if another profile is selected");
@@ -48242,7 +48242,7 @@
             this.radLineIn.Image = null;
             this.radLineIn.Location = new System.Drawing.Point(111, 73);
             this.radLineIn.Name = "radLineIn";
-            this.radLineIn.Size = new System.Drawing.Size(57, 16);
+            this.radLineIn.Size = new System.Drawing.Size(64, 16);
             this.radLineIn.TabIndex = 13;
             this.radLineIn.Text = "Line In";
             this.radLineIn.TextAlign = System.Drawing.ContentAlignment.TopLeft;
@@ -48256,7 +48256,7 @@
             this.radMicIn.Image = null;
             this.radMicIn.Location = new System.Drawing.Point(111, 50);
             this.radMicIn.Name = "radMicIn";
-            this.radMicIn.Size = new System.Drawing.Size(55, 16);
+            this.radMicIn.Size = new System.Drawing.Size(62, 16);
             this.radMicIn.TabIndex = 12;
             this.radMicIn.TabStop = true;
             this.radMicIn.Text = "Mic In";
@@ -48386,7 +48386,7 @@
             this.chk20dbMicBoost.Image = null;
             this.chk20dbMicBoost.Location = new System.Drawing.Point(13, 97);
             this.chk20dbMicBoost.Name = "chk20dbMicBoost";
-            this.chk20dbMicBoost.Size = new System.Drawing.Size(110, 16);
+            this.chk20dbMicBoost.Size = new System.Drawing.Size(115, 16);
             this.chk20dbMicBoost.TabIndex = 11;
             this.chk20dbMicBoost.Text = "20dB Mic Boost";
             this.toolTip1.SetToolTip(this.chk20dbMicBoost, "Controls 20dB Hardware Preamp");
@@ -48411,7 +48411,7 @@
             this.chkTXExpert.Image = null;
             this.chkTXExpert.Location = new System.Drawing.Point(593, 7);
             this.chkTXExpert.Name = "chkTXExpert";
-            this.chkTXExpert.Size = new System.Drawing.Size(96, 24);
+            this.chkTXExpert.Size = new System.Drawing.Size(102, 24);
             this.chkTXExpert.TabIndex = 55;
             this.chkTXExpert.Text = "More Profiles";
             this.toolTip1.SetToolTip(this.chkTXExpert, "Check to display additional default preset TX Profiles");
@@ -48703,7 +48703,7 @@
             this.lblTXTUNMeter.Image = null;
             this.lblTXTUNMeter.Location = new System.Drawing.Point(3, 16);
             this.lblTXTUNMeter.Name = "lblTXTUNMeter";
-            this.lblTXTUNMeter.Size = new System.Drawing.Size(56, 24);
+            this.lblTXTUNMeter.Size = new System.Drawing.Size(60, 24);
             this.lblTXTUNMeter.TabIndex = 8;
             this.lblTXTUNMeter.Text = "TX Meter:";
             this.lblTXTUNMeter.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -48980,9 +48980,9 @@
             this.panelTS1.Controls.Add(this.labelTS165);
             this.panelTS1.Controls.Add(this.nudMaxPowerForBandPA);
             this.panelTS1.Controls.Add(this.lblMaxPowerForBandPA);
-            this.panelTS1.Location = new System.Drawing.Point(269, 314);
+            this.panelTS1.Location = new System.Drawing.Point(250, 314);
             this.panelTS1.Name = "panelTS1";
-            this.panelTS1.Size = new System.Drawing.Size(252, 69);
+            this.panelTS1.Size = new System.Drawing.Size(271, 69);
             this.panelTS1.TabIndex = 168;
             // 
             // chkUsePowerOnDrvTunPA
@@ -48990,7 +48990,7 @@
             this.chkUsePowerOnDrvTunPA.Image = null;
             this.chkUsePowerOnDrvTunPA.Location = new System.Drawing.Point(12, 25);
             this.chkUsePowerOnDrvTunPA.Name = "chkUsePowerOnDrvTunPA";
-            this.chkUsePowerOnDrvTunPA.Size = new System.Drawing.Size(111, 39);
+            this.chkUsePowerOnDrvTunPA.Size = new System.Drawing.Size(150, 39);
             this.chkUsePowerOnDrvTunPA.TabIndex = 127;
             this.chkUsePowerOnDrvTunPA.Text = "Use watts on Drive/Tune slider";
             this.toolTip1.SetToolTip(this.chkUsePowerOnDrvTunPA, "Use watts on the drive/tune sliders. Requires a max 100% value to be assigned.");
@@ -49002,7 +49002,7 @@
             this.labelTS165.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.labelTS165.AutoSize = true;
             this.labelTS165.Image = null;
-            this.labelTS165.Location = new System.Drawing.Point(206, 34);
+            this.labelTS165.Location = new System.Drawing.Point(231, 34);
             this.labelTS165.Name = "labelTS165";
             this.labelTS165.Size = new System.Drawing.Size(32, 13);
             this.labelTS165.TabIndex = 126;
@@ -49017,7 +49017,7 @@
             0,
             0,
             65536});
-            this.nudMaxPowerForBandPA.Location = new System.Drawing.Point(139, 32);
+            this.nudMaxPowerForBandPA.Location = new System.Drawing.Point(166, 32);
             this.nudMaxPowerForBandPA.Maximum = new decimal(new int[] {
             5000,
             0,
@@ -50559,7 +50559,7 @@
             this.chkAutoPACalibrate.Image = null;
             this.chkAutoPACalibrate.Location = new System.Drawing.Point(580, 278);
             this.chkAutoPACalibrate.Name = "chkAutoPACalibrate";
-            this.chkAutoPACalibrate.Size = new System.Drawing.Size(120, 32);
+            this.chkAutoPACalibrate.Size = new System.Drawing.Size(136, 32);
             this.chkAutoPACalibrate.TabIndex = 116;
             this.chkAutoPACalibrate.Text = "Use Advanced Calibration Routine";
             this.chkAutoPACalibrate.CheckedChanged += new System.EventHandler(this.chkAutoPACalibrate_CheckedChanged);
@@ -50657,7 +50657,7 @@
             this.radPACalAllBands.Image = null;
             this.radPACalAllBands.Location = new System.Drawing.Point(10, 48);
             this.radPACalAllBands.Name = "radPACalAllBands";
-            this.radPACalAllBands.Size = new System.Drawing.Size(72, 16);
+            this.radPACalAllBands.Size = new System.Drawing.Size(79, 16);
             this.radPACalAllBands.TabIndex = 22;
             this.radPACalAllBands.TabStop = true;
             this.radPACalAllBands.Text = "All Bands";
@@ -50677,7 +50677,7 @@
             this.chkPA160.Image = null;
             this.chkPA160.Location = new System.Drawing.Point(10, 104);
             this.chkPA160.Name = "chkPA160";
-            this.chkPA160.Size = new System.Drawing.Size(48, 16);
+            this.chkPA160.Size = new System.Drawing.Size(51, 16);
             this.chkPA160.TabIndex = 24;
             this.chkPA160.Text = "160";
             // 
@@ -52693,7 +52693,7 @@
             this.labelTS255.Image = null;
             this.labelTS255.Location = new System.Drawing.Point(103, 150);
             this.labelTS255.Name = "labelTS255";
-            this.labelTS255.Size = new System.Drawing.Size(93, 16);
+            this.labelTS255.Size = new System.Drawing.Size(97, 16);
             this.labelTS255.TabIndex = 186;
             this.labelTS255.Text = "Cal\'d Fwd Power";
             this.labelTS255.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -52807,7 +52807,7 @@
             this.labelTS275.Image = null;
             this.labelTS275.Location = new System.Drawing.Point(7, 17);
             this.labelTS275.Name = "labelTS275";
-            this.labelTS275.Size = new System.Drawing.Size(93, 16);
+            this.labelTS275.Size = new System.Drawing.Size(97, 16);
             this.labelTS275.TabIndex = 176;
             this.labelTS275.Text = "Drive ADC Value";
             this.labelTS275.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -53154,7 +53154,7 @@
             this.labelTS8.Image = null;
             this.labelTS8.Location = new System.Drawing.Point(154, 100);
             this.labelTS8.Name = "labelTS8";
-            this.labelTS8.Size = new System.Drawing.Size(85, 15);
+            this.labelTS8.Size = new System.Drawing.Size(92, 15);
             this.labelTS8.TabIndex = 91;
             this.labelTS8.Text = "Slider Limit Bar:";
             // 
@@ -53163,7 +53163,7 @@
             this.clrbtnSliderLimitBar.Automatic = "Automatic";
             this.clrbtnSliderLimitBar.Color = System.Drawing.Color.Red;
             this.clrbtnSliderLimitBar.Image = null;
-            this.clrbtnSliderLimitBar.Location = new System.Drawing.Point(245, 95);
+            this.clrbtnSliderLimitBar.Location = new System.Drawing.Point(250, 95);
             this.clrbtnSliderLimitBar.MoreColors = "More Colors...";
             this.clrbtnSliderLimitBar.Name = "clrbtnSliderLimitBar";
             this.clrbtnSliderLimitBar.Selectable = true;
@@ -53192,7 +53192,7 @@
             this.lblAppearanceGenBtnSel.Image = null;
             this.lblAppearanceGenBtnSel.Location = new System.Drawing.Point(154, 71);
             this.lblAppearanceGenBtnSel.Name = "lblAppearanceGenBtnSel";
-            this.lblAppearanceGenBtnSel.Size = new System.Drawing.Size(87, 15);
+            this.lblAppearanceGenBtnSel.Size = new System.Drawing.Size(95, 15);
             this.lblAppearanceGenBtnSel.TabIndex = 55;
             this.lblAppearanceGenBtnSel.Text = "Button Selected:";
             // 
@@ -53201,7 +53201,7 @@
             this.clrbtnBtnSel.Automatic = "Automatic";
             this.clrbtnBtnSel.Color = System.Drawing.Color.Yellow;
             this.clrbtnBtnSel.Image = null;
-            this.clrbtnBtnSel.Location = new System.Drawing.Point(245, 66);
+            this.clrbtnBtnSel.Location = new System.Drawing.Point(250, 66);
             this.clrbtnBtnSel.MoreColors = "More Colors...";
             this.clrbtnBtnSel.Name = "clrbtnBtnSel";
             this.clrbtnBtnSel.Selectable = true;
@@ -53396,7 +53396,7 @@
             this.btnOpenSkinsFolder.Location = new System.Drawing.Point(178, 46);
             this.btnOpenSkinsFolder.Name = "btnOpenSkinsFolder";
             this.btnOpenSkinsFolder.Selectable = true;
-            this.btnOpenSkinsFolder.Size = new System.Drawing.Size(107, 23);
+            this.btnOpenSkinsFolder.Size = new System.Drawing.Size(117, 23);
             this.btnOpenSkinsFolder.TabIndex = 92;
             this.btnOpenSkinsFolder.Text = "Open Skins Folder";
             this.btnOpenSkinsFolder.UseVisualStyleBackColor = true;
@@ -54152,7 +54152,7 @@
             this.chkGridControl_minor.Image = null;
             this.chkGridControl_minor.Location = new System.Drawing.Point(130, 370);
             this.chkGridControl_minor.Name = "chkGridControl_minor";
-            this.chkGridControl_minor.Size = new System.Drawing.Size(120, 18);
+            this.chkGridControl_minor.Size = new System.Drawing.Size(131, 18);
             this.chkGridControl_minor.TabIndex = 101;
             this.chkGridControl_minor.Text = "Display Minor Grid";
             this.toolTip1.SetToolTip(this.chkGridControl_minor, "Display the Minor Grid on the Panadapter");
@@ -54306,7 +54306,7 @@
             this.chkGridControl.Image = null;
             this.chkGridControl.Location = new System.Drawing.Point(130, 348);
             this.chkGridControl.Name = "chkGridControl";
-            this.chkGridControl.Size = new System.Drawing.Size(120, 18);
+            this.chkGridControl.Size = new System.Drawing.Size(131, 18);
             this.chkGridControl.TabIndex = 83;
             this.chkGridControl.Text = "Display Major Grid";
             this.toolTip1.SetToolTip(this.chkGridControl, "Display the Major Grid on the Panadapter including the frequency numbers");
@@ -54786,7 +54786,7 @@
             this.lblTXBandEdge.Image = null;
             this.lblTXBandEdge.Location = new System.Drawing.Point(8, 176);
             this.lblTXBandEdge.Name = "lblTXBandEdge";
-            this.lblTXBandEdge.Size = new System.Drawing.Size(64, 24);
+            this.lblTXBandEdge.Size = new System.Drawing.Size(70, 24);
             this.lblTXBandEdge.TabIndex = 65;
             this.lblTXBandEdge.Text = "Band Edge:";
             this.lblTXBandEdge.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -55124,7 +55124,7 @@
             this.btnDeleteColourGripper_waterfall_tx.Location = new System.Drawing.Point(196, 41);
             this.btnDeleteColourGripper_waterfall_tx.Name = "btnDeleteColourGripper_waterfall_tx";
             this.btnDeleteColourGripper_waterfall_tx.Selectable = true;
-            this.btnDeleteColourGripper_waterfall_tx.Size = new System.Drawing.Size(52, 23);
+            this.btnDeleteColourGripper_waterfall_tx.Size = new System.Drawing.Size(57, 23);
             this.btnDeleteColourGripper_waterfall_tx.TabIndex = 86;
             this.btnDeleteColourGripper_waterfall_tx.Text = "Delete";
             this.btnDeleteColourGripper_waterfall_tx.Click += new System.EventHandler(this.btnDeleteColourGripper_waterfall_tx_Click);
@@ -55262,7 +55262,7 @@
             this.btnDeleteColourGripper_tx.Location = new System.Drawing.Point(196, 41);
             this.btnDeleteColourGripper_tx.Name = "btnDeleteColourGripper_tx";
             this.btnDeleteColourGripper_tx.Selectable = true;
-            this.btnDeleteColourGripper_tx.Size = new System.Drawing.Size(52, 23);
+            this.btnDeleteColourGripper_tx.Size = new System.Drawing.Size(57, 23);
             this.btnDeleteColourGripper_tx.TabIndex = 86;
             this.btnDeleteColourGripper_tx.Text = "Delete";
             this.btnDeleteColourGripper_tx.Click += new System.EventHandler(this.btnDeleteColourGripper_tx_Click);
@@ -55412,7 +55412,7 @@
             this.btnDeleteColourGripper.Location = new System.Drawing.Point(196, 41);
             this.btnDeleteColourGripper.Name = "btnDeleteColourGripper";
             this.btnDeleteColourGripper.Selectable = true;
-            this.btnDeleteColourGripper.Size = new System.Drawing.Size(52, 23);
+            this.btnDeleteColourGripper.Size = new System.Drawing.Size(57, 23);
             this.btnDeleteColourGripper.TabIndex = 86;
             this.btnDeleteColourGripper.Text = "Delete";
             this.btnDeleteColourGripper.Click += new System.EventHandler(this.btnDeleteColourGripper_Click);
@@ -55563,7 +55563,7 @@
             this.btnDeleteColourGripper_waterfall.Location = new System.Drawing.Point(196, 41);
             this.btnDeleteColourGripper_waterfall.Name = "btnDeleteColourGripper_waterfall";
             this.btnDeleteColourGripper_waterfall.Selectable = true;
-            this.btnDeleteColourGripper_waterfall.Size = new System.Drawing.Size(52, 23);
+            this.btnDeleteColourGripper_waterfall.Size = new System.Drawing.Size(57, 23);
             this.btnDeleteColourGripper_waterfall.TabIndex = 86;
             this.btnDeleteColourGripper_waterfall.Text = "Delete";
             this.btnDeleteColourGripper_waterfall.Click += new System.EventHandler(this.btnDeleteColourGripper_waterfall_Click);
@@ -56941,7 +56941,7 @@
             this.btnMMIO_variable_2.Location = new System.Drawing.Point(275, 57);
             this.btnMMIO_variable_2.Name = "btnMMIO_variable_2";
             this.btnMMIO_variable_2.Selectable = true;
-            this.btnMMIO_variable_2.Size = new System.Drawing.Size(28, 28);
+            this.btnMMIO_variable_2.Size = new System.Drawing.Size(31, 28);
             this.btnMMIO_variable_2.TabIndex = 129;
             this.btnMMIO_variable_2.Text = "%";
             this.btnMMIO_variable_2.UseVisualStyleBackColor = true;
@@ -56954,7 +56954,7 @@
             this.btnMMIO_variable.Location = new System.Drawing.Point(243, 57);
             this.btnMMIO_variable.Name = "btnMMIO_variable";
             this.btnMMIO_variable.Selectable = true;
-            this.btnMMIO_variable.Size = new System.Drawing.Size(28, 28);
+            this.btnMMIO_variable.Size = new System.Drawing.Size(31, 28);
             this.btnMMIO_variable.TabIndex = 128;
             this.btnMMIO_variable.Text = "%";
             this.btnMMIO_variable.UseVisualStyleBackColor = true;
@@ -57077,7 +57077,7 @@
             this.labelTS167.Image = null;
             this.labelTS167.Location = new System.Drawing.Point(6, 20);
             this.labelTS167.Name = "labelTS167";
-            this.labelTS167.Size = new System.Drawing.Size(71, 16);
+            this.labelTS167.Size = new System.Drawing.Size(78, 16);
             this.labelTS167.TabIndex = 100;
             this.labelTS167.Text = "Update (ms):";
             this.labelTS167.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -58217,7 +58217,7 @@
             this.chkOptEnableKBShortcuts.Image = null;
             this.chkOptEnableKBShortcuts.Location = new System.Drawing.Point(6, 19);
             this.chkOptEnableKBShortcuts.Name = "chkOptEnableKBShortcuts";
-            this.chkOptEnableKBShortcuts.Size = new System.Drawing.Size(109, 16);
+            this.chkOptEnableKBShortcuts.Size = new System.Drawing.Size(120, 16);
             this.chkOptEnableKBShortcuts.TabIndex = 1;
             this.chkOptEnableKBShortcuts.Text = "Enable Shortcuts";
             this.toolTip1.SetToolTip(this.chkOptEnableKBShortcuts, "Enable keyboard shortcuts.  If this box is not checked, none of the keyboard shor" +
@@ -58229,7 +58229,7 @@
             this.chkOptQuickQSY.Image = null;
             this.chkOptQuickQSY.Location = new System.Drawing.Point(6, 41);
             this.chkOptQuickQSY.Name = "chkOptQuickQSY";
-            this.chkOptQuickQSY.Size = new System.Drawing.Size(80, 16);
+            this.chkOptQuickQSY.Size = new System.Drawing.Size(87, 16);
             this.chkOptQuickQSY.TabIndex = 0;
             this.chkOptQuickQSY.Text = "Quick QSY";
             this.toolTip1.SetToolTip(this.chkOptQuickQSY, "Enabled the Quick QSY feature -- directly enter the frequency in MHz while the ma" +
@@ -58329,7 +58329,7 @@
             this.lblKBTuneDigit.Image = null;
             this.lblKBTuneDigit.Location = new System.Drawing.Point(16, 16);
             this.lblKBTuneDigit.Name = "lblKBTuneDigit";
-            this.lblKBTuneDigit.Size = new System.Drawing.Size(32, 16);
+            this.lblKBTuneDigit.Size = new System.Drawing.Size(46, 16);
             this.lblKBTuneDigit.TabIndex = 26;
             this.lblKBTuneDigit.Text = "Digit";
             // 
@@ -60053,7 +60053,7 @@
             this.btnDefaultBindPortForTCI.Location = new System.Drawing.Point(219, 26);
             this.btnDefaultBindPortForTCI.Name = "btnDefaultBindPortForTCI";
             this.btnDefaultBindPortForTCI.Selectable = true;
-            this.btnDefaultBindPortForTCI.Size = new System.Drawing.Size(37, 26);
+            this.btnDefaultBindPortForTCI.Size = new System.Drawing.Size(41, 26);
             this.btnDefaultBindPortForTCI.TabIndex = 12;
             this.btnDefaultBindPortForTCI.Text = "Def";
             this.toolTip1.SetToolTip(this.btnDefaultBindPortForTCI, "Default value");
@@ -60169,7 +60169,7 @@
             this.btnDefaultBindPortForTCPIPCat.Location = new System.Drawing.Point(219, 26);
             this.btnDefaultBindPortForTCPIPCat.Name = "btnDefaultBindPortForTCPIPCat";
             this.btnDefaultBindPortForTCPIPCat.Selectable = true;
-            this.btnDefaultBindPortForTCPIPCat.Size = new System.Drawing.Size(37, 26);
+            this.btnDefaultBindPortForTCPIPCat.Size = new System.Drawing.Size(41, 26);
             this.btnDefaultBindPortForTCPIPCat.TabIndex = 12;
             this.btnDefaultBindPortForTCPIPCat.Text = "Def";
             this.toolTip1.SetToolTip(this.btnDefaultBindPortForTCPIPCat, "Default value");
@@ -60275,7 +60275,7 @@
             this.btnN1MMDefault.Location = new System.Drawing.Point(219, 80);
             this.btnN1MMDefault.Name = "btnN1MMDefault";
             this.btnN1MMDefault.Selectable = true;
-            this.btnN1MMDefault.Size = new System.Drawing.Size(37, 26);
+            this.btnN1MMDefault.Size = new System.Drawing.Size(41, 26);
             this.btnN1MMDefault.TabIndex = 10;
             this.btnN1MMDefault.Text = "Def";
             this.btnN1MMDefault.UseVisualStyleBackColor = true;
@@ -60806,7 +60806,7 @@
             this.chkLimitPowerCATTCIMsgs.Image = null;
             this.chkLimitPowerCATTCIMsgs.Location = new System.Drawing.Point(16, 136);
             this.chkLimitPowerCATTCIMsgs.Name = "chkLimitPowerCATTCIMsgs";
-            this.chkLimitPowerCATTCIMsgs.Size = new System.Drawing.Size(176, 33);
+            this.chkLimitPowerCATTCIMsgs.Size = new System.Drawing.Size(204, 33);
             this.chkLimitPowerCATTCIMsgs.TabIndex = 108;
             this.chkLimitPowerCATTCIMsgs.Text = "Apply power limits to CAT/TCI power related queries (out)";
             this.chkLimitPowerCATTCIMsgs.TextAlign = System.Drawing.ContentAlignment.TopLeft;
@@ -62334,7 +62334,7 @@
             this.btnShowBandwidth.Location = new System.Drawing.Point(459, 18);
             this.btnShowBandwidth.Name = "btnShowBandwidth";
             this.btnShowBandwidth.Selectable = true;
-            this.btnShowBandwidth.Size = new System.Drawing.Size(106, 23);
+            this.btnShowBandwidth.Size = new System.Drawing.Size(110, 23);
             this.btnShowBandwidth.TabIndex = 121;
             this.btnShowBandwidth.Text = "Show Bandwidth";
             this.toolTip1.SetToolTip(this.btnShowBandwidth, "Show radio protocol network activity");
@@ -62369,7 +62369,7 @@
             this.btnFormLocationHelper.Location = new System.Drawing.Point(347, 55);
             this.btnFormLocationHelper.Name = "btnFormLocationHelper";
             this.btnFormLocationHelper.Selectable = true;
-            this.btnFormLocationHelper.Size = new System.Drawing.Size(106, 23);
+            this.btnFormLocationHelper.Size = new System.Drawing.Size(114, 23);
             this.btnFormLocationHelper.TabIndex = 121;
             this.btnFormLocationHelper.Text = "Reposition Forms";
             this.toolTip1.SetToolTip(this.btnFormLocationHelper, "Use this if you have lost a form off screen somewhere");
@@ -66721,7 +66721,7 @@
             this.chkEnableRFEPATR.Image = null;
             this.chkEnableRFEPATR.Location = new System.Drawing.Point(16, 207);
             this.chkEnableRFEPATR.Name = "chkEnableRFEPATR";
-            this.chkEnableRFEPATR.Size = new System.Drawing.Size(120, 16);
+            this.chkEnableRFEPATR.Size = new System.Drawing.Size(124, 16);
             this.chkEnableRFEPATR.TabIndex = 12;
             this.chkEnableRFEPATR.Text = "Enable RFE PA TR";
             this.toolTip1.SetToolTip(this.chkEnableRFEPATR, "Enabled the RFE PA TR line to toggle with MOX (for use with non-FLEX PA).");
@@ -67577,7 +67577,7 @@
             this.btnMMIO_variable_2_history.Location = new System.Drawing.Point(284, 52);
             this.btnMMIO_variable_2_history.Name = "btnMMIO_variable_2_history";
             this.btnMMIO_variable_2_history.Selectable = true;
-            this.btnMMIO_variable_2_history.Size = new System.Drawing.Size(28, 28);
+            this.btnMMIO_variable_2_history.Size = new System.Drawing.Size(31, 28);
             this.btnMMIO_variable_2_history.TabIndex = 140;
             this.btnMMIO_variable_2_history.Text = "%";
             this.btnMMIO_variable_2_history.UseVisualStyleBackColor = true;
@@ -67590,7 +67590,7 @@
             this.btnMMIO_variable_history.Location = new System.Drawing.Point(252, 52);
             this.btnMMIO_variable_history.Name = "btnMMIO_variable_history";
             this.btnMMIO_variable_history.Selectable = true;
-            this.btnMMIO_variable_history.Size = new System.Drawing.Size(28, 28);
+            this.btnMMIO_variable_history.Size = new System.Drawing.Size(31, 28);
             this.btnMMIO_variable_history.TabIndex = 139;
             this.btnMMIO_variable_history.Text = "%";
             this.btnMMIO_variable_history.UseVisualStyleBackColor = true;
@@ -67621,7 +67621,7 @@
             this.labelTS252.Image = null;
             this.labelTS252.Location = new System.Drawing.Point(41, 52);
             this.labelTS252.Name = "labelTS252";
-            this.labelTS252.Size = new System.Drawing.Size(71, 16);
+            this.labelTS252.Size = new System.Drawing.Size(78, 16);
             this.labelTS252.TabIndex = 133;
             this.labelTS252.Text = "Update (ms):";
             this.labelTS252.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -68082,7 +68082,7 @@
             this.btnTextOverlayVarPicker.Location = new System.Drawing.Point(289, 98);
             this.btnTextOverlayVarPicker.Name = "btnTextOverlayVarPicker";
             this.btnTextOverlayVarPicker.Selectable = true;
-            this.btnTextOverlayVarPicker.Size = new System.Drawing.Size(28, 28);
+            this.btnTextOverlayVarPicker.Size = new System.Drawing.Size(31, 28);
             this.btnTextOverlayVarPicker.TabIndex = 170;
             this.btnTextOverlayVarPicker.Text = "%";
             this.btnTextOverlayVarPicker.UseVisualStyleBackColor = true;
@@ -69109,7 +69109,7 @@
             this.btnLedIndicatorVarPicker.Location = new System.Drawing.Point(289, 98);
             this.btnLedIndicatorVarPicker.Name = "btnLedIndicatorVarPicker";
             this.btnLedIndicatorVarPicker.Selectable = true;
-            this.btnLedIndicatorVarPicker.Size = new System.Drawing.Size(28, 28);
+            this.btnLedIndicatorVarPicker.Size = new System.Drawing.Size(31, 28);
             this.btnLedIndicatorVarPicker.TabIndex = 181;
             this.btnLedIndicatorVarPicker.Text = "%";
             this.btnLedIndicatorVarPicker.UseVisualStyleBackColor = true;
@@ -69130,7 +69130,7 @@
             this.labelTS287.Image = null;
             this.labelTS287.Location = new System.Drawing.Point(177, 73);
             this.labelTS287.Name = "labelTS287";
-            this.labelTS287.Size = new System.Drawing.Size(71, 16);
+            this.labelTS287.Size = new System.Drawing.Size(78, 16);
             this.labelTS287.TabIndex = 175;
             this.labelTS287.Text = "Update (ms):";
             this.labelTS287.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -69823,7 +69823,7 @@
             this.btnMMIO_variable_2_rotator.Location = new System.Drawing.Point(275, 46);
             this.btnMMIO_variable_2_rotator.Name = "btnMMIO_variable_2_rotator";
             this.btnMMIO_variable_2_rotator.Selectable = true;
-            this.btnMMIO_variable_2_rotator.Size = new System.Drawing.Size(28, 28);
+            this.btnMMIO_variable_2_rotator.Size = new System.Drawing.Size(31, 28);
             this.btnMMIO_variable_2_rotator.TabIndex = 129;
             this.btnMMIO_variable_2_rotator.Text = "%";
             this.btnMMIO_variable_2_rotator.UseVisualStyleBackColor = true;
@@ -69836,7 +69836,7 @@
             this.btnMMIO_variable_rotator.Location = new System.Drawing.Point(243, 46);
             this.btnMMIO_variable_rotator.Name = "btnMMIO_variable_rotator";
             this.btnMMIO_variable_rotator.Selectable = true;
-            this.btnMMIO_variable_rotator.Size = new System.Drawing.Size(28, 28);
+            this.btnMMIO_variable_rotator.Size = new System.Drawing.Size(31, 28);
             this.btnMMIO_variable_rotator.TabIndex = 128;
             this.btnMMIO_variable_rotator.Text = "%";
             this.btnMMIO_variable_rotator.UseVisualStyleBackColor = true;
@@ -69869,7 +69869,7 @@
             this.labelTS225.Image = null;
             this.labelTS225.Location = new System.Drawing.Point(6, 20);
             this.labelTS225.Name = "labelTS225";
-            this.labelTS225.Size = new System.Drawing.Size(71, 16);
+            this.labelTS225.Size = new System.Drawing.Size(78, 16);
             this.labelTS225.TabIndex = 100;
             this.labelTS225.Text = "Update (ms):";
             this.labelTS225.TextAlign = System.Drawing.ContentAlignment.MiddleRight;

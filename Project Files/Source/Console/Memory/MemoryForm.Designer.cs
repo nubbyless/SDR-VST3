@@ -238,7 +238,7 @@ namespace Thetis
             this.ScheduleRepeatm.Image = null;
             this.ScheduleRepeatm.Location = new System.Drawing.Point(133, 436);
             this.ScheduleRepeatm.Name = "ScheduleRepeatm";
-            this.ScheduleRepeatm.Size = new System.Drawing.Size(116, 23);
+            this.ScheduleRepeatm.Size = new System.Drawing.Size(127, 23);
             this.ScheduleRepeatm.TabIndex = 70;
             this.ScheduleRepeatm.Text = "Schedule Monthly";
             this.toolTip1.SetToolTip(this.ScheduleRepeatm, "Check to Schedule every Month. \r\nWill auto check for Last Week of the month. \r\n\r\n" +
@@ -296,7 +296,7 @@ namespace Thetis
             this.ScheduleRecord.Image = null;
             this.ScheduleRecord.Location = new System.Drawing.Point(363, 437);
             this.ScheduleRecord.Name = "ScheduleRecord";
-            this.ScheduleRecord.Size = new System.Drawing.Size(127, 21);
+            this.ScheduleRecord.Size = new System.Drawing.Size(137, 21);
             this.ScheduleRecord.TabIndex = 23;
             this.ScheduleRecord.Text = "Record on Schedule";
             this.toolTip1.SetToolTip(this.ScheduleRecord, "Check to record audio at scheduled time for the set Duration");
@@ -308,7 +308,7 @@ namespace Thetis
             this.ScheduleRepeat.Image = null;
             this.ScheduleRepeat.Location = new System.Drawing.Point(12, 437);
             this.ScheduleRepeat.Name = "ScheduleRepeat";
-            this.ScheduleRepeat.Size = new System.Drawing.Size(116, 23);
+            this.ScheduleRepeat.Size = new System.Drawing.Size(120, 23);
             this.ScheduleRepeat.TabIndex = 22;
             this.ScheduleRepeat.Text = "Schedule Weekly";
             this.toolTip1.SetToolTip(this.ScheduleRepeat, "Check to Schedule every Week.\r\nTurn Both off to turn of Memory Schedule.");

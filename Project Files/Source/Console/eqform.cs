@@ -1014,7 +1014,7 @@ namespace Thetis
             this.rad3Band.Image = null;
             this.rad3Band.Location = new System.Drawing.Point(12, 3);
             this.rad3Band.Name = "rad3Band";
-            this.rad3Band.Size = new System.Drawing.Size(120, 24);
+            this.rad3Band.Size = new System.Drawing.Size(150, 24);
             this.rad3Band.TabIndex = 2;
             this.rad3Band.Text = "3-Band Equalizer";
             this.rad3Band.CheckedChanged += new System.EventHandler(this.rad3Band_CheckedChanged);
@@ -1023,9 +1023,9 @@ namespace Thetis
             // 
             this.rad10Band.Checked = true;
             this.rad10Band.Image = null;
-            this.rad10Band.Location = new System.Drawing.Point(140, 3);
+            this.rad10Band.Location = new System.Drawing.Point(170, 3);
             this.rad10Band.Name = "rad10Band";
-            this.rad10Band.Size = new System.Drawing.Size(120, 24);
+            this.rad10Band.Size = new System.Drawing.Size(150, 24);
             this.rad10Band.TabIndex = 3;
             this.rad10Band.TabStop = true;
             this.rad10Band.Text = "10-Band Equalizer";

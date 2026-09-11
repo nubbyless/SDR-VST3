@@ -1,4 +1,4 @@
-//=================================================================
+﻿//=================================================================
 // scan.cs
 // created by Darrin Kohn ke9ns
 //
@@ -151,7 +151,7 @@ namespace Thetis
             this.textBox3.Multiline = true;
             this.textBox3.Name = "textBox3";
             this.textBox3.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.textBox3.Size = new System.Drawing.Size(608, 104);
+            this.textBox3.Size = new System.Drawing.Size(630, 104);
             this.textBox3.TabIndex = 9;
             this.textBox3.TabStop = false;
             this.textBox3.Text = resources.GetString("textBox3.Text");
@@ -211,7 +211,7 @@ namespace Thetis
             this.currFBox.Multiline = true;
             this.currFBox.Name = "currFBox";
             this.currFBox.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.currFBox.Size = new System.Drawing.Size(620, 155);
+            this.currFBox.Size = new System.Drawing.Size(636, 155);
             this.currFBox.TabIndex = 77;
             this.currFBox.TabStop = false;
             this.currFBox.MouseDown += new System.Windows.Forms.MouseEventHandler(this.currFBox_MouseDown);
@@ -322,7 +322,7 @@ namespace Thetis
             0,
             0,
             0});
-            this.udIDThres.Location = new System.Drawing.Point(133, 36);
+            this.udIDThres.Location = new System.Drawing.Point(141, 36);
             this.udIDThres.Maximum = new decimal(new int[] {
             50,
             0,
@@ -460,7 +460,7 @@ namespace Thetis
             this.btnGroupMemory.ForeColor = System.Drawing.SystemColors.ActiveCaptionText;
             this.btnGroupMemory.Location = new System.Drawing.Point(14, 30);
             this.btnGroupMemory.Name = "btnGroupMemory";
-            this.btnGroupMemory.Size = new System.Drawing.Size(115, 23);
+            this.btnGroupMemory.Size = new System.Drawing.Size(119, 23);
             this.btnGroupMemory.TabIndex = 5;
             this.btnGroupMemory.Text = "Memory Scan (RX)";
             this.toolTip1.SetToolTip(this.btnGroupMemory, resources.GetString("btnGroupMemory.ToolTip"));
@@ -542,7 +542,7 @@ namespace Thetis
             this.chkIDSIG.Image = null;
             this.chkIDSIG.Location = new System.Drawing.Point(182, 60);
             this.chkIDSIG.Name = "chkIDSIG";
-            this.chkIDSIG.Size = new System.Drawing.Size(95, 16);
+            this.chkIDSIG.Size = new System.Drawing.Size(108, 16);
             this.chkIDSIG.TabIndex = 99;
             this.chkIDSIG.Text = "display S Units";
             this.toolTip1.SetToolTip(this.chkIDSIG, "Display \"Peak Hold\" signal dBm value in S units\r\n\r\nNOTE: This is not the true Sig" +
@@ -586,7 +586,7 @@ namespace Thetis
             this.groupBoxTS2.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.groupBoxTS2.Location = new System.Drawing.Point(222, 496);
             this.groupBoxTS2.Name = "groupBoxTS2";
-            this.groupBoxTS2.Size = new System.Drawing.Size(410, 98);
+            this.groupBoxTS2.Size = new System.Drawing.Size(426, 98);
             this.groupBoxTS2.TabIndex = 94;
             this.groupBoxTS2.TabStop = false;
             this.groupBoxTS2.Text = "Sig Ident";
@@ -599,7 +599,7 @@ namespace Thetis
             this.chkAlwaysOnTop.Image = null;
             this.chkAlwaysOnTop.Location = new System.Drawing.Point(300, 70);
             this.chkAlwaysOnTop.Name = "chkAlwaysOnTop";
-            this.chkAlwaysOnTop.Size = new System.Drawing.Size(104, 24);
+            this.chkAlwaysOnTop.Size = new System.Drawing.Size(110, 24);
             this.chkAlwaysOnTop.TabIndex = 59;
             this.chkAlwaysOnTop.Text = "Always On Top";
             this.chkAlwaysOnTop.CheckedChanged += new System.EventHandler(this.chkAlwaysOnTop_CheckedChanged);
@@ -631,7 +631,7 @@ namespace Thetis
             this.labelTS23.Image = null;
             this.labelTS23.Location = new System.Drawing.Point(70, 36);
             this.labelTS23.Name = "labelTS23";
-            this.labelTS23.Size = new System.Drawing.Size(63, 18);
+            this.labelTS23.Size = new System.Drawing.Size(71, 18);
             this.labelTS23.TabIndex = 89;
             this.labelTS23.Text = "dBm Thres:";
             // 
@@ -672,7 +672,7 @@ namespace Thetis
             this.grpGenCustomTitleText.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.grpGenCustomTitleText.Location = new System.Drawing.Point(12, 314);
             this.grpGenCustomTitleText.Name = "grpGenCustomTitleText";
-            this.grpGenCustomTitleText.Size = new System.Drawing.Size(620, 176);
+            this.grpGenCustomTitleText.Size = new System.Drawing.Size(636, 176);
             this.grpGenCustomTitleText.TabIndex = 61;
             this.grpGenCustomTitleText.TabStop = false;
             this.grpGenCustomTitleText.Text = "Scan Type";
@@ -868,7 +868,7 @@ namespace Thetis
             // ScanControl
             // 
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.ClientSize = new System.Drawing.Size(644, 601);
+            this.ClientSize = new System.Drawing.Size(660, 601);
             this.Controls.Add(this.groupBoxTS2);
             this.Controls.Add(this.label12);
             this.Controls.Add(this.label11);

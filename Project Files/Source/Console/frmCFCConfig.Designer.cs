@@ -241,7 +241,7 @@
             this.chkCFC_PanaEQ_live.Image = null;
             this.chkCFC_PanaEQ_live.Location = new System.Drawing.Point(527, 201);
             this.chkCFC_PanaEQ_live.Name = "chkCFC_PanaEQ_live";
-            this.chkCFC_PanaEQ_live.Size = new System.Drawing.Size(84, 17);
+            this.chkCFC_PanaEQ_live.Size = new System.Drawing.Size(95, 17);
             this.chkCFC_PanaEQ_live.TabIndex = 188;
             this.chkCFC_PanaEQ_live.Text = "Live Update";
             this.chkCFC_PanaEQ_live.UseVisualStyleBackColor = true;
@@ -489,7 +489,7 @@
             this.chkCFC_UseQFactors.Image = null;
             this.chkCFC_UseQFactors.Location = new System.Drawing.Point(527, 178);
             this.chkCFC_UseQFactors.Name = "chkCFC_UseQFactors";
-            this.chkCFC_UseQFactors.Size = new System.Drawing.Size(94, 17);
+            this.chkCFC_UseQFactors.Size = new System.Drawing.Size(103, 17);
             this.chkCFC_UseQFactors.TabIndex = 172;
             this.chkCFC_UseQFactors.Text = "Use Q Factors";
             this.chkCFC_UseQFactors.UseVisualStyleBackColor = true;
