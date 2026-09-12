@@ -429,6 +429,11 @@ namespace Thetis
             get { return radae_eoo_emitted_externally; }
             set { radae_eoo_emitted_externally = value; }
         }
+        // Per-over capture for the fldigi TX tap: true when this over should
+        // inject modem audio from the fldigi sidecar into the TXA path.
+        // Decided at the MOX 0 -> 1 edge, cleared at 1 -> 0.  Mirrors
+        // radae_active_this_over; RADE takes precedence when both are armed.
+        private static bool fldigi_active_this_over = false;
         public static bool MOX
         {
             get { return mox; }
@@ -451,8 +456,11 @@ namespace Thetis
                     // the normal coupled emit on the un-key edge.
                     if (radae_active_this_over && !radae_eoo_emitted_externally)
                         cmaster.RadaeNotifyEndOfOver();    // sets eoo_pending
+                    if (radae_active_this_over && !radae_eoo_emitted_externally)
+                        cmaster.RadaeNotifyEndOfOver();    // sets eoo_pending
                     radae_eoo_emitted_externally = false;  // one-shot
                     radae_active_this_over = false;
+                    fldigi_active_this_over = false;
                 }
                 if (!was_mox && mox)               // 0 -> 1 edge
                 {
@@ -477,6 +485,13 @@ namespace Thetis
                     radae_active_this_over = !tune_or_test &&
                         ((rade_rx1 && !rx2_overFlag) ||
                          (rade_rx2 &&  rx2_overFlag));
+                    // FLDIGI over gate: fldigi owns the TX path only for a
+                    // plain RX1/VFO-A over when the taps are armed, and never
+                    // for TUN/2-TONE or an RADE-active over (RADE takes the
+                    // encoder if both are somehow enabled).
+                    bool fldigi_rx1 = c != null && cmaster.GetFldigiRxEnable(0) != 0;
+                    fldigi_active_this_over = !tune_or_test &&
+                        fldigi_rx1 && !rx2_overFlag && !radae_active_this_over;
                     // Tell the single RADE encoder which receiver this over
                     // transmits on, so it uses that RX's handle + protocol
                     // (V1/V2).  0 = RX1/VFO-A path, 1 = RX2/VFO-B path.
@@ -501,6 +516,7 @@ namespace Thetis
                 // we drop mox_state, so the next xradae_tx call still passes
                 // the gate (via the eoo branch) and emits the EOO frame.
                 try { cmaster.SetRadaeMoxState(radae_active_this_over ? 1 : 0); } catch { }
+                try { cmaster.SetFldigiMoxState(fldigi_active_this_over ? 1 : 0); } catch { }
 
                 if (mox)
                 {

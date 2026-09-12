@@ -20066,10 +20066,46 @@ namespace Thetis
             }
         }
 
+        private bool _gpuMeshSavedState = false;
+        private bool _gpuComputeSavedState = false;
+        private bool _gpuOverlaySavedState = false;
+
         private void chkForceCPURendering_CheckedChanged(object sender, EventArgs e)
         {
             if (initializing) return;
+
             Display.ForceCPURendering = chkForceCPURendering.Checked;
+
+            // forcing CPU rendering forces all GPU features to the CPU mode
+            if (chkForceCPURendering.Checked)
+            {
+                _gpuMeshSavedState = chkGpuMesh3D.Checked;
+                _gpuComputeSavedState = chkGpuComputeShaders.Checked;
+                _gpuOverlaySavedState = chkGpuOverlay.Checked;
+
+                chkGpuMesh3D.Checked = false;
+                chkGpuComputeShaders.Checked = false;
+                chkGpuOverlay.Checked = false;
+
+                chkGpuMesh3D.Enabled = false;
+                chkGpuComputeShaders.Enabled = false;
+                chkGpuOverlay.Enabled = false;
+
+                Display.GpuMeshEnabled = false;
+                Display.GpuComputeEnabled = false;
+                Display.GpuOverlayEnabled = false;
+            }
+            else
+            {
+                chkGpuMesh3D.Enabled = true;
+                chkGpuComputeShaders.Enabled = true;
+                chkGpuOverlay.Enabled = true;
+
+                chkGpuMesh3D.Checked = _gpuMeshSavedState;
+                chkGpuComputeShaders.Checked = _gpuComputeSavedState;
+                chkGpuOverlay.Checked = _gpuOverlaySavedState;
+            }
+
             console.RestartDisplayDX();
             if (_frm3DPanadapter != null && !_frm3DPanadapter.IsDisposed)
                 _frm3DPanadapter.ApplyRenderPathLimits();
@@ -33930,6 +33966,15 @@ namespace Thetis
             }
             catch { }
             try { if (console != null) console.NotifyRadaeEnabledChanged(1, chkRADAE.Checked); } catch { }
+            // Mutual exclusion with the fldigi sidecar (toggled from the main
+            // console menu): whichever modem is enabled last wins.  The FreeDV
+            // button and TX-profile recall both reach this point via the
+            // chkRADAE setter, so this is the single choke point for RADE.
+            if (chkRADAE.Checked && Thetis.FLDIGI.FldigiManager.Enabled)
+            {
+                try { Thetis.FLDIGI.FldigiManager.SetEnabled(false); } catch { }
+                try { if (console != null) console.UpdateFldigiMenuItem(); } catch { }
+            }
         }
 
         private void chkRADAERX2_CheckedChanged(object sender, EventArgs e)

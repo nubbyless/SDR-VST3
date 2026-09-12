@@ -193,6 +193,9 @@
     </Compile>
     <Compile Include="FreeDVReporter\FreeDVReporterManager.cs" />
     <Compile Include="FreeDVReporter\Maidenhead.cs" />
+    <Compile Include="FLDIGI\FldigiManager.cs" />
+    <Compile Include="FLDIGI\FldigiAudioBridge.cs" />
+    <Compile Include="FLDIGI\FldigiControlBridge.cs" />
     <Compile Include="Andromeda\displaysettingsform.cs">
       <SubType>Form</SubType>
     </Compile>

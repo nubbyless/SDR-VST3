@@ -33821,33 +33821,37 @@
             this.chkForceCPURendering.Size = new System.Drawing.Size(120, 17);
             this.chkForceCPURendering.TabIndex = 51;
             this.chkForceCPURendering.Text = "Force CPU rendering";
-            this.toolTip1.SetToolTip(this.chkForceCPURendering, "Render via the WARP software rasteriser instead of the GPU.\n\nUse if the graphics driver causes problems, e.g. over remote desktop.\nIf automatic mode fails on startup it also falls back to this automatically.");
+            this.toolTip1.SetToolTip(this.chkForceCPURendering, "Render via the WARP software rasteriser instead of the GPU.\n\nUse if the graphics driver causes problems, e.g. over remote desktop.\nIf automatic mode fails on startup it also falls back to this automatically.\nAlso forces GPU mesh, GPU compute shaders and GPU overlay to the CPU mode.");
             this.chkForceCPURendering.UseVisualStyleBackColor = true;
             this.chkForceCPURendering.CheckedChanged += new System.EventHandler(this.chkForceCPURendering_CheckedChanged);
             //
             // chkGpuMesh3D
             //
             this.chkGpuMesh3D.AutoSize = true;
+            this.chkGpuMesh3D.Checked = true;
+            this.chkGpuMesh3D.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkGpuMesh3D.Image = null;
             this.chkGpuMesh3D.Location = new System.Drawing.Point(8, 64);
             this.chkGpuMesh3D.Name = "chkGpuMesh3D";
             this.chkGpuMesh3D.Size = new System.Drawing.Size(130, 17);
             this.chkGpuMesh3D.TabIndex = 52;
-            this.chkGpuMesh3D.Text = "GPU mesh (exp.)";
-            this.toolTip1.SetToolTip(this.chkGpuMesh3D, "Experimental: renders the 3D panadapter surface and the waterfalls as real GPU meshes (Tier 3).\n\nHardware rendering only - automatically falls back to the D2D renderers on WARP or if any mesh pipeline fails.");
+            this.chkGpuMesh3D.Text = "GPU mesh";
+            this.toolTip1.SetToolTip(this.chkGpuMesh3D, "Renders the 3D panadapter surface and the waterfalls as GPU meshes.\n\nHardware rendering only - automatically falls back to the D2D renderers on WARP or if any mesh pipeline fails.\nForced to the CPU mode while 'Force CPU rendering' is enabled.");
             this.chkGpuMesh3D.UseVisualStyleBackColor = true;
             this.chkGpuMesh3D.CheckedChanged += new System.EventHandler(this.chkGpuMesh3D_CheckedChanged);
             // 
             // chkGpuComputeShaders
             // 
             this.chkGpuComputeShaders.AutoSize = true;
+            this.chkGpuComputeShaders.Checked = true;
+            this.chkGpuComputeShaders.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkGpuComputeShaders.Image = null;
             this.chkGpuComputeShaders.Location = new System.Drawing.Point(8, 82);
             this.chkGpuComputeShaders.Name = "chkGpuComputeShaders";
             this.chkGpuComputeShaders.Size = new System.Drawing.Size(135, 17);
             this.chkGpuComputeShaders.TabIndex = 53;
-            this.chkGpuComputeShaders.Text = "GPU compute shaders (exp.)";
-            this.toolTip1.SetToolTip(this.chkGpuComputeShaders, "Experimental: offloads waterfall colour conversion and spectrum normalisation to GPU compute shaders.\n\nHardware rendering only - automatically falls back to the CPU paths on WARP or if any compute pipeline fails.");
+            this.chkGpuComputeShaders.Text = "GPU compute shaders";
+            this.toolTip1.SetToolTip(this.chkGpuComputeShaders, "Offloads waterfall colour conversion and spectrum normalisation to GPU compute shaders.\n\nHardware rendering only - automatically falls back to the CPU paths on WARP or if any compute pipeline fails.\nForced to the CPU mode while 'Force CPU rendering' is enabled.");
             this.chkGpuComputeShaders.UseVisualStyleBackColor = true;
             this.chkGpuComputeShaders.CheckedChanged += new System.EventHandler(this.chkGpuComputeShaders_CheckedChanged);
 
@@ -33855,13 +33859,15 @@
             // chkGpuOverlay
             // 
             this.chkGpuOverlay.AutoSize = true;
+            this.chkGpuOverlay.Checked = true;
+            this.chkGpuOverlay.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkGpuOverlay.Image = null;
             this.chkGpuOverlay.Location = new System.Drawing.Point(8, 100);
             this.chkGpuOverlay.Name = "chkGpuOverlay";
             this.chkGpuOverlay.Size = new System.Drawing.Size(131, 17);
             this.chkGpuOverlay.TabIndex = 54;
-            this.chkGpuOverlay.Text = "GPU overlay (exp.)";
-            this.toolTip1.SetToolTip(this.chkGpuOverlay, "Experimental: renders the spectral peak-hold overlay (Active Peak Fill columns and peak trace line) as a GPU sheet.\n\nHardware rendering only, alongside the GPU panafill sheet - automatically falls back to the D2D peak strokes on WARP or if any overlay pipeline fails.");
+            this.chkGpuOverlay.Text = "GPU overlay";
+            this.toolTip1.SetToolTip(this.chkGpuOverlay, "Renders the spectral peak-hold overlay (Active Peak Fill columns and peak trace line) as a GPU sheet.\n\nHardware rendering only, alongside the GPU panafill sheet - automatically falls back to the D2D peak strokes on WARP or if any overlay pipeline fails.\nForced to the CPU mode while 'Force CPU rendering' is enabled.");
             this.chkGpuOverlay.UseVisualStyleBackColor = true;
             this.chkGpuOverlay.CheckedChanged += new System.EventHandler(this.chkGpuOverlay_CheckedChanged);
             // 

@@ -29,6 +29,7 @@
 <?define FilesPath = "..\..\Bin\$(var.Platform)\$(var.Configuration)\" ?>
 <?endif ?>
 <?define LspPath = "..\..\lib\lsp\" ?>
+<?define FldigiPath = "..\..\..\payload\Fldigi\" ?>
 
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
       xmlns:fire="http://schemas.microsoft.com/wix/FirewallExtension">
@@ -80,6 +81,7 @@
 
     <Feature Id="ProductFeature" Title="SDR-VST3" Level="1" ConfigurableDirectory="INSTALLFOLDER">
       <ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="FldigiComponents" />
       <ComponentGroupRef Id="LspComponents" />
       <ComponentGroupRef Id="SDRVST3SkinComponents" />
       <ComponentGroupRef Id="HfgcsComponents" />
@@ -208,6 +210,10 @@
               </Directory>
             </Directory>
             <Directory Id="LicensesDir" Name="Licenses"/>
+            <!-- [fldigi] prebuilt sidecar: Fldigi\fldigi.exe + runtime DLLs from
+                 payload\Fldigi (git-tracked); FldigiManager probes
+                 [INSTALLFOLDER]\Fldigi\fldigi.exe first -->
+            <Directory Id="FldigiDir" Name="Fldigi"/>
 		  </Directory>
         </Directory>
       </Directory>
@@ -960,6 +966,36 @@
 				Checksum="yes"
             />
 		</Component>
+	</ComponentGroup>
+
+	<!-- fldigi sidecar payload: prebuilt exe + runtime DLLs shipped from the
+	     git-tracked payload\Fldigi folder.  Installed to [INSTALLFOLDER]\Fldigi
+	     so FldigiManager.ResolveExecutable() resolves them as the primary probe.
+	     Refresh payload\Fldigi on every fldigi rebuild. -->
+	<ComponentGroup Id="FldigiComponents" Directory="FldigiDir">
+		<Component Guid="*"><File Id="FldigiEXE" Source="$(var.FldigiPath)fldigi.exe" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibFLAC" Source="$(var.FldigiPath)libFLAC.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibfltk14" Source="$(var.FldigiPath)libfltk-1.4.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibfltkForms14" Source="$(var.FldigiPath)libfltk_forms-1.4.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibfltkGL14" Source="$(var.FldigiPath)libfltk_gl-1.4.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibfltkImages14" Source="$(var.FldigiPath)libfltk_images-1.4.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibgccseh1" Source="$(var.FldigiPath)libgcc_s_seh-1.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibiconv2" Source="$(var.FldigiPath)libiconv-2.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibintl8" Source="$(var.FldigiPath)libintl-8.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibjpeg8" Source="$(var.FldigiPath)libjpeg-8.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibmp3lame0" Source="$(var.FldigiPath)libmp3lame-0.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibmpg1230" Source="$(var.FldigiPath)libmpg123-0.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibogg0" Source="$(var.FldigiPath)libogg-0.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibopus0" Source="$(var.FldigiPath)libopus-0.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibpng1616" Source="$(var.FldigiPath)libpng16-16.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibportaudio" Source="$(var.FldigiPath)libportaudio.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibsamplerate0" Source="$(var.FldigiPath)libsamplerate-0.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibsndfile1" Source="$(var.FldigiPath)libsndfile-1.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibstdcpp6" Source="$(var.FldigiPath)libstdc++-6.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibvorbis0" Source="$(var.FldigiPath)libvorbis-0.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibvorbisenc2" Source="$(var.FldigiPath)libvorbisenc-2.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiLibwinpthread1" Source="$(var.FldigiPath)libwinpthread-1.dll" KeyPath="yes" Checksum="yes"/></Component>
+		<Component Guid="*"><File Id="FldigiZlib1" Source="$(var.FldigiPath)zlib1.dll" KeyPath="yes" Checksum="yes"/></Component>
 	</ComponentGroup>
 
 	<!-- LSP VST3 plugin suite installed to Common Files\VST3.

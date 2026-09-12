@@ -1118,6 +1118,27 @@ namespace Thetis
             //starting diversity
             if (_startdiversity) showHideDiversity(true, true);
 
+            //fldigi state menu (no auto-start by design)
+            UpdateFldigiMenuItem();
+            // keep the menu in sync when the sidecar exits on its own or is
+            // crash-recovered (the Exited/timer callbacks run off the UI thread)
+            if (!_fldigiMenuHooked)
+            {
+                _fldigiMenuHooked = true;
+                Thetis.FLDIGI.FldigiManager.StateChanged += (s, ev) =>
+                {
+                    if (IsDisposed) return;
+                    try
+                    {
+                        if (InvokeRequired)
+                            BeginInvoke(new Action(UpdateFldigiMenuItem));
+                        else
+                            UpdateFldigiMenuItem();
+                    }
+                    catch { }
+                };
+            }
+
             //release notes
             _frmReleaseNotes = new frmReleaseNotes();
             _frmReleaseNotes.InitPath(Application.StartupPath);
@@ -2719,6 +2740,11 @@ namespace Thetis
         public void ExitConsole()
         {
             shutdownLogStringToPath("Inside ExitConsole()");
+
+            // Tear down the fldigi sidecar + named-pipe bridges BEFORE the
+            // audio interface terminates (native taps + pipe threads).  This
+            // also kills fldigi.exe if it is running.
+            try { Thetis.FLDIGI.FldigiManager.Shutdown(); } catch { }
 
             shutdownLogStringToPath("Before recorder/player stops");
             ARP.StopRecord(out _);
@@ -8853,6 +8879,14 @@ namespace Thetis
             else
                 eSCToolStripMenuItem.ForeColor = SystemColors.ControlLightLight;
         }
+        public void UpdateFldigiMenuItem()
+        {
+            if (fldigiToolStripMenuItem == null) return;
+            // Launch-only menu entry: no state colour (never turns green).
+            // The sidecar's on/off is visible from fldigi itself.
+            fldigiToolStripMenuItem.ForeColor = SystemColors.ControlLightLight;
+        }
+        private static bool _fldigiMenuHooked;
         private void UpdateDiversityValues()
         {
             if (!initializing && diversityForm != null)
@@ -43920,6 +43954,23 @@ namespace Thetis
         private void eSCToolStripMenuItem_Click(object sender, EventArgs e)
         {
             showHideDiversity(true);
+        }
+
+        private void fldigiToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            // The menu (re)launches the sidecar; it does NOT close it.  The
+            // operator stops fldigi by closing its window (graceful exit ->
+            // session off) or by Thetis exiting.  Ignore a click while the
+            // session is already on.
+            if (Thetis.FLDIGI.FldigiManager.Enabled)
+                return;
+            // Mutual exclusion with RADE/FreeDV: the fldigi sidecar and the
+            // RADE modem cannot run at the same time, so turning fldigi ON
+            // turns RADE OFF.  SetupForm.RADAE is the single choke point
+            // (idempotent setter -> chkRADAE -> chkRADAE_CheckedChanged).
+            try { if (!IsSetupFormNull && SetupForm.RADAE) SetupForm.RADAE = false; } catch { }
+            Thetis.FLDIGI.FldigiManager.SetEnabled(true);
+            UpdateFldigiMenuItem();
         }
 
         private void showHideDiversity(bool show, bool starting_up = false)

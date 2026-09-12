@@ -350,6 +350,7 @@
         private ToolStripMenuItem equalizerToolStripMenuItem;
         private ToolStripMenuItem xVTRsToolStripMenuItem;
         private ToolStripMenuItem cWXToolStripMenuItem;
+        private ToolStripMenuItem fldigiToolStripMenuItem;
         private ToolStripMenuItem eSCToolStripMenuItem;
         private ToolStripMenuItem collapseToolStripMenuItem;
         private ToolStripMenuItem filterToolStripMenuItem;
@@ -777,6 +778,7 @@
             this.vstToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.xVTRsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cWXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fldigiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.eSCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.collapseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.displayControlsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -4294,6 +4296,7 @@
             this.vstToolStripMenuItem,
             this.xVTRsToolStripMenuItem,
             this.cWXToolStripMenuItem,
+            this.fldigiToolStripMenuItem,
             this.eSCToolStripMenuItem,
             this.collapseToolStripMenuItem,
             this.displayControlsToolStripMenuItem,
@@ -4380,6 +4383,13 @@
             this.cWXToolStripMenuItem.Name = "cWXToolStripMenuItem";
             resources.ApplyResources(this.cWXToolStripMenuItem, "cWXToolStripMenuItem");
             this.cWXToolStripMenuItem.Click += new System.EventHandler(this.cWXToolStripMenuItem_Click);
+            // 
+            // fldigiToolStripMenuItem
+            // 
+            this.fldigiToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.fldigiToolStripMenuItem.Name = "fldigiToolStripMenuItem";
+            this.fldigiToolStripMenuItem.Text = "FLDIGI";
+            this.fldigiToolStripMenuItem.Click += new System.EventHandler(this.fldigiToolStripMenuItem_Click);
             // 
             // eSCToolStripMenuItem
             // 

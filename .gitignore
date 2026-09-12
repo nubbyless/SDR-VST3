@@ -429,4 +429,11 @@ Project Files/lib/NR_Algorithms_x64/src/libspecbleach/old.github
 # Crash dump capture (WER LocalDumps output)
 dumps/
 
+# fldigi is a local dev-tree clone (upstream: w1hkj/fldigi) -- never publish
+# the build/source tree.  Ship the prebuilt sidecar from payload/Fldigi instead.
+/fldigi/
+
+# fldigi handoff notes are local-only -- never publish to GitHub
+HANDOFF_FLDIGI_*.md
+
 FREEDV_HANDOFF.md

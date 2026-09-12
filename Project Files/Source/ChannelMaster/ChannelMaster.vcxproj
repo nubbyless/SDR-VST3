@@ -145,6 +145,7 @@
     <ClInclude Include="znobII.h" />
     <ClInclude Include="radae.h" />
     <ClInclude Include="radae_micdsp.h" />
+    <ClInclude Include="fldigi_mod.h" />
     <ClInclude Include="r8brain_wrap.h" />
   </ItemGroup>
   <ItemGroup>
@@ -179,6 +180,7 @@
     <ClCompile Include="znobII.c" />
     <ClCompile Include="radae.c" />
     <ClCompile Include="radae_micdsp.c" />
+    <ClCompile Include="fldigi_mod.c" />
     <ClCompile Include="r8brain_wrap.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>

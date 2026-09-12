@@ -109,7 +109,7 @@ namespace Thetis
 
         /// <summary>Master toggle. Session-only like its siblings; the D2D peak
         /// strokes are always the fallback.</summary>
-        public static bool GpuOverlayEnabled { get; set; }
+        public static bool GpuOverlayEnabled { get; set; } = true;
 
         private static bool OverlayMeshArmed
         {

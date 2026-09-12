@@ -297,6 +297,27 @@ namespace Thetis
         public static extern void SetRadaeBypassAll(int enable);
         // end radae
 
+        // fldigi HF digital-modes sidecar bridge.
+        // RX-side getters/setters take an `int rx` argument (0 = RX1,
+        // 1 = RX2); TX-side and transport PORTs are parameterless.
+        [DllImport("ChannelMaster.dll", EntryPoint = "SetFldigiRxEnable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetFldigiRxEnable(int rx, int enable);
+        [DllImport("ChannelMaster.dll", EntryPoint = "GetFldigiRxEnable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetFldigiRxEnable(int rx);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SetFldigiTxEnable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetFldigiTxEnable(int enable);
+        [DllImport("ChannelMaster.dll", EntryPoint = "GetFldigiTxEnable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetFldigiTxEnable();
+        [DllImport("ChannelMaster.dll", EntryPoint = "SetFldigiMoxState", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetFldigiMoxState(int mox);
+        [DllImport("ChannelMaster.dll", EntryPoint = "FldigiDrainRx", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int FldigiDrainRx(int rx, [In, Out] float[] out_, int maxCount);
+        [DllImport("ChannelMaster.dll", EntryPoint = "FldigiPushTx", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FldigiPushTx([In] float[] in8k, int count);
+        [DllImport("ChannelMaster.dll", EntryPoint = "FldigiFlush", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void FldigiFlush();
+        // end fldigi
+
         // router
         [DllImport("ChannelMaster.dll", EntryPoint = "LoadRouterAll", CallingConvention = CallingConvention.Cdecl)]
         public static extern void LoadRouterAll(void* ptr, int id, int sources, int calls, int varvals, 
