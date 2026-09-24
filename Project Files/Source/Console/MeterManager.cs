@@ -42965,6 +42965,7 @@ namespace Thetis
             public string FourChar
             {
                 get { return _four_char; }
+                set { _four_char = value; }
             }
             public bool Enabled
             {

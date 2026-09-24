@@ -332,6 +332,10 @@ namespace Thetis
                 _led_indicator_four_char = deep._led_indicator_four_char;
                 _buttonstate_container_visible_id = deep._buttonstate_container_visible_id;
                 _buttonstate_cat_on_reply = deep._buttonstate_cat_on_reply;
+                _cat_macro_send = deep._cat_macro_send;
+                _on_state = deep._on_state;
+                _cat_macro = deep._cat_macro;
+                _run_state_command_on_visible = deep._run_state_command_on_visible;
                 //_cat_macro_send = clone._cat_macro_send;
                 //_on_state = clone._on_state;
                 //_cat_macro = clone._cat_macro;
@@ -372,16 +376,22 @@ namespace Thetis
         public bool[] ClosesContainer
         {
             get { return _closes_container; }
+            set { _closes_container = value; }
         }
         public bool[] OpensContainer
         {
             get { return _opens_container; }
+            set { _opens_container = value; }
         }
         public string[] CloseContainerID
         {
             get
             {
                 return _close_container_id;
+            }
+            set
+            {
+                _close_container_id = value;
             }
         }
         public string[] OpenContainerID
@@ -390,12 +400,20 @@ namespace Thetis
             {
                 return _open_container_id;
             }
+            set
+            {
+                _open_container_id = value;
+            }
         }
         public bool[] OpenUsesLocation
         {
             get
             {
                 return _open_uses_location;
+            }
+            set
+            {
+                _open_uses_location = value;
             }
         }
         public bool[] SendsViaMMIO
@@ -404,12 +422,20 @@ namespace Thetis
             {
                 return _send_via_mmio;
             }
+            set
+            {
+                _send_via_mmio = value;
+            }
         }
         public string[] MMICFourChar
         {
             get
             {
                 return _mmio_4char;
+            }
+            set
+            {
+                _mmio_4char = value;
             }
         }
         public string[] MMIOMessageON
@@ -418,12 +444,20 @@ namespace Thetis
             {
                 return _mmio_message_on;
             }
+            set
+            {
+                _mmio_message_on = value;
+            }
         }
         public string[] MMIOMessageOFF
         {
             get
             {
                 return _mmio_message_off;
+            }
+            set
+            {
+                _mmio_message_off = value;
             }
         }
         public OB_ButtonState ButtonStateType
@@ -475,6 +509,10 @@ namespace Thetis
             get
             {
                 return _cat_macro_send;
+            }
+            set
+            {
+                _cat_macro_send = value;
             }
         }
         public bool RunStateCommandOnVisible
