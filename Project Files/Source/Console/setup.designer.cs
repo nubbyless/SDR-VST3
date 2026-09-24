@@ -59634,7 +59634,7 @@
             this.radTCI_spot_force_default.AutoSize = true;
             this.radTCI_spot_force_default.Checked = true;
             this.radTCI_spot_force_default.Image = null;
-            this.radTCI_spot_force_default.Location = new System.Drawing.Point(208, 19);
+            this.radTCI_spot_force_default.Location = new System.Drawing.Point(208, 21);
             this.radTCI_spot_force_default.Name = "radTCI_spot_force_default";
             this.radTCI_spot_force_default.Size = new System.Drawing.Size(59, 17);
             this.radTCI_spot_force_default.TabIndex = 2;
@@ -59660,7 +59660,7 @@
             // 
             this.radTCI_spot_force_cwl.AutoSize = true;
             this.radTCI_spot_force_cwl.Image = null;
-            this.radTCI_spot_force_cwl.Location = new System.Drawing.Point(116, 19);
+            this.radTCI_spot_force_cwl.Location = new System.Drawing.Point(116, 21);
             this.radTCI_spot_force_cwl.Name = "radTCI_spot_force_cwl";
             this.radTCI_spot_force_cwl.Size = new System.Drawing.Size(91, 17);
             this.radTCI_spot_force_cwl.TabIndex = 1;
@@ -59674,7 +59674,7 @@
             // 
             this.radTCI_spot_force_cwu.AutoSize = true;
             this.radTCI_spot_force_cwu.Image = null;
-            this.radTCI_spot_force_cwu.Location = new System.Drawing.Point(17, 19);
+            this.radTCI_spot_force_cwu.Location = new System.Drawing.Point(17, 21);
             this.radTCI_spot_force_cwu.Name = "radTCI_spot_force_cwu";
             this.radTCI_spot_force_cwu.Size = new System.Drawing.Size(93, 17);
             this.radTCI_spot_force_cwu.TabIndex = 0;
@@ -59784,7 +59784,7 @@
             this.chkEmulateExpertSDR3Protocol.Name = "chkEmulateExpertSDR3Protocol";
             this.chkEmulateExpertSDR3Protocol.Size = new System.Drawing.Size(167, 17);
             this.chkEmulateExpertSDR3Protocol.TabIndex = 72;
-            this.chkEmulateExpertSDR3Protocol.Text = "Emulate ExpertSDR3 protocol";
+            this.chkEmulateExpertSDR3Protocol.Text = "Emulate ExpertSDR3";
             this.toolTip1.SetToolTip(this.chkEmulateExpertSDR3Protocol, "Causes the TCI protocol message to send \'ExpertSDR3\' instead of \'Thetis\'");
             this.chkEmulateExpertSDR3Protocol.UseVisualStyleBackColor = true;
             this.chkEmulateExpertSDR3Protocol.CheckedChanged += new System.EventHandler(this.chkEmulateExpertSDR3Protocol_CheckedChanged);
@@ -60213,7 +60213,7 @@
             this.groupBoxTS16.Controls.Add(this.chkN1MMEnableRX1);
             this.groupBoxTS16.Location = new System.Drawing.Point(393, 153);
             this.groupBoxTS16.Name = "groupBoxTS16";
-            this.groupBoxTS16.Size = new System.Drawing.Size(323, 159);
+            this.groupBoxTS16.Size = new System.Drawing.Size(323, 160);
             this.groupBoxTS16.TabIndex = 57;
             this.groupBoxTS16.TabStop = false;
             this.groupBoxTS16.Text = "N1MM+ WaterfallBandmap";

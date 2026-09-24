@@ -216,7 +216,7 @@ namespace Thetis
             chkTCIApplyRxVst = new CheckBoxTS();
             chkTCIApplyRxVst.AutoSize = true;
             chkTCIApplyRxVst.Image = null;
-            chkTCIApplyRxVst.Location = new Point(243, 100);
+            chkTCIApplyRxVst.Location = new Point(258, 100);
             chkTCIApplyRxVst.Name = "chkTCIApplyRxVst";
             chkTCIApplyRxVst.Size = new Size(120, 17);
             chkTCIApplyRxVst.Text = "Apply RX VST";
@@ -228,7 +228,7 @@ namespace Thetis
             chkTCIApplyTxVst = new CheckBoxTS();
             chkTCIApplyTxVst.AutoSize = true;
             chkTCIApplyTxVst.Image = null;
-            chkTCIApplyTxVst.Location = new Point(243, 79);
+            chkTCIApplyTxVst.Location = new Point(258, 79);
             chkTCIApplyTxVst.Name = "chkTCIApplyTxVst";
             chkTCIApplyTxVst.Size = new Size(120, 17);
             chkTCIApplyTxVst.Text = "Apply TX VST";

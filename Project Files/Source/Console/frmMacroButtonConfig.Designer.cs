@@ -127,7 +127,7 @@
             this.groupBoxTS3.Controls.Add(this.txtCatMacro);
             this.groupBoxTS3.Location = new System.Drawing.Point(6, 6);
             this.groupBoxTS3.Name = "groupBoxTS3";
-            this.groupBoxTS3.Size = new System.Drawing.Size(761, 303);
+            this.groupBoxTS3.Size = new System.Drawing.Size(761, 267);
             this.groupBoxTS3.TabIndex = 37;
             this.groupBoxTS3.TabStop = false;
             this.groupBoxTS3.Text = "CAT Macro";
@@ -178,7 +178,7 @@
             this.txtTokens.Name = "txtTokens";
             this.txtTokens.ReadOnly = true;
             this.txtTokens.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtTokens.Size = new System.Drawing.Size(213, 243);
+            this.txtTokens.Size = new System.Drawing.Size(213, 207);
             this.txtTokens.TabIndex = 38;
             // 
             // lblErrorText
@@ -211,7 +211,7 @@
             this.txtCatMacro.Multiline = true;
             this.txtCatMacro.Name = "txtCatMacro";
             this.txtCatMacro.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtCatMacro.Size = new System.Drawing.Size(499, 243);
+            this.txtCatMacro.Size = new System.Drawing.Size(499, 207);
             this.txtCatMacro.TabIndex = 35;
             this.txtCatMacro.Text = resources.GetString("txtCatMacro.Text");
             this.txtCatMacro.TextChanged += new System.EventHandler(this.txtCatMacro_TextChanged);
@@ -220,7 +220,7 @@
             // 
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.btnCancel.Image = null;
-            this.btnCancel.Location = new System.Drawing.Point(699, 577);
+            this.btnCancel.Location = new System.Drawing.Point(689, 541);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Selectable = true;
             this.btnCancel.Size = new System.Drawing.Size(95, 50);
@@ -233,7 +233,7 @@
             // 
             this.btnOK.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.btnOK.Image = null;
-            this.btnOK.Location = new System.Drawing.Point(595, 577);
+            this.btnOK.Location = new System.Drawing.Point(585, 541);
             this.btnOK.Name = "btnOK";
             this.btnOK.Selectable = true;
             this.btnOK.Size = new System.Drawing.Size(98, 50);
@@ -934,7 +934,7 @@
             this.tabControl1.Location = new System.Drawing.Point(12, 211);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(786, 364);
+            this.tabControl1.Size = new System.Drawing.Size(786, 328);
             this.tabControl1.TabIndex = 38;
             // 
             // tpButtonState
@@ -943,7 +943,7 @@
             this.tpButtonState.Controls.Add(this.groupBoxTS1);
             this.tpButtonState.Location = new System.Drawing.Point(4, 22);
             this.tpButtonState.Name = "tpButtonState";
-            this.tpButtonState.Size = new System.Drawing.Size(778, 338);
+            this.tpButtonState.Size = new System.Drawing.Size(778, 302);
             this.tpButtonState.TabIndex = 2;
             this.tpButtonState.Text = "Button State";
             // 
@@ -954,7 +954,7 @@
             this.tpMMIO.Location = new System.Drawing.Point(4, 22);
             this.tpMMIO.Name = "tpMMIO";
             this.tpMMIO.Padding = new System.Windows.Forms.Padding(3);
-            this.tpMMIO.Size = new System.Drawing.Size(778, 338);
+            this.tpMMIO.Size = new System.Drawing.Size(778, 302);
             this.tpMMIO.TabIndex = 0;
             this.tpMMIO.Text = "MMIO Actions";
             // 
@@ -965,7 +965,7 @@
             this.tpCAT.Location = new System.Drawing.Point(4, 22);
             this.tpCAT.Name = "tpCAT";
             this.tpCAT.Padding = new System.Windows.Forms.Padding(3);
-            this.tpCAT.Size = new System.Drawing.Size(778, 338);
+            this.tpCAT.Size = new System.Drawing.Size(778, 302);
             this.tpCAT.TabIndex = 1;
             this.tpCAT.Text = "CAT Macro";
             // 
