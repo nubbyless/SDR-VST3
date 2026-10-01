@@ -963,14 +963,10 @@
     <Content Include="Resources\paflt.png" />
     <Content Include="Resources\paok.png" />
     <Content Include="Resources\Thetis2_256.ico" />
-    <Content Include="Resources\Thetis2_48.ico" />
     <Content Include="FTDI2XX.xml" />
-    <Content Include="Resources\thetis-icon.ico" />
     <Content Include="CAT\CATStructs.xml" />
-    <Content Include="hpsdr5-64.ico" />
     <Content Include="images\hpsdr.jpg" />
     <Content Include="images\openhpsdr4_splash.png" />
-    <Content Include="images\PowerSDR.ico" />
   </ItemGroup>
 
   <ItemGroup>
