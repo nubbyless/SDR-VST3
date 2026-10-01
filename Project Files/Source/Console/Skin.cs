@@ -1842,6 +1842,7 @@ namespace Thetis
                 case "radRX2DisplayZoom1x": return "radDisplayZoom1x";
                 case "radRX2DisplayZoom2x": return "radDisplayZoom2x";
                 case "radRX2DisplayZoom4x": return "radDisplayZoom4x";
+                case "ptbTune": return "ptbPWR";
                 default: return null;
             }
         }
