@@ -1092,7 +1092,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.Black;
-            this.ClientSize = new System.Drawing.Size(560, 303);
+            this.ClientSize = new System.Drawing.Size(680, 375);
             this.Controls.Add(this.chkShow2ToneMeasurements);
             this.Controls.Add(this.pbWarningSetPk);
             this.Controls.Add(this.chkAdvancedViewHidden);
