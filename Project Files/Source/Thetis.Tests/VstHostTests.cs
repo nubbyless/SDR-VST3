@@ -1102,4 +1102,146 @@ namespace Thetis.Tests
             Assert.NotNull(info.Plugins);
         }
     }
+
+    public class MergeChainPluginsTests
+    {
+        private static VstPluginState Plugin(string name, byte[] state = null)
+        {
+            return new VstPluginState
+            {
+                Path = @"C:\Plugins\" + name + ".vst3",
+                Name = name,
+                StateData = state
+            };
+        }
+
+        private static List<VstPluginState> Chain(params string[] names)
+        {
+            var list = new List<VstPluginState>();
+            foreach (string name in names)
+                list.Add(Plugin(name));
+            return list;
+        }
+
+        [Fact]
+        public void Null_requested_returns_loaded_untouched()
+        {
+            var loaded = Chain("A", "B");
+            List<VstPluginState> result = VstHost.MergeChainPlugins(null, loaded);
+            Assert.Same(loaded, result);
+        }
+
+        [Fact]
+        public void Null_loaded_with_empty_requested_returns_empty()
+        {
+            List<VstPluginState> result = VstHost.MergeChainPlugins(new List<VstPluginState>(), null);
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public void Truncated_live_chain_preserves_trailing_requested_plugins()
+        {
+            // The regression: the host reported only 12 of 16 plugins and the
+            // merge used to silently drop the last four.
+            var requested = Chain("P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7",
+                                  "P8", "P9", "P10", "P11", "P12", "P13", "P14", "P15");
+            var loaded = Chain("P0", "P1", "P2", "P3", "P4", "P5", "P6", "P7",
+                               "P8", "P9", "P10", "P11");
+
+            List<VstPluginState> result = VstHost.MergeChainPlugins(requested, loaded);
+
+            Assert.Equal(16, result.Count);
+            for (int i = 0; i < 16; i++)
+                Assert.Equal("P" + i, result[i].Name);
+        }
+
+        [Fact]
+        public void Truncation_in_the_middle_keeps_order()
+        {
+            var requested = Chain("P0", "P1", "P2", "P3", "P4");
+            var loaded = Chain("P0", "P1", "P3", "P4");
+
+            List<VstPluginState> result = VstHost.MergeChainPlugins(requested, loaded);
+
+            Assert.Equal(new[] { "P0", "P1", "P2", "P3", "P4" }, result.ConvertAll(p => p.Name));
+        }
+
+        [Fact]
+        public void Missing_plugins_keep_their_saved_state()
+        {
+            var requested = new List<VstPluginState>
+            {
+                Plugin("A", new byte[] { 1, 2, 3 }),
+                Plugin("B", new byte[] { 4, 5 }),
+                Plugin("C", new byte[] { 6 })
+            };
+            var loaded = new List<VstPluginState> { Plugin("A", null) };
+
+            List<VstPluginState> result = VstHost.MergeChainPlugins(requested, loaded);
+
+            Assert.Equal(3, result.Count);
+            Assert.Equal(new byte[] { 4, 5 }, result[1].StateData);
+            Assert.Equal(new byte[] { 6 }, result[2].StateData);
+        }
+
+        [Fact]
+        public void Live_plugin_state_is_filled_from_requested_when_missing()
+        {
+            var requested = new List<VstPluginState> { Plugin("A", new byte[] { 9, 9 }) };
+            var loaded = new List<VstPluginState> { Plugin("A", null) };
+
+            List<VstPluginState> result = VstHost.MergeChainPlugins(requested, loaded);
+
+            Assert.Single(result);
+            Assert.Equal(new byte[] { 9, 9 }, result[0].StateData);
+        }
+
+        [Fact]
+        public void Extra_live_plugins_are_appended()
+        {
+            var requested = Chain("A", "B");
+            var loaded = Chain("A", "B", "C");
+
+            List<VstPluginState> result = VstHost.MergeChainPlugins(requested, loaded);
+
+            Assert.Equal(new[] { "A", "B", "C" }, result.ConvertAll(p => p.Name));
+        }
+
+        [Fact]
+        public void Identity_match_is_case_insensitive_on_path()
+        {
+            var requested = new List<VstPluginState>
+            {
+                new VstPluginState { Path = @"C:\Plugins\Reverb.VST3", Name = "Reverb" }
+            };
+            var loaded = new List<VstPluginState>
+            {
+                new VstPluginState { Path = @"c:\plugins\reverb.vst3", Name = "Reverb" }
+            };
+
+            List<VstPluginState> result = VstHost.MergeChainPlugins(requested, loaded);
+
+            Assert.Single(result);
+        }
+
+        [Fact]
+        public void Requested_enabled_and_bypass_are_applied_to_live_plugin()
+        {
+            var requested = new List<VstPluginState>
+            {
+                new VstPluginState { Path = @"C:\Plugins\A.vst3", Name = "A", Enabled = false, Bypass = true }
+            };
+            var loaded = new List<VstPluginState>
+            {
+                new VstPluginState { Path = @"C:\Plugins\A.vst3", Name = "A", Enabled = true, Bypass = false }
+            };
+
+            List<VstPluginState> result = VstHost.MergeChainPlugins(requested, loaded);
+
+            Assert.Single(result);
+            Assert.False(result[0].Enabled);
+            Assert.True(result[0].Bypass);
+        }
+    }
 }

@@ -1942,29 +1942,98 @@ namespace Thetis
 
         private static List<VstPluginState> BuildPersistentPlugins(VstChainKind kind, List<VstPluginState> loadedPlugins)
         {
-            List<VstPluginState> requested = _requestedPluginsByKind[(int)kind];
-            Dictionary<int, VstPluginState> failed = _failedPluginsByKind[(int)kind];
-            if (requested == null || requested.Count == 0 || failed == null || failed.Count == 0)
+            return MergeChainPlugins(_requestedPluginsByKind[(int)kind], loadedPlugins);
+        }
+
+        /// <summary>
+        /// Reconciles the plugins the app intended to load (<paramref name="requested"/>)
+        /// with what the host actually reports as loaded (<paramref name="loaded"/>).
+        /// </summary>
+        /// <remarks>
+        /// The live chain can be shorter than requested (a plugin failed to instantiate,
+        /// or the host was restarted and replayed only part of the chain) or have the same
+        /// identity in a different position (a failed plugin still left a descriptor). A
+        /// positional merge silently drops trailing plugins in those cases, so entries are
+        /// matched by identity and any requested plugin without a live counterpart is kept
+        /// with its saved state.
+        /// </remarks>
+        internal static List<VstPluginState> MergeChainPlugins(
+            List<VstPluginState> requested,
+            List<VstPluginState> loadedPlugins)
+        {
+            // The requested list is only populated right after ApplyChainState and is
+            // cleared by any structural edit (add/remove/move), so when it is present
+            // it is the authoritative description of the intended chain.
+            if (requested == null || requested.Count == 0)
                 return loadedPlugins ?? new List<VstPluginState>();
 
+            List<VstPluginState> loaded = loadedPlugins ?? new List<VstPluginState>();
             List<VstPluginState> result = new List<VstPluginState>();
             int loadedIdx = 0;
+
             for (int i = 0; i < requested.Count; i++)
             {
                 VstPluginState requestedPlugin = requested[i];
                 if (requestedPlugin == null || string.IsNullOrEmpty(requestedPlugin.Path))
                     continue;
 
-                if (failed.ContainsKey(i))
+                // Match by identity rather than position. The live chain can be
+                // shorter (a plugin failed to instantiate) or shifted (a failed
+                // plugin still left a descriptor), so positional alignment would
+                // drop or duplicate trailing plugins.
+                if (loadedIdx < loaded.Count && PluginIdentityEquals(loaded[loadedIdx], requestedPlugin))
                 {
+                    VstPluginState livePlugin = loaded[loadedIdx++];
+                    if (livePlugin != null)
+                    {
+                        livePlugin.Enabled = requestedPlugin.Enabled;
+                        livePlugin.Bypass = requestedPlugin.Bypass;
+                        if ((livePlugin.StateData == null || livePlugin.StateData.Length == 0) &&
+                            requestedPlugin.StateData != null && requestedPlugin.StateData.Length > 0)
+                        {
+                            livePlugin.StateData = requestedPlugin.StateData;
+                        }
+                        result.Add(livePlugin);
+                    }
+                    else
+                    {
+                        result.Add(requestedPlugin);
+                    }
+                }
+                else
+                {
+                    // Either the plugin is missing (failed) or the live capture is
+                    // truncated. Preserve the requested entry (with its saved state)
+                    // so a slow/timed-out host does not silently lose plugins.
                     result.Add(requestedPlugin);
                 }
-                else if (loadedPlugins != null && loadedIdx < loadedPlugins.Count)
-                {
-                    result.Add(loadedPlugins[loadedIdx++]);
-                }
             }
+
+            // Keep any live plugins that were not covered by the requested list.
+            for (; loadedIdx < loaded.Count; loadedIdx++)
+            {
+                VstPluginState livePlugin = loaded[loadedIdx];
+                if (livePlugin != null && !string.IsNullOrEmpty(livePlugin.Path))
+                    result.Add(livePlugin);
+            }
+
             return result;
+        }
+
+        private static bool PluginIdentityEquals(VstPluginState a, VstPluginState b)
+        {
+            if (a == null || b == null)
+                return false;
+
+            string pathA = NormalizePluginPath(a.Path);
+            string pathB = NormalizePluginPath(b.Path);
+            if (!string.IsNullOrEmpty(pathA) && !string.IsNullOrEmpty(pathB))
+                return string.Equals(pathA, pathB, StringComparison.OrdinalIgnoreCase);
+
+            if (!string.IsNullOrEmpty(a.ClassId) && !string.IsNullOrEmpty(b.ClassId))
+                return string.Equals(a.ClassId, b.ClassId, StringComparison.OrdinalIgnoreCase);
+
+            return false;
         }
 
         private static Dictionary<int, VstPluginState> ApplyChainState(VstChainKind kind, VstChainState chainState)
