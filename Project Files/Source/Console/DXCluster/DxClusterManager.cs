@@ -589,6 +589,8 @@ namespace Thetis
             if (!string.IsNullOrEmpty(e.Target)) comment += "  " + e.Target;
             if (!string.IsNullOrEmpty(e.Remarks)) comment += "  " + e.Remarks;
 
+            DxClusterSwl.Mode(e, out string modeLabel, out int modeNumber);
+
             return new DxClusterSpot
             {
                 Id = System.Threading.Interlocked.Increment(ref _nextSpotId),
@@ -601,8 +603,8 @@ namespace Thetis
                 Country = DxClusterSwl.CountryName(e.Itu),
                 CountryCode = DxClusterSwl.CountryIso(e.Itu),
                 Language = DxClusterSwl.LanguageName(e.LanguageCode),
-                Mode = "AM",
-                ModeNumber = 14,
+                Mode = modeLabel,
+                ModeNumber = modeNumber,
                 IsSwl = true,
                 SwlSecondsToLive = ttl,
                 UtcTime = startUtc,

@@ -270,7 +270,7 @@ namespace Thetis
             };
             comboMode.Items.AddRange(new object[]
             {
-                "All", "CW", "SSB", "DIGI", "FM", "AM"
+                "All", "CW", "SSB", "USB", "LSB", "DIGI", "FM", "AM"
             });
             comboMode.BackColor = DxClusterTheme.Inset;
             comboMode.ForeColor = DxClusterTheme.TextPrimary;
@@ -992,15 +992,20 @@ namespace Thetis
                 long hz = (long)Math.Round(mhz * 1000000.0);
 
                 int modeNumber = 0;
-                if (row.Tag is long id)
+                object modeTag = row.Cells[COL_SPOT_MODE].Tag;
+                if (modeTag is int mn)
+                {
+                    modeNumber = mn;
+                }
+                else if (row.Tag is long id)
                 {
                     DxClusterSpot spot = DxClusterManager.FindSpot(id);
                     if (spot != null) modeNumber = spot.ModeNumber;
                 }
 
                 DSPMode mode = SpotManager2.SpotModeNumberToDSPMode(modeNumber, hz);
-                if (mode != DSPMode.FIRST && _console.RX1DSPMode != mode) _console.RX1DSPMode = mode;
                 if (_console.VFOAFreq != mhz) _console.VFOAFreq = mhz;
+                if (mode != DSPMode.FIRST && _console.RX1DSPMode != mode) _console.RX1DSPMode = mode;
 
                 _console.SpotClickedHandlers?.Invoke(call, hz, 1, false);
             }
@@ -1231,6 +1236,7 @@ namespace Thetis
             row.Cells[COL_SPOT_COUNTRY].Value = spot.Country;
             row.Cells[COL_SPOT_LANGUAGE].Value = spot.Language;
             row.Cells[COL_SPOT_MODE].Value = spot.Mode;
+            row.Cells[COL_SPOT_MODE].Tag = spot.ModeNumber;
             row.Cells[COL_SPOT_SPOTTER].Value = spot.Spotter;
             row.Cells[COL_SPOT_COMMENT].Value = spot.Comment;
             row.Cells[COL_SPOT_NODE].Value = spot.Node;

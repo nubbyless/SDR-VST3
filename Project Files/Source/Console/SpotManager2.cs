@@ -343,6 +343,12 @@ namespace Thetis
                     if (isFreqencyNormallyUSB) mode = DSPMode.AM_USB;
                     else mode = DSPMode.AM_LSB;
                     break;
+                case 15://usb
+                    mode = DSPMode.USB;
+                    break;
+                case 16://lsb
+                    mode = DSPMode.LSB;
+                    break;
             }
 
             return mode;

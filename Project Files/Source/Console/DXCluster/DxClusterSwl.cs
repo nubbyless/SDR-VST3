@@ -438,5 +438,33 @@ namespace Thetis
 
             return name.Trim();
         }
+
+        //----------------------------------------------------------------------------------------
+        // Mode heuristics for a broadcast/utility entry. The EiBi list is broadcast-first, so the
+        // default is AM. A few signals are flagged in the data itself:
+        //   Days (col 2) may carry "USB"/"LSB" -> explicit sideband.
+        //   Language (col 5) special codes: -CW morse, -TY/-HF digital teletype/HFDL.
+        //   Persistence (col 8) >= 90 means a utility station, which conventionally uses USB.
+        // Mode numbers: 1=CW, 2=DIGI, 14=AM, 15=USB, 16=LSB (see SpotManager2.SpotModeNumberToDSPMode).
+        //----------------------------------------------------------------------------------------
+        public static void Mode(DxClusterSwlEntry e, out string label, out int number)
+        {
+            if (e != null)
+            {
+                string days = e.Days ?? "";
+                if (days.IndexOf("USB", StringComparison.OrdinalIgnoreCase) >= 0) { label = "USB"; number = 15; return; }
+                if (days.IndexOf("LSB", StringComparison.OrdinalIgnoreCase) >= 0) { label = "LSB"; number = 16; return; }
+
+                string lang = (e.LanguageCode ?? "").Trim();
+                if (lang.Equals("-CW", StringComparison.OrdinalIgnoreCase)) { label = "CW"; number = 1; return; }
+                if (lang.Equals("-TY", StringComparison.OrdinalIgnoreCase) ||
+                    lang.Equals("-HF", StringComparison.OrdinalIgnoreCase)) { label = "DIGI"; number = 2; return; }
+
+                if (e.Persistence >= 90) { label = "USB"; number = 15; return; } // utility station default
+            }
+
+            label = "AM";
+            number = 14;
+        }
     }
 }
