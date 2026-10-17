@@ -85,6 +85,7 @@ namespace Thetis
 
         private readonly Dictionary<string, DataGridViewRow> _connRowByKey = new Dictionary<string, DataGridViewRow>(StringComparer.Ordinal);
         private readonly Dictionary<long, DataGridViewRow> _spotRowById = new Dictionary<long, DataGridViewRow>();
+        private readonly Dictionary<long, Image> _spotFlagById = new Dictionary<long, Image>();
 
         private bool _updatingConns;
         private bool _updatingFilters;
@@ -361,6 +362,7 @@ namespace Thetis
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Node", Width = 160, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
 
             gridSpots.CellDoubleClick += onSpotDoubleClick;
+            gridSpots.CellPainting += onSpotCellPainting;
 
             split.Panel2.Controls.Add(gridSpots);
         }
@@ -620,6 +622,7 @@ namespace Thetis
             DxClusterManager.ClearSpots();
 
             _spotRowById.Clear();
+            _spotFlagById.Clear();
             gridSpots.Rows.Clear();
         }
 
@@ -956,7 +959,7 @@ namespace Thetis
                         if (tag is long id && live.Contains(id)) continue;
 
                         gridSpots.Rows.RemoveAt(i);
-                        if (tag is long rid) _spotRowById.Remove(rid);
+                        if (tag is long rid) { _spotRowById.Remove(rid); _spotFlagById.Remove(rid); }
                     }
                 }
                 finally { gridSpots.ResumeLayout(); }
@@ -993,8 +996,58 @@ namespace Thetis
             if (node != null)
                 row.Cells[COL_SPOT_CALL].Style.ForeColor = Color.FromArgb(node.ColorArgb);
 
+            try
+            {
+                Image flag = SpotManager2.GetFlagImageForCallsign(spot.Callsign);
+                if (flag != null) _spotFlagById[spot.Id] = flag;
+            }
+            catch { }
+
             _spotRowById[spot.Id] = row;
             return row;
+        }
+
+        private void onSpotCellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex != COL_SPOT_COUNTRY) return;
+
+            Image flag = null;
+            if (gridSpots.Rows[e.RowIndex].Tag is long id)
+                _spotFlagById.TryGetValue(id, out flag);
+
+            if (flag == null) return; // no flag, let the grid draw the text normally
+
+            e.PaintBackground(e.CellBounds, true);
+
+            Rectangle bounds = e.CellBounds;
+            int left = bounds.Left + 2;
+
+            try
+            {
+                int h = Math.Min(bounds.Height - 4, flag.Height);
+                if (h < 1) h = 1;
+                int w = (int)Math.Round(flag.Width * (h / (double)flag.Height));
+                if (w < 1) w = 1;
+                int y = bounds.Top + (bounds.Height - h) / 2;
+
+                Rectangle dest = new Rectangle(left, y, w, h);
+                e.Graphics.DrawImage(flag, dest);
+                left = dest.Right + 4;
+            }
+            catch { }
+
+            string text = Convert.ToString(e.Value);
+            if (!string.IsNullOrEmpty(text))
+            {
+                bool selected = (e.State & DataGridViewElementStates.Selected) != 0;
+                Color fore = selected ? e.CellStyle.SelectionForeColor : e.CellStyle.ForeColor;
+
+                Rectangle textRect = new Rectangle(left, bounds.Top, Math.Max(0, bounds.Right - left), bounds.Height);
+                TextRenderer.DrawText(e.Graphics, text, e.CellStyle.Font ?? gridSpots.Font, textRect, fore,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
+            }
+
+            e.Handled = true;
         }
 
         // color table for the dark tool strips

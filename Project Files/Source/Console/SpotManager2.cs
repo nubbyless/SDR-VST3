@@ -472,6 +472,12 @@ namespace Thetis
             return getFlagImage(country_ansi);
         }
 
+        // shared with the DX cluster window so its country column shows the same flag imagery
+        public static Image GetFlagImageForCallsign(string callsign)
+        {
+            return getFlagImageFromCallsign(callsign, out _);
+        }
+
         public static void AddSpot(string callsign, DSPMode mode, long frequencyHz, Color colour, string additionalText, JsonSpotData jsonSpotData = null, string source = "")
         {
             callsign = callsign.ToUpper().Trim();
