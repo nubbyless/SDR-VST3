@@ -58,11 +58,6 @@ namespace Thetis
         private readonly Console _console;
 
         private ToolStrip toolStrip;
-        private ToolStripTextBox txtHost;
-        private ToolStripTextBox txtPort;
-        private ToolStripTextBox txtCallsign;
-        private ToolStripButton btnConnect;
-        private ToolStripButton btnDisconnect;
         private ToolStripButton btnDisconnectAll;
         private ToolStripButton btnServers;
         private ToolStripButton btnShowOnPanadapter;
@@ -166,23 +161,10 @@ namespace Thetis
                 RenderMode = ToolStripRenderMode.ManagerRenderMode,
             };
 
-            ToolStripLabel lblHost = new ToolStripLabel("Node:") { ForeColor = DxClusterTheme.TextSecondary };
-            txtHost = new ToolStripTextBox { Width = 160, ToolTipText = "Cluster node host name or IP address" };
-            StyleInput(txtHost);
-
-            ToolStripLabel lblPort = new ToolStripLabel("Port:") { ForeColor = DxClusterTheme.TextSecondary };
-            txtPort = new ToolStripTextBox { Width = 50, Text = "23", ToolTipText = "TCP port (default 23)" };
-            StyleInput(txtPort);
-
-            ToolStripLabel lblCall = new ToolStripLabel("Call:") { ForeColor = DxClusterTheme.TextSecondary };
-            txtCallsign = new ToolStripTextBox { Width = 90, ToolTipText = "Login callsign (defaults to your own callsign)" };
-            StyleInput(txtCallsign);
-
-            btnConnect = CreateButton("Connect", onConnect);
-            btnDisconnect = CreateButton("Disconnect", onDisconnectSelected);
-            btnDisconnectAll = CreateButton("Disconnect All", onDisconnectAll);
             btnServers = CreateButton("Server List", onServers);
-            btnServers.ToolTipText = "Pick from a list of known public telnet nodes, or add your own";
+            btnServers.ToolTipText = "Add, connect and remove cluster nodes, and set your login callsign";
+
+            btnDisconnectAll = CreateButton("Disconnect All", onDisconnectAll);
 
             btnShowOnPanadapter = new ToolStripButton("Spots on Panadapter")
             {
@@ -195,20 +177,12 @@ namespace Thetis
 
             btnClear = CreateButton("Clear Spots", onClearSpots);
 
-            toolStrip.Items.Add(lblHost);
-            toolStrip.Items.Add(txtHost);
-            toolStrip.Items.Add(lblPort);
-            toolStrip.Items.Add(txtPort);
-            toolStrip.Items.Add(lblCall);
-            toolStrip.Items.Add(txtCallsign);
-            toolStrip.Items.Add(new ToolStripSeparator());
-            toolStrip.Items.Add(btnConnect);
-            toolStrip.Items.Add(btnDisconnect);
-            toolStrip.Items.Add(btnDisconnectAll);
-            toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnServers);
             toolStrip.Items.Add(new ToolStripSeparator());
+            toolStrip.Items.Add(btnDisconnectAll);
+            toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnShowOnPanadapter);
+            toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnClear);
         }
 
@@ -342,7 +316,7 @@ namespace Thetis
 
             gridSpots = createGrid();
 
-            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Time", Width = 70, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Time (UTC)", Width = 90, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn
             {
                 HeaderText = "MHz",
@@ -450,20 +424,26 @@ namespace Thetis
             box.BorderStyle = BorderStyle.FixedSingle;
         }
 
-        private void PrefillCallsign()
+        private string defaultCallsign()
         {
+            if (!string.IsNullOrWhiteSpace(DxClusterManager.Settings.LoginCallsign))
+                return DxClusterManager.Settings.LoginCallsign.Trim();
+
             try
             {
-                if (!string.IsNullOrWhiteSpace(DxClusterManager.Settings.LoginCallsign))
-                    txtCallsign.Text = DxClusterManager.Settings.LoginCallsign;
-                else if (_console != null && !_console.IsSetupFormNull)
+                if (_console != null && !_console.IsSetupFormNull)
                 {
                     string call = _console.SetupForm.TCIOwnCallsign;
-                    if (!string.IsNullOrWhiteSpace(call)) txtCallsign.Text = call.Trim();
+                    if (!string.IsNullOrWhiteSpace(call)) return call.Trim();
                 }
             }
             catch { }
 
+            return "";
+        }
+
+        private void PrefillCallsign()
+        {
             try { btnShowOnPanadapter.Checked = DxClusterManager.Settings.ShowOnPanadapter; } catch { }
         }
 
@@ -483,45 +463,6 @@ namespace Thetis
             finally { _updatingFilters = false; }
         }
 
-        private void onConnect(object sender, EventArgs e)
-        {
-            string host = (txtHost.Text ?? "").Trim();
-            if (host.Length == 0)
-            {
-                MessageBox.Show(this, "Enter a cluster node host name or address.", "DX Cluster",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
-            int port;
-            if (!int.TryParse((txtPort.Text ?? "").Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out port) || port <= 0 || port > 65535)
-                port = 23;
-
-            string callsign = (txtCallsign.Text ?? "").Trim();
-            if (callsign.Length > 0)
-            {
-                DxClusterManager.Settings.LoginCallsign = callsign;
-                DxClusterManager.SaveSettings();
-            }
-
-            DxClusterConnection existing = findLiveConnection(host, port);
-            if (existing != null)
-            {
-                if (existing.State == DxClusterConnectionState.Disconnected || existing.State == DxClusterConnectionState.Error)
-                    existing.Connect();
-
-                RefreshConnections();
-                return;
-            }
-
-            DxClusterConnection connection = DxClusterManager.AddConnection(host, port, callsign);
-            connection.Connect();
-            DxClusterManager.SaveSettings();
-
-            lblStatus.Text = "Connecting to " + host + ":" + port + "...";
-            RefreshConnections();
-        }
-
         private static DxClusterConnection findLiveConnection(string host, int port)
         {
             string key = DxClusterManager.NodeKey(host, port);
@@ -530,12 +471,7 @@ namespace Thetis
 
         private void onServers(object sender, EventArgs e)
         {
-            string callsign = (txtCallsign.Text ?? "").Trim();
-            if (callsign.Length > 0)
-            {
-                DxClusterManager.Settings.LoginCallsign = callsign;
-                DxClusterManager.SaveSettings();
-            }
+            string callsign = defaultCallsign();
 
             List<DxClusterServerEntry> entries = new List<DxClusterServerEntry>();
 

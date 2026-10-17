@@ -50,6 +50,7 @@ namespace Thetis
         public string Host { get; }
         public int Port { get; }
         public string LoginCallsign { get; set; }
+        public bool LoginSent { get; private set; }
         public DxClusterConnectionState State { get; private set; }
         public string LastError { get; private set; }
 
@@ -82,6 +83,7 @@ namespace Thetis
                 if (_running) return;
 
                 _running = true;
+                LoginSent = false;
                 LastError = "";
                 setState(DxClusterConnectionState.Connecting);
 
@@ -105,6 +107,19 @@ namespace Thetis
             }
 
             cleanUp();
+        }
+
+        // send the login callsign once, if connected and not already logged in
+        public void SendLogin(string callsign)
+        {
+            callsign = (callsign ?? "").Trim();
+            if (callsign.Length == 0) return;
+            if (LoginSent) return;
+            if (State != DxClusterConnectionState.Connected) return;
+
+            LoginCallsign = callsign;
+            Send(callsign);
+            LoginSent = true;
         }
 
         public void Send(string text)
@@ -139,11 +154,9 @@ namespace Thetis
 
                 setState(DxClusterConnectionState.Connected);
 
-                if (!string.IsNullOrWhiteSpace(LoginCallsign))
-                {
-                    try { _writer.WriteLine(LoginCallsign.Trim()); }
-                    catch { /* node may not expect a login line */ }
-                }
+                // log in with the callsign if we already have one; otherwise the manager can
+                // supply it later via SendLogin (dx clusters usually stream no spots until then)
+                SendLogin(LoginCallsign);
 
                 string line;
                 while (_running && (line = _reader.ReadLine()) != null)

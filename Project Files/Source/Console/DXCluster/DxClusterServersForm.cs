@@ -40,14 +40,15 @@ namespace Thetis
         private TextBox txtPort;
         private Button btnAdd;
         private Button btnOk;
+        private TextBox txtCall;
         private bool _loading;
-        private readonly string _callsign;
 
         public DxClusterServersForm(IEnumerable<DxClusterServerEntry> entries, string callsign)
         {
-            _callsign = (callsign ?? "").Trim();
-
             BuildUi();
+
+            txtCall.Text = (callsign ?? "").Trim();
+            FormClosing += (s, e) => applyLoginCallsign();
 
             _loading = true;
             try
@@ -73,14 +74,20 @@ namespace Thetis
             ForeColor = DxClusterTheme.TextPrimary;
             Font = new Font("Segoe UI", 8.5f);
 
+            Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = DxClusterTheme.Void };
             Label lblIntro = new Label
             {
-                Text = "Tick a node to connect now and auto-connect on startup; untick to disconnect and remove it. Changes apply immediately.",
-                Dock = DockStyle.Top,
-                Height = 34,
+                Text = "Tick a node to connect now and auto-connect on startup; untick to disconnect and remove it. A callsign is required to receive spots.",
+                Location = new Point(6, 4),
+                Size = new Size(448, 38),
                 ForeColor = DxClusterTheme.TextSecondary,
-                Padding = new Padding(6, 6, 6, 0),
             };
+            Label lblCall = new Label { Text = "Callsign", Location = new Point(6, 48), AutoSize = true, ForeColor = DxClusterTheme.TextSecondary };
+            txtCall = new TextBox { Location = new Point(64, 44), Width = 120, BackColor = DxClusterTheme.Inset, ForeColor = DxClusterTheme.TextPrimary, BorderStyle = BorderStyle.FixedSingle };
+            txtCall.Leave += (s, e) => applyLoginCallsign();
+            topPanel.Controls.Add(lblIntro);
+            topPanel.Controls.Add(lblCall);
+            topPanel.Controls.Add(txtCall);
 
             list = new CheckedListBox
             {
@@ -116,9 +123,25 @@ namespace Thetis
             Controls.Add(list);
             Controls.Add(addPanel);
             Controls.Add(buttonPanel);
-            Controls.Add(lblIntro);
+            Controls.Add(topPanel);
 
             AcceptButton = btnOk;
+        }
+
+        private string CurrentCallsign
+        {
+            get { return (txtCall.Text ?? "").Trim(); }
+        }
+
+        // persist the callsign and hand it to any live node that has not logged in yet
+        private void applyLoginCallsign()
+        {
+            string current = CurrentCallsign;
+            string saved = DxClusterManager.Settings.LoginCallsign ?? "";
+
+            if (string.Equals(current, saved, StringComparison.OrdinalIgnoreCase)) return;
+
+            DxClusterManager.SetLoginCallsign(current);
         }
 
         private void onAdd(object sender, EventArgs e)
@@ -156,7 +179,7 @@ namespace Thetis
             finally { _loading = false; }
 
             // a newly added node is connected straight away and remembers to auto-connect
-            DxClusterManager.EnsureConnected(host, port, _callsign);
+            DxClusterManager.EnsureConnected(host, port, (txtCall.Text ?? "").Trim());
             DxClusterManager.GetOrCreateNode(host, port).AutoConnect = true;
             DxClusterManager.SaveSettings();
             DxClusterManager.ResyncPanadapter();
@@ -210,7 +233,7 @@ namespace Thetis
 
             if (e.NewValue == CheckState.Checked)
             {
-                DxClusterManager.EnsureConnected(entry.Host, entry.Port, _callsign);
+                DxClusterManager.EnsureConnected(entry.Host, entry.Port, (txtCall.Text ?? "").Trim());
                 DxClusterManager.GetOrCreateNode(entry.Host, entry.Port).AutoConnect = true;
             }
             else

@@ -256,6 +256,22 @@ namespace Thetis
             return connection;
         }
 
+        // store the login callsign and push it to any live connection that has not logged in yet
+        // (many DX clusters stream no spots until the user identifies with a callsign)
+        public static void SetLoginCallsign(string callsign)
+        {
+            callsign = (callsign ?? "").Trim();
+            Settings.LoginCallsign = callsign;
+
+            foreach (DxClusterConnection connection in Connections)
+            {
+                connection.LoginCallsign = callsign;
+                connection.SendLogin(callsign);
+            }
+
+            SaveSettings();
+        }
+
         public static void DisconnectAndRemoveNode(string host, int port)
         {
             string key = NodeKey(host, port);
