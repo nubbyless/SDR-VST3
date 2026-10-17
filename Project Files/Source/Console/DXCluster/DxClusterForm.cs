@@ -997,9 +997,13 @@ namespace Thetis
                 {
                     modeNumber = mn;
                 }
-                else if (row.Tag is long id)
+                else
                 {
-                    DxClusterSpot spot = DxClusterManager.FindSpot(id);
+                    // try to get from row tag (could be spot object or id)
+                    object tag = row.Tag;
+                    DxClusterSpot spot = null;
+                    if (tag is DxClusterSpot sp) spot = sp;
+                    else if (tag is long id) spot = DxClusterManager.FindSpot(id);
                     if (spot != null) modeNumber = spot.ModeNumber;
                 }
 
@@ -1186,15 +1190,18 @@ namespace Thetis
                             continue;
 
                         gridSpots.Rows.Insert(0, buildSpotRow(spot));
+
                     }
 
                     for (int i = gridSpots.Rows.Count - 1; i >= 0; i--)
                     {
                         object tag = gridSpots.Rows[i].Tag;
-                        if (tag is long id && live.Contains(id)) continue;
+                        if (tag is DxClusterSpot sp2 && live.Contains(sp2.Id)) continue;
+                        if (tag is long idl && live.Contains(idl)) continue;
 
                         gridSpots.Rows.RemoveAt(i);
-                        if (tag is long rid) { _spotRowById.Remove(rid); _spotFlagById.Remove(rid); }
+                        if (tag is DxClusterSpot sp3) { _spotRowById.Remove(sp3.Id); _spotFlagById.Remove(sp3.Id); }
+                        else if (tag is long rid) { _spotRowById.Remove(rid); _spotFlagById.Remove(rid); }
                     }
                 }
                 finally { gridSpots.ResumeLayout(); }
@@ -1228,7 +1235,7 @@ namespace Thetis
         {
             DataGridViewRow row = new DataGridViewRow();
             row.CreateCells(gridSpots);
-            row.Tag = spot.Id;
+            row.Tag = spot; // store spot directly for quick access on click
             row.Cells[COL_SPOT_TIME].Value = spot.UtcTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
             row.Cells[COL_SPOT_MHZ].Value = spot.FrequencyHz / 1000000.0;
             row.Cells[COL_SPOT_BAND].Value = bandOf(spot);
