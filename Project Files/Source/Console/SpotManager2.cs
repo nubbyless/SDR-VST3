@@ -340,8 +340,7 @@ namespace Thetis
                     else mode = DSPMode.DIGL;
                     break;
                 case 14://am
-                    if (isFreqencyNormallyUSB) mode = DSPMode.AM_USB;
-                    else mode = DSPMode.AM_LSB;
+                    mode = DSPMode.AM;
                     break;
                 case 15://usb
                     mode = DSPMode.USB;
