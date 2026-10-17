@@ -1,7 +1,10 @@
 # DX CLUSTER (TELNET) HANDOFF
 
 Created: 2026-10-16
-Branch: `master` (HEAD `2332bf2c fix VST chain losing trailing plugins after reboot`)
+Branch: `master`
+Latest state (2026-10-17): thetisvst HEAD `c32cf4ba`, HL2 HEAD `fb33d35`.
+**Scroll to the bottom — the newest UPDATE sections and the "NEXT: SWL spot toggle"
+plan supersede the original phased plan at the top.**
 Scope: Design + phased build plan for a **native telnet DX cluster client** integrated
 into Thetis. Phase 1 code not yet written at time of writing; findings below are verified
 against the working tree.
@@ -360,3 +363,121 @@ Build: Release x64 succeeded, 0 errors (exe 2026-10-16 22:44). Confirmed working
    - `ShowCellToolTips = false` still suppresses the auto value tooltips.
 
 Build: Release x64 succeeded, 0 errors (exe 2026-10-16 22:50).
+
+---
+
+## UPDATE 2026-10-17 (columns, flags, theme toggle)
+
+### Committed + pushed (both repos, `origin/master`)
+- `2860bf29` / `597f17b` — **login callsign from the Server List**; toolbar simplified to
+  **Server List | Disconnect All | Spots on Panadapter | Clear Spots** (separators between);
+  removed the inline node/port/call inputs + single Connect/Disconnect buttons.
+- `3bf5d3d3` / `c9e730c` — **Country + Mode + Band columns**, columns renamed
+  `Time (UTC)` / `Frequency (MHz)`, **Mode dropdown filter** (persisted), text filter now
+  matches country/mode/band too. Mode is derived from the spot frequency via a band plan
+  (`DxClusterParser.BandPlan` / `inferModeFromFrequency`) and drives both the panadapter
+  DSP mode and double-click tune.
+- `c32cf4ba` / `fb33d35` — **country flags** in the spots list. New public
+  `SpotManager2.GetFlagImageForCallsign(string)` wraps the existing private
+  `getFlagImageFromCallsign`; `DxClusterForm` paints the flag + country name by
+  custom-painting (`gridSpots.CellPainting` → `onSpotCellPainting`) and caches images per
+  spot id in `_spotFlagById`.
+- Label `Filter:` -> `Text Filter:`.
+
+### Uncommitted (builds clean in both repos; NOT yet committed/pushed)
+- **Light/dark theme toggle** for the DX Cluster window:
+  - `DxClusterTheme` refactored from `static readonly Color` fields into two `Palette`
+    instances (dark + light) exposed through static properties that follow a live
+    `IsDark` switch (`SetDark(bool)`); all existing `DxClusterTheme.Xxx` references were
+    left untouched.
+  - `DxClusterForm.ApplyTheme()` recolors form, both grids (`ApplyGridTheme`), tool/
+    filter strips (`ApplyStripItems`), status bar, combos, text filter and node context
+    menu; `onThemeToggle` persists via new `DxClusterSettings.DarkTheme` (default true).
+  - Toolbar right side now has a `Theme:` label + a `btnTheme` button showing the theme it
+    will switch TO (dark -> `Light`, light -> `Dark`). **Ordering gotcha:** `Alignment = Right`
+    items flow outside-in, so the **button is added before the label** (button = rightmost).
+  - The `Theme:` label + the label-reversal were the last edits; **rebuild + commit both**.
+
+---
+
+## NEXT SESSION PLAN — SWL spot toggle
+
+### Locked decisions (confirmed with user 2026-10-17)
+1. Toggle lives in the **DX Cluster window toolbar** (like the theme toggle).
+2. When SWL is ON, telnet nodes **stay connected** but their spots are **hidden** from the
+   list AND the panadapter.
+3. Show only entries **on air now** (current UTC window), not the whole file.
+
+### Data source — `http://www.eibispace.de/dx/sked-a26.csv` (Eibi HF broadcast schedule)
+- ~528 KB, **9593 data lines**. Seasonal file: `a26` = summer 2026; the code changes each
+  season, so make the URL a persisted setting with this default (or derive the season code).
+- **Semicolon-delimited.** Line 1 is a header documenting the columns/widths:
+  `kHz:75;Time(UTC):93;Days:59;ITU:49;Station:201;Lng:49;Target:62;Remarks:135;P:35;Start:60;Stop:60;`
+- Data columns (index : meaning):
+  - `0 kHz` — frequency in kHz (`16.3`, `49`)
+  - `1 Time(UTC)` — `HHMM-HHMM` (`0000-2400` = full day, `1230-1315`)
+  - `2 Days` — mostly empty (7686 rows); else weekly specs (`Mo-Fr`, `Su`, `Sa`, `Th`,
+    `Tu,Fr`, `SaSu`, `Mo-Sa`, `156`), the literal `irr`, or a **date** like `24Oct`
+    (seasonal/special, e.g. SAQ Grimeton). Plan: parse weekly specs; treat
+    empty/`irr`/date-like/`Test` as "always" (do NOT drop).
+  - `3 ITU` — country code (`IND`, `RUS`, `S`) -> show in Country column
+  - `4 Station` — (`VTX1 Indian Navy`) -> use as the name/callsign column
+  - `5 Lng` — language (`-CW`, `-TS`, or a language) -> into comment
+  - `6 Target` — target area code (`SAs`, `NAO`) -> into comment
+  - `7 Remarks` — 2-letter code -> into comment
+  - `8 P` — power class (`1`..)
+  - `9 Start` / `10 Stop` — dates (e.g. `0110`, `2410`) for seasonal entries; usually empty
+
+### Reference notes for the build
+- **AM DSP mode = number `14`** in `SpotManager2.SpotModeNumberToDSPMode` (-> `AM_USB`/`AM_LSB`).
+- `SpotManager2.JsonSpotData` already has **`IsSWL`** (bool) and **`SWLSecondsToLive`**
+  (long, `0` = never). They flow into `smSpot` and are honored by the lifetime sweep
+  (`SpotManager2.cs:252-253`); SWL spots are excluded from the TCI `_maxNumber` cap and the
+  TCI "Clear Spots" sweep (like externally-sourced spots). `display.cs:13516` skips the
+  flash animation for `IsSWL`. => push SWL spots with `IsSWL = true` (and either
+  `SWLSecondsToLive = 0`, or a value tied to the window end).
+- External source markers: `DxClusterManager.SourcePrefix` = `"dxcluster:"`;
+  `SpotManager2.HasSpotsFromPrefix` / `isExternallySourced` treat a non-empty `source` as
+  external (drawn independent of the "Show TCI Spots" flag).
+
+### Proposed implementation
+- **New file `DXCluster\DxClusterSwl.cs`:**
+  - `DxClusterSwlEntry` (FreqKhz, StartMin, StopMin, Days spec, ITU, Station, Language,
+    Target, Remarks, raw Days text...).
+  - `ParseCsv(string text)` -> entries (invariant culture; skip header; split on `;`).
+  - `GetActive(DateTime utc)` -> entries whose time window contains now (handle `0000-2400`
+    and midnight wrap) and whose weekly days match (best effort).
+- **`DxClusterManager` additions:**
+  - `const string SourcePrefixSwl = "swl:"`; separate `List<DxClusterSpot> _swlSpots` +
+    cached `List<DxClusterSwlEntry> _swlEntries`.
+  - `Settings.SwlMode` (bool, default false), `Settings.SwlUrl` (string, default the URL),
+    maybe `Settings.SwlRefreshMinutes`.
+  - `SetSwlMode(bool on)`: persist; on enable -> clear telnet sources from the panadapter +
+    `LoadSwlAsync()`; on disable -> clear `swl:` source + re-push telnet cluster spots.
+  - `LoadSwlAsync()`: background download (`WebClient`/`HttpClient`) -> `ParseCsv` -> cache
+    -> `RebuildSwlSpots()`.
+  - `RebuildSwlSpots()`: build `DxClusterSpot`s for `GetActive(now)`; Id from the shared
+    counter; Node = `"SWL"`, NodeKey = `"swl"`, Callsign = Station, Country = ITU,
+    Mode = `"AM"`, ModeNumber = `14`, Comment = time + days + target + language.
+  - Periodic re-filter (windows change over the hour): coarse guard in the form's 500 ms
+    timer, or a 60 s manager timer, calling `RebuildSwlSpots()` and pushing deltas.
+  - `GetSpots()` returns `_swlSpots` when `SwlMode` else telnet `_spots`.
+  - Suppress telnet panadapter push while `SwlMode` (in `addSpot`); re-push on disable.
+  - `ClearSpots()` clears both lists + both sources.
+- **`DxClusterForm` additions:**
+  - Toolbar `btnSwl` (`CheckOnClick`, text `SWL`) reflecting `Settings.SwlMode` -> `SetSwlMode`.
+  - Loading status text; `RefreshSpots()` shows SWL rows only while active.
+  - Reuse columns: Callsign = station, Country = ITU, Mode = `AM`, Comment = time + days +
+    target + language, Spotter blank, Node = `SWL`. Flags return none for a station name.
+  - Double-click tune still works (frequency-based).
+
+### Open questions for tomorrow
+- SWL URL: fixed default vs season-derived, and should the user edit it (e.g. in Server List)?
+- Confirm hide-not-disconnect once seen in the UI.
+- Band column for SWL: broadcast meter bands (41m/49m/...) are NOT in `bandOf()` (ham bands
+  only) -> Band column blank. Add broadcast bands, or hide the Band column in SWL mode?
+- De-dup: same station on multiple frequencies -> keep all (per-frequency)? (recommend yes.)
+- "On air now" refresh cadence (recommend once per minute).
+- Color for SWL spots: fixed (e.g. default gold) rather than per-node.
+
+---

@@ -59,6 +59,7 @@ namespace Thetis
         public string FilterBand { get; set; } = "All";
         public string FilterMode { get; set; } = "All";
         public string FilterText { get; set; } = "";
+        public bool DarkTheme { get; set; } = true;
         public List<DxClusterNodeSettings> Nodes { get; set; } = new List<DxClusterNodeSettings>();
 
         public string ToJson()

@@ -65,6 +65,7 @@ namespace Thetis
         private ToolStripButton btnServers;
         private ToolStripButton btnShowOnPanadapter;
         private ToolStripButton btnClear;
+        private ToolStripButton btnTheme;
 
         private ToolStrip filterStrip;
         private ToolStripComboBox comboBand;
@@ -133,6 +134,8 @@ namespace Thetis
             ForeColor = DxClusterTheme.TextPrimary;
             Font = new Font("Segoe UI", 8.5f);
 
+            DxClusterTheme.SetDark(DxClusterManager.Settings.DarkTheme);
+
             BuildToolStrip();
             BuildFilterStrip();
             BuildSplit();
@@ -183,6 +186,21 @@ namespace Thetis
 
             btnClear = CreateButton("Clear Spots", onClearSpots);
 
+            btnTheme = new ToolStripButton
+            {
+                Alignment = ToolStripItemAlignment.Right,
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                ForeColor = DxClusterTheme.TextPrimary,
+                ToolTipText = "Toggle light/dark theme",
+            };
+            btnTheme.Click += onThemeToggle;
+
+            ToolStripLabel lblTheme = new ToolStripLabel("Theme:")
+            {
+                Alignment = ToolStripItemAlignment.Right,
+                ForeColor = DxClusterTheme.TextSecondary,
+            };
+
             toolStrip.Items.Add(btnServers);
             toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnDisconnectAll);
@@ -190,6 +208,10 @@ namespace Thetis
             toolStrip.Items.Add(btnShowOnPanadapter);
             toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnClear);
+            toolStrip.Items.Add(btnTheme);
+            toolStrip.Items.Add(lblTheme);
+
+            UpdateThemeButton();
         }
 
         private void BuildFilterStrip()
@@ -319,6 +341,9 @@ namespace Thetis
 
             connMenu = new ContextMenuStrip();
             connMenu.ShowItemToolTips = true;
+            connMenu.Renderer = new ToolStripProfessionalRenderer(new DxColorTable());
+            connMenu.BackColor = DxClusterTheme.Inset;
+            connMenu.ForeColor = DxClusterTheme.TextPrimary;
             ToolStripMenuItem miConnect = new ToolStripMenuItem("Connect") { ToolTipText = "Open this node's connection" };
             miConnect.Click += (s, e) => connectSelectedNode();
             ToolStripMenuItem miDisconnect = new ToolStripMenuItem("Disconnect") { ToolTipText = "Close this node's connection" };
@@ -450,6 +475,122 @@ namespace Thetis
             box.BackColor = DxClusterTheme.Inset;
             box.ForeColor = DxClusterTheme.TextPrimary;
             box.BorderStyle = BorderStyle.FixedSingle;
+        }
+
+        private void onThemeToggle(object sender, EventArgs e)
+        {
+            DxClusterTheme.SetDark(!DxClusterTheme.IsDark);
+            DxClusterManager.Settings.DarkTheme = DxClusterTheme.IsDark;
+            DxClusterManager.SaveSettings();
+            ApplyTheme();
+        }
+
+        private void UpdateThemeButton()
+        {
+            if (btnTheme != null)
+                btnTheme.Text = DxClusterTheme.IsDark ? "Light" : "Dark";
+        }
+
+        private void ApplyTheme()
+        {
+            UpdateThemeButton();
+
+            BackColor = DxClusterTheme.Void;
+            ForeColor = DxClusterTheme.TextPrimary;
+
+            if (toolStrip != null)
+            {
+                toolStrip.BackColor = DxClusterTheme.FaceTop;
+                toolStrip.ForeColor = DxClusterTheme.TextPrimary;
+                ApplyStripItems(toolStrip);
+            }
+
+            if (filterStrip != null)
+            {
+                filterStrip.BackColor = DxClusterTheme.FaceBottom;
+                filterStrip.ForeColor = DxClusterTheme.TextPrimary;
+                ApplyStripItems(filterStrip);
+            }
+
+            if (comboBand != null)
+            {
+                comboBand.BackColor = DxClusterTheme.Inset;
+                comboBand.ForeColor = DxClusterTheme.TextPrimary;
+                comboBand.ComboBox.BackColor = DxClusterTheme.Inset;
+                comboBand.ComboBox.ForeColor = DxClusterTheme.TextPrimary;
+            }
+
+            if (comboMode != null)
+            {
+                comboMode.BackColor = DxClusterTheme.Inset;
+                comboMode.ForeColor = DxClusterTheme.TextPrimary;
+                comboMode.ComboBox.BackColor = DxClusterTheme.Inset;
+                comboMode.ComboBox.ForeColor = DxClusterTheme.TextPrimary;
+            }
+
+            if (txtFilter != null)
+            {
+                txtFilter.BackColor = DxClusterTheme.Inset;
+                txtFilter.ForeColor = DxClusterTheme.TextPrimary;
+                txtFilter.TextBox.BackColor = DxClusterTheme.Inset;
+                txtFilter.TextBox.ForeColor = DxClusterTheme.TextPrimary;
+            }
+
+            if (split != null) split.BackColor = DxClusterTheme.Void;
+
+            ApplyGridTheme(gridConns);
+            ApplyGridTheme(gridSpots);
+
+            if (status != null)
+            {
+                status.BackColor = DxClusterTheme.FaceTop;
+                status.ForeColor = DxClusterTheme.TextSecondary;
+            }
+            if (lblStatus != null) lblStatus.ForeColor = DxClusterTheme.TextSecondary;
+
+            if (connMenu != null)
+            {
+                connMenu.BackColor = DxClusterTheme.Inset;
+                connMenu.ForeColor = DxClusterTheme.TextPrimary;
+                foreach (ToolStripItem item in connMenu.Items)
+                    item.ForeColor = DxClusterTheme.TextPrimary;
+            }
+
+            Refresh();
+        }
+
+        private static void ApplyStripItems(ToolStrip strip)
+        {
+            foreach (ToolStripItem item in strip.Items)
+            {
+                if (item is ToolStripSeparator) continue;
+                item.ForeColor = (item is ToolStripLabel) ? DxClusterTheme.TextSecondary : DxClusterTheme.TextPrimary;
+            }
+        }
+
+        private static void ApplyGridTheme(DataGridView grid)
+        {
+            if (grid == null) return;
+
+            grid.BackgroundColor = DxClusterTheme.Inset;
+            grid.GridColor = DxClusterTheme.Border;
+
+            grid.ColumnHeadersDefaultCellStyle.BackColor = DxClusterTheme.FaceTop;
+            grid.ColumnHeadersDefaultCellStyle.ForeColor = DxClusterTheme.TextPrimary;
+            grid.ColumnHeadersDefaultCellStyle.SelectionBackColor = DxClusterTheme.FaceTop;
+            grid.ColumnHeadersDefaultCellStyle.SelectionForeColor = DxClusterTheme.TextPrimary;
+
+            grid.DefaultCellStyle.BackColor = DxClusterTheme.Inset;
+            grid.DefaultCellStyle.ForeColor = DxClusterTheme.TextPrimary;
+            grid.DefaultCellStyle.SelectionBackColor = DxClusterTheme.Selection;
+            grid.DefaultCellStyle.SelectionForeColor = DxClusterTheme.TextPrimary;
+
+            grid.AlternatingRowsDefaultCellStyle.BackColor = DxClusterTheme.Gutter;
+            grid.AlternatingRowsDefaultCellStyle.ForeColor = DxClusterTheme.TextPrimary;
+            grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = DxClusterTheme.Selection;
+            grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = DxClusterTheme.TextPrimary;
+
+            grid.Invalidate();
         }
 
         private string defaultCallsign()
@@ -1092,20 +1233,75 @@ namespace Thetis
         }
     }
 
-    // dark palette matching the look of the main window / VST rack
+    // light/dark palettes for the DX cluster window; dark matches the look of the main window / VST rack
     internal static class DxClusterTheme
     {
-        public static readonly Color Void = Color.FromArgb(0x1E, 0x1E, 0x1E);
-        public static readonly Color FaceTop = Color.FromArgb(0x4A, 0x4A, 0x4A);
-        public static readonly Color FaceBottom = Color.FromArgb(0x3A, 0x3A, 0x3A);
-        public static readonly Color Inset = Color.FromArgb(0x33, 0x33, 0x33);
-        public static readonly Color Border = Color.FromArgb(0x1A, 0x1A, 0x1A);
-        public static readonly Color TextPrimary = Color.FromArgb(0xD8, 0xD8, 0xD8);
-        public static readonly Color TextSecondary = Color.FromArgb(0x9A, 0x9A, 0x9A);
-        public static readonly Color SelectionBorder = Color.FromArgb(0x8A, 0x8A, 0x8A);
-        public static readonly Color Gutter = Color.FromArgb(0x26, 0x26, 0x26);
-        public static readonly Color IconHover = Color.FromArgb(0x60, 0x60, 0x60);
-        public static readonly Color AccentOn = Color.FromArgb(0x7E, 0xC8, 0xF0);
-        public static readonly Color Selection = Color.FromArgb(0x3D, 0x5A, 0x78);
+        internal sealed class Palette
+        {
+            public Color Void;
+            public Color FaceTop;
+            public Color FaceBottom;
+            public Color Inset;
+            public Color Border;
+            public Color TextPrimary;
+            public Color TextSecondary;
+            public Color SelectionBorder;
+            public Color Gutter;
+            public Color IconHover;
+            public Color AccentOn;
+            public Color Selection;
+        }
+
+        private static readonly Palette Dark = new Palette
+        {
+            Void = Color.FromArgb(0x1E, 0x1E, 0x1E),
+            FaceTop = Color.FromArgb(0x4A, 0x4A, 0x4A),
+            FaceBottom = Color.FromArgb(0x3A, 0x3A, 0x3A),
+            Inset = Color.FromArgb(0x33, 0x33, 0x33),
+            Border = Color.FromArgb(0x1A, 0x1A, 0x1A),
+            TextPrimary = Color.FromArgb(0xD8, 0xD8, 0xD8),
+            TextSecondary = Color.FromArgb(0x9A, 0x9A, 0x9A),
+            SelectionBorder = Color.FromArgb(0x8A, 0x8A, 0x8A),
+            Gutter = Color.FromArgb(0x26, 0x26, 0x26),
+            IconHover = Color.FromArgb(0x60, 0x60, 0x60),
+            AccentOn = Color.FromArgb(0x7E, 0xC8, 0xF0),
+            Selection = Color.FromArgb(0x3D, 0x5A, 0x78),
+        };
+
+        private static readonly Palette Light = new Palette
+        {
+            Void = Color.FromArgb(0xF0, 0xF0, 0xF0),
+            FaceTop = Color.FromArgb(0xE8, 0xE8, 0xE8),
+            FaceBottom = Color.FromArgb(0xDC, 0xDC, 0xDC),
+            Inset = Color.FromArgb(0xFF, 0xFF, 0xFF),
+            Border = Color.FromArgb(0xC8, 0xC8, 0xC8),
+            TextPrimary = Color.FromArgb(0x20, 0x20, 0x20),
+            TextSecondary = Color.FromArgb(0x60, 0x60, 0x60),
+            SelectionBorder = Color.FromArgb(0xB0, 0xB0, 0xB0),
+            Gutter = Color.FromArgb(0xF6, 0xF6, 0xF6),
+            IconHover = Color.FromArgb(0xCD, 0xDD, 0xEE),
+            AccentOn = Color.FromArgb(0x1E, 0x6F, 0xA8),
+            Selection = Color.FromArgb(0xCC, 0xE4, 0xFF),
+        };
+
+        private static bool _dark = true;
+
+        public static bool IsDark { get { return _dark; } }
+        public static void SetDark(bool dark) { _dark = dark; }
+
+        private static Palette P { get { return _dark ? Dark : Light; } }
+
+        public static Color Void { get { return P.Void; } }
+        public static Color FaceTop { get { return P.FaceTop; } }
+        public static Color FaceBottom { get { return P.FaceBottom; } }
+        public static Color Inset { get { return P.Inset; } }
+        public static Color Border { get { return P.Border; } }
+        public static Color TextPrimary { get { return P.TextPrimary; } }
+        public static Color TextSecondary { get { return P.TextSecondary; } }
+        public static Color SelectionBorder { get { return P.SelectionBorder; } }
+        public static Color Gutter { get { return P.Gutter; } }
+        public static Color IconHover { get { return P.IconHover; } }
+        public static Color AccentOn { get { return P.AccentOn; } }
+        public static Color Selection { get { return P.Selection; } }
     }
 }
