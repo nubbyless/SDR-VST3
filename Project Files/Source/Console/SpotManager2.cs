@@ -478,6 +478,13 @@ namespace Thetis
             return getFlagImageFromCallsign(callsign, out _);
         }
 
+        // SWL/broadcast spots carry an ISO 3166-1 alpha-2 code instead of a callsign; resolve the
+        // same flag atlas imagery from it.
+        public static Image GetFlagImageForAssetCode(string assetCode)
+        {
+            return getFlagImage(assetCode);
+        }
+
         public static void AddSpot(string callsign, DSPMode mode, long frequencyHz, Color colour, string additionalText, JsonSpotData jsonSpotData = null, string source = "")
         {
             callsign = callsign.ToUpper().Trim();

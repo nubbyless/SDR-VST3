@@ -203,6 +203,7 @@
     <Compile Include="DXCluster\DxClusterConnection.cs" />
     <Compile Include="DXCluster\DxClusterManager.cs" />
     <Compile Include="DXCluster\DxClusterDefaults.cs" />
+    <Compile Include="DXCluster\DxClusterSwl.cs" />
     <Compile Include="DXCluster\DxClusterForm.cs">
       <SubType>Form</SubType>
     </Compile>

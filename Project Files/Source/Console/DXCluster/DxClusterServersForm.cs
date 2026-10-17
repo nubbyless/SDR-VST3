@@ -41,6 +41,7 @@ namespace Thetis
         private Button btnAdd;
         private Button btnOk;
         private TextBox txtCall;
+        private TextBox txtSwl;
         private bool _loading;
 
         public DxClusterServersForm(IEnumerable<DxClusterServerEntry> entries, string callsign)
@@ -48,7 +49,8 @@ namespace Thetis
             BuildUi();
 
             txtCall.Text = (callsign ?? "").Trim();
-            FormClosing += (s, e) => applyLoginCallsign();
+            txtSwl.Text = (DxClusterManager.Settings.SwlUrl ?? "").Trim();
+            FormClosing += (s, e) => { applyLoginCallsign(); applySwlUrl(); };
 
             _loading = true;
             try
@@ -74,7 +76,7 @@ namespace Thetis
             ForeColor = DxClusterTheme.TextPrimary;
             Font = new Font("Segoe UI", 8.5f);
 
-            Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 80, BackColor = DxClusterTheme.Void };
+            Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 108, BackColor = DxClusterTheme.Void };
             Label lblIntro = new Label
             {
                 Text = "Tick a node to connect now and auto-connect on startup; untick to disconnect and remove it. A callsign is required to receive spots.",
@@ -85,9 +87,43 @@ namespace Thetis
             Label lblCall = new Label { Text = "Callsign", Location = new Point(6, 48), AutoSize = true, ForeColor = DxClusterTheme.TextSecondary };
             txtCall = new TextBox { Location = new Point(64, 44), Width = 120, BackColor = DxClusterTheme.Inset, ForeColor = DxClusterTheme.TextPrimary, BorderStyle = BorderStyle.FixedSingle };
             txtCall.Leave += (s, e) => applyLoginCallsign();
+
+            Label lblSwl = new Label { Text = "SWL URL", Location = new Point(6, 76), AutoSize = true, ForeColor = DxClusterTheme.TextSecondary };
+            txtSwl = new TextBox
+            {
+                Location = new Point(64, 72),
+                Width = 320,
+                BackColor = DxClusterTheme.Inset,
+                ForeColor = DxClusterTheme.TextPrimary,
+                BorderStyle = BorderStyle.FixedSingle,
+            };
+            Label lblSwlHint = new Label
+            {
+                Text = "Broadcast schedule CSV (blank = current EiBi season)",
+                Location = new Point(64, 92),
+                Size = new Size(380, 14),
+                ForeColor = DxClusterTheme.TextSecondary,
+            };
+            Button btnSwlDefault = new Button
+            {
+                Text = "Default",
+                Location = new Point(390, 71),
+                Width = 64,
+                Height = 24,
+                FlatStyle = FlatStyle.Flat,
+                ForeColor = DxClusterTheme.TextPrimary,
+                BackColor = DxClusterTheme.FaceBottom,
+            };
+            btnSwlDefault.Click += (s, e) => { txtSwl.Text = DxClusterSwl.DefaultUrl(); applySwlUrl(); };
+            txtSwl.Leave += (s, e) => applySwlUrl();
+
             topPanel.Controls.Add(lblIntro);
             topPanel.Controls.Add(lblCall);
             topPanel.Controls.Add(txtCall);
+            topPanel.Controls.Add(lblSwl);
+            topPanel.Controls.Add(txtSwl);
+            topPanel.Controls.Add(lblSwlHint);
+            topPanel.Controls.Add(btnSwlDefault);
 
             list = new CheckedListBox
             {
@@ -142,6 +178,20 @@ namespace Thetis
             if (string.Equals(current, saved, StringComparison.OrdinalIgnoreCase)) return;
 
             DxClusterManager.SetLoginCallsign(current);
+        }
+
+        // persist the custom broadcast schedule URL (blank = season-derived EiBi default)
+        private void applySwlUrl()
+        {
+            string current = (txtSwl.Text ?? "").Trim();
+            string saved = DxClusterManager.Settings.SwlUrl ?? "";
+
+            if (string.Equals(current, saved, StringComparison.Ordinal)) return;
+
+            DxClusterManager.Settings.SwlUrl = current;
+            DxClusterManager.SaveSettings();
+
+            if (DxClusterManager.SwlMode) DxClusterManager.ReloadSwl();
         }
 
         private void onAdd(object sender, EventArgs e)

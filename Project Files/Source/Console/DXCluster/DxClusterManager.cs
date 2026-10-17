@@ -36,7 +36,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace Thetis
 {
@@ -60,6 +63,8 @@ namespace Thetis
         public string FilterMode { get; set; } = "All";
         public string FilterText { get; set; } = "";
         public bool DarkTheme { get; set; } = true;
+        public bool SwlMode { get; set; } = false;
+        public string SwlUrl { get; set; } = ""; // empty = use the season-derived EiBi default
         public List<DxClusterNodeSettings> Nodes { get; set; } = new List<DxClusterNodeSettings>();
 
         public string ToJson()
@@ -109,7 +114,13 @@ namespace Thetis
     public static class DxClusterManager
     {
         public const string SourcePrefix = "dxcluster:";
+        public const string SourcePrefixSwl = "swl:";
         public const int MaxSpots = 3000;
+
+        // when SWL mode is switched off, re-push at most this many of the newest cluster spots so
+        // the panadapter is not flooded by a long-running feed all at once
+        private const int MaxTelnetResyncSpots = 200;
+        private const int SwlRebuildMilliseconds = 60000;
 
         public static event Action<DxClusterSpot> SpotReceived;
         public static event Action<DxClusterConnection> ConnectionStateChanged;
@@ -119,6 +130,15 @@ namespace Thetis
         private static readonly Dictionary<string, DxClusterConnection> _connections = new Dictionary<string, DxClusterConnection>();
         private static readonly List<DxClusterSpot> _spots = new List<DxClusterSpot>();
         private static readonly Dictionary<string, DateTime> _recent = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+
+        private static readonly List<DxClusterSpot> _swlSpots = new List<DxClusterSpot>();
+        private static readonly Dictionary<string, DxClusterSpot> _swlByKey = new Dictionary<string, DxClusterSpot>(StringComparer.Ordinal);
+        private static readonly HashSet<string> _swlPushedKeys = new HashSet<string>(StringComparer.Ordinal);
+        private static List<DxClusterSwlEntry> _swlEntries = new List<DxClusterSwlEntry>();
+        private static System.Timers.Timer _swlTimer;
+        private static volatile bool _swlLoading;
+        private static volatile string _swlStatus = "";
+        private static string _swlUrl = "";
 
         private static long _nextSpotId = 1;
         private static bool _recentDirty;
@@ -132,6 +152,12 @@ namespace Thetis
         {
             Settings = DxClusterSettings.Load();
             if (Settings.Nodes == null) Settings.Nodes = new List<DxClusterNodeSettings>();
+
+            if (Settings.SwlMode)
+            {
+                startSwlTimer();
+                LoadSwlAsync();
+            }
         }
 
         public static void SaveSettings()
@@ -297,6 +323,7 @@ namespace Thetis
         {
             lock (_lock)
             {
+                if (Settings != null && Settings.SwlMode) return _swlSpots.ToArray();
                 return _spots.ToArray();
             }
         }
@@ -310,6 +337,12 @@ namespace Thetis
                     DxClusterSpot spot = _spots[i];
                     if (spot != null && spot.Id == id) return spot;
                 }
+
+                for (int i = _swlSpots.Count - 1; i >= 0; i--)
+                {
+                    DxClusterSpot spot = _swlSpots[i];
+                    if (spot != null && spot.Id == id) return spot;
+                }
             }
 
             return null;
@@ -317,7 +350,7 @@ namespace Thetis
 
         public static int SpotCount
         {
-            get { lock (_lock) { return _spots.Count; } }
+            get { lock (_lock) { return Settings != null && Settings.SwlMode ? _swlSpots.Count : _spots.Count; } }
         }
 
         public static void ClearSpots()
@@ -327,23 +360,51 @@ namespace Thetis
                 _spots.Clear();
                 _recent.Clear();
                 _recentDirty = false;
+
+                _swlSpots.Clear();
+                _swlByKey.Clear();
+                _swlPushedKeys.Clear();
             }
 
             SpotManager2.ClearSpotsBySource(SourcePrefix);
+            SpotManager2.ClearSpotsBySource(SourcePrefixSwl);
         }
 
         // re-evaluate which stored spots should be drawn on the panadapter
-        public static void ResyncPanadapter()
+        public static void ResyncPanadapter(int maxTelnetSpots = 0)
         {
             SpotManager2.ClearSpotsBySource(SourcePrefix);
+            SpotManager2.ClearSpotsBySource(SourcePrefixSwl);
+
+            lock (_lock) _swlPushedKeys.Clear();
 
             if (Settings == null || !Settings.ShowOnPanadapter) return;
 
+            if (Settings.SwlMode)
+            {
+                DxClusterSpot[] swl;
+                lock (_lock) swl = _swlSpots.ToArray();
+
+                foreach (DxClusterSpot spot in swl)
+                    pushSwlSpot(spot);
+            }
+            else
+            {
+                pushAllTelnetSpots(maxTelnetSpots);
+            }
+        }
+
+        private static void pushAllTelnetSpots(int maxSpots)
+        {
             DxClusterSpot[] snapshot;
             lock (_lock) snapshot = _spots.ToArray();
 
-            foreach (DxClusterSpot spot in snapshot)
+            int start = 0;
+            if (maxSpots > 0 && snapshot.Length > maxSpots) start = snapshot.Length - maxSpots;
+
+            for (int i = start; i < snapshot.Length; i++)
             {
+                DxClusterSpot spot = snapshot[i];
                 DxClusterNodeSettings node = FindNodeByKey(spot.NodeKey);
                 if (node == null || !node.ShowOnPanadapter) continue;
 
@@ -355,6 +416,324 @@ namespace Thetis
         {
             if (string.IsNullOrEmpty(key)) return null;
             return Settings.Nodes.FirstOrDefault(n => n != null && NodeKey(n.Host, n.Port) == key);
+        }
+
+        //====================================================================================//
+        // SWL (broadcast) mode
+        //====================================================================================//
+        public static bool SwlMode
+        {
+            get { return Settings != null && Settings.SwlMode; }
+        }
+
+        public static bool SwlLoading
+        {
+            get { return _swlLoading; }
+        }
+
+        public static string SwlStatus
+        {
+            get { return _swlStatus ?? ""; }
+        }
+
+        public static string SwlUrl
+        {
+            get { return _swlUrl ?? ""; }
+        }
+
+        public static string ResolveSwlUrl()
+        {
+            string url = (Settings == null ? "" : (Settings.SwlUrl ?? "")).Trim();
+            if (url.Length == 0) url = DxClusterSwl.DefaultUrl();
+            return url;
+        }
+
+        public static void SetSwlMode(bool on)
+        {
+            if (Settings == null) return;
+            if (Settings.SwlMode == on) return;
+
+            Settings.SwlMode = on;
+            SaveSettings();
+
+            lock (_lock) _swlPushedKeys.Clear();
+
+            if (on)
+            {
+                // hide telnet spots from the panadapter and start pulling the broadcast schedule
+                ResyncPanadapter();
+                startSwlTimer();
+                LoadSwlAsync();
+            }
+            else
+            {
+                stopSwlTimer();
+
+                // drop the broadcast spots, then re-push the cluster spots (capped so a long feed
+                // does not flood the panadapter all at once)
+                lock (_lock)
+                {
+                    _swlSpots.Clear();
+                    _swlByKey.Clear();
+                }
+                ResyncPanadapter(MaxTelnetResyncSpots);
+            }
+        }
+
+        public static void ReloadSwl()
+        {
+            LoadSwlAsync();
+        }
+
+        public static void LoadSwlAsync()
+        {
+            if (_swlLoading) return;
+
+            _swlLoading = true;
+            _swlStatus = "Loading broadcast schedule...";
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    List<DxClusterSwlEntry> entries;
+                    string url = loadSwlSchedule(out entries);
+                    _swlUrl = url;
+
+                    // language names come from the EiBi README legend - best effort only
+                    try
+                    {
+                        string readme = downloadText(DxClusterSwl.ReadmeUrl);
+                        DxClusterSwl.SetLanguageLegend(readme);
+                    }
+                    catch { }
+
+                    lock (_lock) _swlEntries = entries;
+
+                    _swlStatus = entries.Count == 0 ? "Broadcast schedule is empty." : "";
+                }
+                catch (Exception ex)
+                {
+                    _swlStatus = "SWL load failed: " + ex.Message;
+                }
+                finally
+                {
+                    _swlLoading = false;
+
+                    try { if (SwlMode) RebuildSwlSpots(); } catch { }
+                }
+            });
+        }
+
+        // rebuild the "on air now" set; called on load and on the periodic refresh timer
+        public static void RebuildSwlSpots()
+        {
+            if (!SwlMode) return;
+
+            List<DxClusterSwlEntry> entries;
+            lock (_lock) entries = _swlEntries;
+            if (entries == null) return;
+
+            DateTime now = DateTime.UtcNow;
+            List<DxClusterSwlEntry> active = DxClusterSwl.GetActive(entries, now);
+
+            Dictionary<string, DxClusterSwlEntry> desired = new Dictionary<string, DxClusterSwlEntry>(StringComparer.Ordinal);
+            foreach (DxClusterSwlEntry e in active)
+            {
+                string key = DxClusterSwl.EntryKey(e);
+                if (!desired.ContainsKey(key)) desired[key] = e;
+            }
+
+            List<DxClusterSpot> newlyActive = new List<DxClusterSpot>();
+
+            lock (_lock)
+            {
+                // drop entries that are no longer on air
+                for (int i = _swlSpots.Count - 1; i >= 0; i--)
+                {
+                    DxClusterSpot s = _swlSpots[i];
+                    if (!desired.ContainsKey(s.Key))
+                    {
+                        _swlByKey.Remove(s.Key);
+                        _swlSpots.RemoveAt(i);
+                    }
+                }
+
+                // add newly on-air entries
+                foreach (KeyValuePair<string, DxClusterSwlEntry> kv in desired)
+                {
+                    if (_swlByKey.ContainsKey(kv.Key)) continue;
+
+                    DxClusterSpot spot = buildSwlSpot(kv.Value, now);
+                    _swlSpots.Add(spot);
+                    _swlByKey[kv.Key] = spot;
+                    newlyActive.Add(spot);
+                }
+
+                _swlSpots.Sort((a, b) => a.FrequencyHz.CompareTo(b.FrequencyHz));
+            }
+
+            foreach (DxClusterSpot spot in newlyActive)
+                pushSwlSpot(spot);
+        }
+
+        private static DxClusterSpot buildSwlSpot(DxClusterSwlEntry e, DateTime now)
+        {
+            DxClusterSwl.TryGetWindowUtc(e, now, out DateTime startUtc, out DateTime stopUtc);
+
+            long ttl = (long)Math.Max(30.0, (stopUtc - now).TotalSeconds);
+
+            string days = string.IsNullOrWhiteSpace(e.Days) ? "Daily" : e.Days;
+            string comment = e.TimeText;
+            if (!string.IsNullOrEmpty(days)) comment += "  " + days;
+            if (!string.IsNullOrEmpty(e.Target)) comment += "  " + e.Target;
+            if (!string.IsNullOrEmpty(e.Remarks)) comment += "  " + e.Remarks;
+
+            return new DxClusterSpot
+            {
+                Id = System.Threading.Interlocked.Increment(ref _nextSpotId),
+                Node = "SWL",
+                NodeKey = "swl",
+                Spotter = "",
+                Callsign = e.Station,
+                FrequencyHz = e.FrequencyHz,
+                Comment = comment,
+                Country = DxClusterSwl.CountryName(e.Itu),
+                CountryCode = DxClusterSwl.CountryIso(e.Itu),
+                Language = DxClusterSwl.LanguageName(e.LanguageCode),
+                Mode = "AM",
+                ModeNumber = 14,
+                IsSwl = true,
+                SwlSecondsToLive = ttl,
+                UtcTime = startUtc,
+                Key = DxClusterSwl.EntryKey(e),
+            };
+        }
+
+        private static void pushSwlSpot(DxClusterSpot spot)
+        {
+            if (spot == null) return;
+            if (Settings == null || !Settings.ShowOnPanadapter) return;
+
+            lock (_lock)
+            {
+                if (!_swlPushedKeys.Add(spot.Key)) return;
+            }
+
+            DSPMode mode = SpotManager2.SpotModeNumberToDSPMode(spot.ModeNumber, spot.FrequencyHz);
+
+            SpotManager2.JsonSpotData json = new SpotManager2.JsonSpotData
+            {
+                Spotter = "",
+                Comment = spot.Comment,
+                Country = spot.Country,
+                Flag = spot.CountryCode,
+                UtcTime = spot.UtcTime.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'Z'", CultureInfo.InvariantCulture),
+                IsSWL = true,
+                SWLSecondsToLive = spot.SwlSecondsToLive,
+            };
+
+            SpotManager2.AddSpot(
+                spot.Callsign,
+                mode,
+                spot.FrequencyHz,
+                DefaultSpotColor,
+                spot.Comment,
+                json,
+                SourcePrefixSwl);
+        }
+
+        private static void startSwlTimer()
+        {
+            if (_swlTimer == null)
+            {
+                _swlTimer = new System.Timers.Timer(SwlRebuildMilliseconds) { AutoReset = true };
+                _swlTimer.Elapsed += (s, e) => { try { RebuildSwlSpots(); } catch { } };
+            }
+
+            _swlTimer.Enabled = true;
+        }
+
+        private static void stopSwlTimer()
+        {
+            if (_swlTimer != null) _swlTimer.Enabled = false;
+        }
+
+        private static string downloadText(string url)
+        {
+            byte[] data;
+            using (WebClient client = new WebClient())
+            {
+                client.Headers[HttpRequestHeader.UserAgent] = "Thetis";
+                data = client.DownloadData(url);
+            }
+
+            if (data == null || data.Length == 0) return "";
+
+            // honour a UTF-8 BOM; otherwise assume Latin-1 (the EiBi files are not guaranteed UTF-8)
+            if (data.Length >= 3 && data[0] == 0xEF && data[1] == 0xBB && data[2] == 0xBF)
+                return Encoding.UTF8.GetString(data, 3, data.Length - 3);
+
+            return windows1252().GetString(data);
+        }
+
+        private static Encoding _windows1252;
+
+        // Encoding 1252 needs the CodePages provider registered on .NET (net10.0-windows)
+        private static Encoding windows1252()
+        {
+            Encoding encoding = _windows1252;
+            if (encoding != null) return encoding;
+
+            try { Encoding.RegisterProvider(CodePagesEncodingProvider.Instance); }
+            catch { }
+
+            try { encoding = Encoding.GetEncoding(1252); }
+            catch { encoding = Encoding.Latin1; }
+
+            _windows1252 = encoding;
+            return encoding;
+        }
+
+        // Fetch and parse the broadcast schedule. A custom URL is used as-is; for the derived
+        // default we fall back through the neighbouring seasons so a stale/renamed file (404) on
+        // one season does not leave SWL empty.
+        private static string loadSwlSchedule(out List<DxClusterSwlEntry> entries)
+        {
+            entries = new List<DxClusterSwlEntry>();
+
+            string custom = (Settings == null ? "" : (Settings.SwlUrl ?? "")).Trim();
+            if (custom.Length > 0)
+            {
+                entries = DxClusterSwl.ParseCsv(downloadText(custom));
+                return custom;
+            }
+
+            DateTime now = DateTime.UtcNow;
+            List<string> candidates = new List<string>();
+            foreach (int offsetDays in new[] { 0, -183, 183, -366 })
+            {
+                string url = DxClusterSwl.SeasonUrl(now.AddDays(offsetDays));
+                if (!candidates.Contains(url)) candidates.Add(url);
+            }
+
+            Exception last = null;
+            foreach (string url in candidates)
+            {
+                try
+                {
+                    List<DxClusterSwlEntry> parsed = DxClusterSwl.ParseCsv(downloadText(url));
+                    if (parsed.Count > 0)
+                    {
+                        entries = parsed;
+                        return url;
+                    }
+                }
+                catch (Exception ex) { last = ex; }
+            }
+
+            if (last != null) throw last;
+            return DxClusterSwl.DefaultUrl();
         }
 
         private static void onStateChanged(DxClusterConnection connection)
@@ -397,7 +776,8 @@ namespace Thetis
                 }
             }
 
-            if (Settings != null && Settings.ShowOnPanadapter && connection.ShowOnPanadapter)
+            // while SWL mode is active the cluster spots are buffered but kept off the panadapter
+            if (Settings != null && !Settings.SwlMode && Settings.ShowOnPanadapter && connection.ShowOnPanadapter)
                 pushSpot(spot, connection.SpotColor);
 
             SpotReceived?.Invoke(spot);

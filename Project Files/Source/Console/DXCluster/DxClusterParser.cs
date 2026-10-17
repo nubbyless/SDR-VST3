@@ -39,10 +39,16 @@ namespace Thetis
         public long FrequencyHz { get; set; }
         public string Comment { get; set; } = "";
         public string Country { get; set; } = "";
+        public string CountryCode { get; set; } = ""; // ISO 3166-1 alpha-2, used for the SWL flag
+        public string Language { get; set; } = "";
         public string Mode { get; set; } = "";
         public int ModeNumber { get; set; }
         public DateTime UtcTime { get; set; } = DateTime.UtcNow;
         public string Raw { get; set; } = "";
+
+        public bool IsSwl { get; set; }              // broadcast (EiBi) entry rather than a cluster spot
+        public long SwlSecondsToLive { get; set; }   // panadapter expiry for SWL spots
+        public string Key { get; set; } = "";         // stable identity for SWL entries
     }
 
     public static class DxClusterParser

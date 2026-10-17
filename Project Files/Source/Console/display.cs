@@ -13677,13 +13677,19 @@ namespace Thetis
         // just DX cluster spots (which are always drawn when present)
         private static bool shouldDrawSpots
         {
-            get { return _showTCISpots || SpotManager2.HasSpotsFromPrefix("dxcluster:"); }
+            get
+            {
+                return _showTCISpots
+                    || SpotManager2.HasSpotsFromPrefix("dxcluster:")
+                    || SpotManager2.HasSpotsFromPrefix("swl:");
+            }
         }
 
         private static bool isClusterSpot(SpotManager2.smSpot spot)
         {
             return spot != null && spot.source != null &&
-                   spot.source.StartsWith("dxcluster:", StringComparison.OrdinalIgnoreCase);
+                   (spot.source.StartsWith("dxcluster:", StringComparison.OrdinalIgnoreCase) ||
+                    spot.source.StartsWith("swl:", StringComparison.OrdinalIgnoreCase));
         }
         private static bool _flashNewTCISpots = false;
         public static bool FlashNewTCISpots

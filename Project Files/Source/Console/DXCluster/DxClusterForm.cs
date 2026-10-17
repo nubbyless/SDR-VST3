@@ -53,10 +53,11 @@ namespace Thetis
         private const int COL_SPOT_BAND = 2;
         private const int COL_SPOT_CALL = 3;
         private const int COL_SPOT_COUNTRY = 4;
-        private const int COL_SPOT_MODE = 5;
-        private const int COL_SPOT_SPOTTER = 6;
-        private const int COL_SPOT_COMMENT = 7;
-        private const int COL_SPOT_NODE = 8;
+        private const int COL_SPOT_LANGUAGE = 5;
+        private const int COL_SPOT_MODE = 6;
+        private const int COL_SPOT_SPOTTER = 7;
+        private const int COL_SPOT_COMMENT = 8;
+        private const int COL_SPOT_NODE = 9;
 
         private readonly Console _console;
 
@@ -64,6 +65,7 @@ namespace Thetis
         private ToolStripButton btnDisconnectAll;
         private ToolStripButton btnServers;
         private ToolStripButton btnShowOnPanadapter;
+        private ToolStripButton btnSwl;
         private ToolStripButton btnClear;
         private ToolStripButton btnTheme;
 
@@ -90,6 +92,8 @@ namespace Thetis
 
         private bool _updatingConns;
         private bool _updatingFilters;
+        private bool _updatingSwl;
+        private bool? _swlColumnsHidden;
 
         private string _bandFilter = "All";
         private string _modeFilter = "All";
@@ -164,10 +168,9 @@ namespace Thetis
             toolStrip = new ToolStrip
             {
                 GripStyle = ToolStripGripStyle.Hidden,
-                Renderer = new ToolStripProfessionalRenderer(new DxColorTable()),
+                Renderer = new DxToggleRenderer(new DxColorTable()),
                 BackColor = DxClusterTheme.FaceTop,
                 ForeColor = DxClusterTheme.TextPrimary,
-                RenderMode = ToolStripRenderMode.ManagerRenderMode,
             };
 
             btnServers = CreateButton("Server List", onServers);
@@ -180,9 +183,20 @@ namespace Thetis
                 DisplayStyle = ToolStripItemDisplayStyle.Text,
                 ForeColor = DxClusterTheme.TextPrimary,
                 CheckOnClick = true,
+                Tag = "green-toggle",
                 ToolTipText = "Draw DX cluster spots on the panadapter (requires Setup > TCI Server > Show TCI Spots)",
             };
             btnShowOnPanadapter.CheckStateChanged += onTogglePanadapter;
+
+            btnSwl = new ToolStripButton("SWL Mode")
+            {
+                DisplayStyle = ToolStripItemDisplayStyle.Text,
+                ForeColor = DxClusterTheme.TextPrimary,
+                CheckOnClick = true,
+                Tag = "green-toggle",
+                ToolTipText = "Show 'on air now' shortwave broadcast stations (EiBi schedule) instead of cluster spots",
+            };
+            btnSwl.CheckStateChanged += onToggleSwl;
 
             btnClear = CreateButton("Clear Spots", onClearSpots);
 
@@ -208,8 +222,13 @@ namespace Thetis
             toolStrip.Items.Add(btnShowOnPanadapter);
             toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnClear);
+            toolStrip.Items.Add(new ToolStripSeparator());
+            toolStrip.Items.Add(btnSwl);
             toolStrip.Items.Add(btnTheme);
             toolStrip.Items.Add(lblTheme);
+
+            foreach (ToolStripItem item in new ToolStripItem[] { btnServers, btnDisconnectAll, btnShowOnPanadapter, btnClear, btnSwl, btnTheme })
+                item.Margin = new Padding(7, 2, 7, 2);
 
             UpdateThemeButton();
         }
@@ -222,7 +241,6 @@ namespace Thetis
                 Renderer = new ToolStripProfessionalRenderer(new DxColorTable()),
                 BackColor = DxClusterTheme.FaceBottom,
                 ForeColor = DxClusterTheme.TextPrimary,
-                RenderMode = ToolStripRenderMode.ManagerRenderMode,
             };
 
             ToolStripLabel lblBand = new ToolStripLabel("Band:") { ForeColor = DxClusterTheme.TextSecondary };
@@ -235,7 +253,8 @@ namespace Thetis
             };
             comboBand.Items.AddRange(new object[]
             {
-                "All", "160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m"
+                "All", "160m", "80m", "60m", "40m", "30m", "20m", "17m", "15m", "12m", "10m", "6m",
+                "120m", "90m", "75m", "49m", "41m", "31m", "25m", "22m", "19m", "16m", "13m", "11m"
             });
             comboBand.BackColor = DxClusterTheme.Inset;
             comboBand.ForeColor = DxClusterTheme.TextPrimary;
@@ -251,7 +270,7 @@ namespace Thetis
             };
             comboMode.Items.AddRange(new object[]
             {
-                "All", "CW", "SSB", "DIGI", "FM"
+                "All", "CW", "SSB", "DIGI", "FM", "AM"
             });
             comboMode.BackColor = DxClusterTheme.Inset;
             comboMode.ForeColor = DxClusterTheme.TextPrimary;
@@ -381,6 +400,7 @@ namespace Thetis
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Band", Width = 55, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Callsign", Width = 100, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Country", Width = 150, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Language", Width = 110, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mode", Width = 70, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Spotter", Width = 90, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Comment", Width = 280, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
@@ -614,6 +634,12 @@ namespace Thetis
         private void PrefillCallsign()
         {
             try { btnShowOnPanadapter.Checked = DxClusterManager.Settings.ShowOnPanadapter; } catch { }
+
+            _updatingSwl = true;
+            try { btnSwl.Checked = DxClusterManager.SwlMode; } catch { }
+            finally { _updatingSwl = false; }
+
+            RefreshSpots();
         }
 
         private void loadFilterState()
@@ -755,6 +781,20 @@ namespace Thetis
             DxClusterManager.Settings.ShowOnPanadapter = btnShowOnPanadapter.Checked;
             DxClusterManager.SaveSettings();
             DxClusterManager.ResyncPanadapter();
+            RefreshSpots();
+        }
+
+        private void onToggleSwl(object sender, EventArgs e)
+        {
+            if (_updatingSwl) return;
+
+            DxClusterManager.SetSwlMode(btnSwl.Checked);
+
+            // drop the rows belonging to the previous mode so they are rebuilt cleanly
+            _spotRowById.Clear();
+            _spotFlagById.Clear();
+            gridSpots.Rows.Clear();
+
             RefreshSpots();
         }
 
@@ -1024,7 +1064,7 @@ namespace Thetis
 
         private bool passesFilter(DxClusterSpot spot)
         {
-            if (_bandFilter != "All" && bandOf(spot.FrequencyHz) != _bandFilter) return false;
+            if (_bandFilter != "All" && bandOf(spot) != _bandFilter) return false;
             if (_modeFilter != "All" && !string.Equals(spot.Mode ?? "", _modeFilter, StringComparison.OrdinalIgnoreCase)) return false;
 
             if (!string.IsNullOrEmpty(_textFilter))
@@ -1033,8 +1073,9 @@ namespace Thetis
                 if ((spot.Callsign ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
                     (spot.Spotter ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
                     (spot.Country ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
+                    (spot.Language ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
                     (spot.Mode ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
-                    bandOf(spot.FrequencyHz).ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
+                    bandOf(spot).ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
                     (spot.Comment ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0)
                     return false;
             }
@@ -1042,7 +1083,13 @@ namespace Thetis
             return true;
         }
 
-        private static string bandOf(long hz)
+        private static string bandOf(DxClusterSpot spot)
+        {
+            if (spot == null) return "";
+            return spot.IsSwl ? broadcastBandOf(spot.FrequencyHz) : hamBandOf(spot.FrequencyHz);
+        }
+
+        private static string hamBandOf(long hz)
         {
             double m = hz / 1000000.0;
 
@@ -1061,12 +1108,54 @@ namespace Thetis
             return "";
         }
 
+        // shortwave broadcast meter bands
+        private static string broadcastBandOf(long hz)
+        {
+            double m = hz / 1000000.0;
+
+            if (m >= 2.3 && m <= 2.495) return "120m";
+            if (m >= 3.2 && m <= 3.4) return "90m";
+            if (m >= 3.9 && m <= 4.0) return "75m";
+            if (m >= 4.75 && m <= 5.06) return "60m";
+            if (m >= 5.9 && m <= 6.2) return "49m";
+            if (m >= 7.2 && m <= 7.45) return "41m";
+            if (m >= 9.4 && m <= 9.9) return "31m";
+            if (m >= 11.6 && m <= 12.1) return "25m";
+            if (m >= 13.57 && m <= 13.87) return "22m";
+            if (m >= 15.1 && m <= 15.8) return "19m";
+            if (m >= 17.48 && m <= 17.9) return "16m";
+            if (m >= 18.9 && m <= 19.02) return "15m";
+            if (m >= 21.45 && m <= 21.85) return "13m";
+            if (m >= 25.6 && m <= 26.1) return "11m";
+
+            return "";
+        }
+
+        // hide telnet nodes panel + spot list columns in SWL mode for a cleaner broadcast view
+        private void updateSwlColumns()
+        {
+            bool swl = DxClusterManager.SwlMode;
+            if (_swlColumnsHidden == swl) return;
+            _swlColumnsHidden = swl;
+
+            try
+            {
+                if (split != null) split.Panel1Collapsed = swl;
+                gridSpots.Columns[COL_SPOT_LANGUAGE].Visible = swl;
+                gridSpots.Columns[COL_SPOT_SPOTTER].Visible = !swl;
+                gridSpots.Columns[COL_SPOT_NODE].Visible = !swl;
+            }
+            catch { }
+        }
+
         private void RefreshSpots()
         {
             if (gridSpots == null || IsDisposed || !IsHandleCreated) return;
 
             try
             {
+                updateSwlColumns();
+
                 DxClusterSpot[] spots = DxClusterManager.GetSpots(); // oldest -> newest
 
                 // collect the newest matching spots, capped so a busy feed cannot flood the grid
@@ -1105,13 +1194,25 @@ namespace Thetis
                 }
                 finally { gridSpots.ResumeLayout(); }
 
-                int nodeCount = DxClusterManager.Settings.Nodes.Count;
-                int connectionCount = DxClusterManager.Connections.Length;
+                string text;
 
-                string text = nodeCount + " node(s), " + connectionCount + " connected, " + visible.Count + " shown"
-                    + (visible.Count >= MaxDisplayedSpots ? " (newest " + MaxDisplayedSpots + ")" : "");
-                if (!DxClusterManager.Settings.ShowOnPanadapter)
-                    text += "   |   panadapter display off";
+                if (DxClusterManager.SwlMode)
+                {
+                    text = "SWL: " + visible.Count + " broadcast station(s) on air now";
+                    if (DxClusterManager.SwlLoading) text += "   |   loading...";
+                    else if (!string.IsNullOrEmpty(DxClusterManager.SwlStatus)) text += "   |   " + DxClusterManager.SwlStatus;
+                    else if (!string.IsNullOrEmpty(DxClusterManager.SwlUrl)) text += "   |   " + DxClusterManager.SwlUrl;
+                }
+                else
+                {
+                    int nodeCount = DxClusterManager.Settings.Nodes.Count;
+                    int connectionCount = DxClusterManager.Connections.Length;
+
+                    text = nodeCount + " node(s), " + connectionCount + " connected, " + visible.Count + " shown"
+                        + (visible.Count >= MaxDisplayedSpots ? " (newest " + MaxDisplayedSpots + ")" : "");
+                    if (!DxClusterManager.Settings.ShowOnPanadapter)
+                        text += "   |   panadapter display off";
+                }
 
                 lblStatus.Text = text;
             }
@@ -1125,9 +1226,10 @@ namespace Thetis
             row.Tag = spot.Id;
             row.Cells[COL_SPOT_TIME].Value = spot.UtcTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
             row.Cells[COL_SPOT_MHZ].Value = spot.FrequencyHz / 1000000.0;
-            row.Cells[COL_SPOT_BAND].Value = bandOf(spot.FrequencyHz);
+            row.Cells[COL_SPOT_BAND].Value = bandOf(spot);
             row.Cells[COL_SPOT_CALL].Value = spot.Callsign;
             row.Cells[COL_SPOT_COUNTRY].Value = spot.Country;
+            row.Cells[COL_SPOT_LANGUAGE].Value = spot.Language;
             row.Cells[COL_SPOT_MODE].Value = spot.Mode;
             row.Cells[COL_SPOT_SPOTTER].Value = spot.Spotter;
             row.Cells[COL_SPOT_COMMENT].Value = spot.Comment;
@@ -1136,10 +1238,14 @@ namespace Thetis
             DxClusterNodeSettings node = DxClusterManager.FindNodeByKey(spot.NodeKey);
             if (node != null)
                 row.Cells[COL_SPOT_CALL].Style.ForeColor = Color.FromArgb(node.ColorArgb);
+            else if (spot.IsSwl)
+                row.Cells[COL_SPOT_CALL].Style.ForeColor = DxClusterManager.DefaultSpotColor;
 
             try
             {
-                Image flag = SpotManager2.GetFlagImageForCallsign(spot.Callsign);
+                Image flag = spot.IsSwl
+                    ? SpotManager2.GetFlagImageForAssetCode(spot.CountryCode)
+                    : SpotManager2.GetFlagImageForCallsign(spot.Callsign);
                 if (flag != null) _spotFlagById[spot.Id] = flag;
             }
             catch { }
@@ -1230,6 +1336,41 @@ namespace Thetis
             public override Color OverflowButtonGradientBegin { get { return DxClusterTheme.FaceTop; } }
             public override Color OverflowButtonGradientMiddle { get { return DxClusterTheme.FaceTop; } }
             public override Color OverflowButtonGradientEnd { get { return DxClusterTheme.FaceBottom; } }
+        }
+
+        // paints a checked toggle (Tag = "green-toggle") with a green highlight so its on/off
+        // state is obvious at a glance
+        private sealed class DxToggleRenderer : ToolStripProfessionalRenderer
+        {
+            private static readonly Color GreenIdle = Color.FromArgb(0x2E, 0x7D, 0x32);
+            private static readonly Color GreenHot = Color.FromArgb(0x3E, 0xA0, 0x44);
+
+            public DxToggleRenderer(ProfessionalColorTable table) : base(table) { }
+
+            private static bool isGreenChecked(ToolStripItem item)
+            {
+                ToolStripButton button = item as ToolStripButton;
+                return button != null && button.Checked && (button.Tag as string) == "green-toggle";
+            }
+
+            protected override void OnRenderButtonBackground(ToolStripItemRenderEventArgs e)
+            {
+                if (isGreenChecked(e.Item))
+                {
+                    Color fill = (e.Item.Selected || e.Item.Pressed) ? GreenHot : GreenIdle;
+                    using (SolidBrush brush = new SolidBrush(fill))
+                        e.Graphics.FillRectangle(brush, new Rectangle(Point.Empty, e.Item.Size));
+                    return;
+                }
+
+                base.OnRenderButtonBackground(e);
+            }
+
+            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+            {
+                if (isGreenChecked(e.Item)) e.TextColor = Color.White;
+                base.OnRenderItemText(e);
+            }
         }
     }
 

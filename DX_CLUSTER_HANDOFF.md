@@ -2,7 +2,9 @@
 
 Created: 2026-10-16
 Branch: `master`
-Latest state (2026-10-17): thetisvst HEAD `c32cf4ba`, HL2 HEAD `fb33d35`.
+Latest state (2026-10-17): thetisvst HEAD `38c29364`, HL2 HEAD `fb33d35`.
+SWL (shortwave broadcast) spot toggle **implemented, built 0 errors (uncommitted)** — see the
+"SWL spot toggle — IMPLEMENTED 2026-10-17" section at the bottom.
 **Scroll to the bottom — the newest UPDATE sections and the "NEXT: SWL spot toggle"
 plan supersede the original phased plan at the top.**
 Scope: Design + phased build plan for a **native telnet DX cluster client** integrated
@@ -400,7 +402,11 @@ Build: Release x64 succeeded, 0 errors (exe 2026-10-16 22:50).
 
 ---
 
-## NEXT SESSION PLAN — SWL spot toggle
+## SWL spot toggle — IMPLEMENTED 2026-10-17
+
+Status: **done, built 0 errors** (Release x64 -> `Project Files\bin\x64\Release\Thetis.dll`).
+The plan below was executed; see "Implementation summary (as built)" at the end of the section
+for the exact deltas and resolved open questions.
 
 ### Locked decisions (confirmed with user 2026-10-17)
 1. Toggle lives in the **DX Cluster window toolbar** (like the theme toggle).
@@ -471,13 +477,88 @@ Build: Release x64 succeeded, 0 errors (exe 2026-10-16 22:50).
     target + language, Spotter blank, Node = `SWL`. Flags return none for a station name.
   - Double-click tune still works (frequency-based).
 
-### Open questions for tomorrow
-- SWL URL: fixed default vs season-derived, and should the user edit it (e.g. in Server List)?
-- Confirm hide-not-disconnect once seen in the UI.
-- Band column for SWL: broadcast meter bands (41m/49m/...) are NOT in `bandOf()` (ham bands
-  only) -> Band column blank. Add broadcast bands, or hide the Band column in SWL mode?
-- De-dup: same station on multiple frequencies -> keep all (per-frequency)? (recommend yes.)
-- "On air now" refresh cadence (recommend once per minute).
-- Color for SWL spots: fixed (e.g. default gold) rather than per-node.
+### Open questions — RESOLVED (2026-10-17)
+- **SWL URL**: season-derived default + editable/persisted `Settings.SwlUrl` (blank = derived).
+  Recomputed at load; custom value wins. Editable in the Server List dialog.
+- **Hide-not-disconnect**: confirmed. Telnet nodes stay connected; their spots are buffered but
+  not pushed to the panadapter and not listed while SWL is on.
+- **Band column**: option (A) — added broadcast meter bands; `bandOf(spot)` picks ham vs
+  broadcast ranges by `spot.IsSwl`.
+- **De-dup**: none — same station on multiple frequencies shows as separate rows.
+- **Refresh cadence**: manager-side 60 s rebuild timer + immediate rebuild on enable/load.
+- **Color**: fixed default gold (`DxClusterManager.DefaultSpotColor`, `0xFFFFC800`).
+- **Extra (added)**: flags + country name from an embedded ITU->ISO table, and a new
+  **Language** column.
+
+### Implementation summary (as built)
+- **New `DXCluster\DxClusterSwl.cs`** (registered in `Thetis.csproj`):
+  - `DxClusterSwlEntry` (FrequencyHz, StartMin/StopMin, TimeText, Days + `bool[7]` DayMask
+    Mon..Sun, Itu, Station, LanguageCode, Target, Remarks, Persistence, Start/StopDate).
+  - `ParseCsv` (semicolon, invariant, skips header, needs >=11 fields; `HHMM-HHMM` incl.
+    `2400` -> 1440).
+  - `GetActive(entries, utc)` + `TryGetWindowUtc` (midnight-wrap aware) + `EntryKey`
+    (`freq|station|time|itu|target`).
+  - `parseDays`: `Mo..Su`, `Mo-Fr` ranges, `Tu,Fr`, concatenated `SaSu`; any non-weekly spec
+    (`irr`/`24Oct`/`test`/`156`/...) -> `null` mask = every day.
+  - Embedded 97-entry `ITU=ISO|Name` country table -> `CountryIso`/`CountryName`
+    (`ALS=US|Alaska`, `HWA=US|Hawaii`, `CLA=`/`UN=`/`XUU=` empty ISO).
+  - `SetLanguageLegend(readmeText)` parses the EiBi README `I) Language codes` section
+    (strips trailing `[...]`, `:`, ` (...)`) + `LanguageName(code)` (splits `F,E`).
+  - `SeasonUrl(utc)`: Apr-Oct -> `a{yy}`, Nov-Dec -> `b{yy}`, Jan-Mar -> `b{yy-1}`;
+    `DefaultUrl()`; `ReadmeUrl`.
+- **`DxClusterParser.cs`** `DxClusterSpot`: added `CountryCode`, `Language`, `IsSwl`,
+  `SwlSecondsToLive`, `Key`.
+  - GOTCHA: `buildSwlSpot` must assign `Id = Interlocked.Increment(ref _nextSpotId)` (telnet
+    spots get theirs in `addSpot`). Without it every SWL spot had `Id = 0`, so the form's
+    `_spotRowById[0]` collapsed the whole list to a single visible row while the status still
+    reported the real count.
+- **`SpotManager2.cs`**: `public static Image GetFlagImageForAssetCode(string)` -> `getFlagImage`.
+- **`DxClusterManager.cs`**: `SourcePrefixSwl="swl:"`; `_swlSpots`/`_swlEntries`/`_swlByKey`/
+  `_swlPushedKeys`; 60 s `_swlTimer`; `_swlLoading`/`_swlStatus`/`_swlUrl`;
+  `Settings.SwlMode`/`SwlUrl` (persist via existing JSON blob);
+  `SetSwlMode(bool)` (enable: ResyncPanadapter + timer + `LoadSwlAsync`; disable: stop timer,
+  drop swl spots, `ResyncPanadapter(MaxTelnetResyncSpots=200)`);
+  `LoadSwlAsync()` (bg WebClient download of CSV + best-effort README, BOM-aware: UTF-8 BOM
+  else Windows-1252 — **must** `Encoding.RegisterProvider(CodePagesEncodingProvider.Instance)`
+  on net10.0-windows or `GetEncoding(1252)` throws "No data is available for encoding 1252"
+  (fallback to `Encoding.Latin1`; provider registered lazily in `windows1252()`); default-URL
+  load falls back through neighbouring seasons `[0,-183,+183,-366]` days so a renamed/404 file
+  on one season still loads); `RebuildSwlSpots()` (diff by key, add/drop, sort by freq, push new);
+  `pushSwlSpot` (gold, `json.Flag=CountryCode`, `json.IsSWL=true`,
+  `json.SWLSecondsToLive` = seconds to window end, min 30); `GetSpots()`/`SpotCount()` switch on
+  `SwlMode`; `FindSpot` searches both; `ClearSpots` clears both; telnet push suppressed while
+  `SwlMode`; `LoadSettings` resumes SWL if persisted on.
+- **`DxClusterForm.cs`**: `btnSwl` toolbar toggle labelled "SWL Mode", **last in the left group**
+  (after Clear Spots), `Tag="swl"`, green highlight when checked via `DxSwlRenderer`
+  (`OnRenderButtonBackground` fills green + `OnRenderItemText` white). **GOTCHA:** do NOT set
+  `ToolStrip.RenderMode` explicitly — WinForms throws `NotSupportedException` on `= Custom`,
+  and `= ManagerRenderMode` makes the per-strip `Renderer` be ignored. Setting the `Renderer`
+  property alone switches it to Custom; the `RenderMode` lines were removed from both strips
+  (they had silently disabled `DxColorTable` before);
+  **column visibility is mode-dependent** (`updateSwlColumns`, called each `RefreshSpots`,
+  guarded by nullable `_swlColumnsHidden` so it only touches the grid on change): SWL mode
+  hides **Spotter + Node**, shows **Language**; telnet mode shows Spotter + Node, hides
+  Language;
+  Toolbar: **SWL Mode** is last in the left group; both **"Spots on Panadapter"** and
+  **"SWL Mode"** (checked) are painted green (white text) via the custom `DxToggleRenderer`
+  (which uses a generic `"green-toggle"` tag and requires the per-strip Renderer to be
+  set directly — **do not** set `ToolStrip.RenderMode = Custom/Manager`; setting `Renderer`
+  alone switches to Custom). Removing that explicit `RenderMode` also restored the intended
+  `DxColorTable` application (previously it was forcing ManagerRenderMode and disabling
+  per-strip color tables).
+  **Language** column inserted after Country (COL_SPOT_*: TIME 0, MHZ 1, BAND 2, CALL 3,
+  COUNTRY 4, LANGUAGE 5, MODE 6, SPOTTER 7, COMMENT 8, NODE 9); `hamBandOf`/`broadcastBandOf`
+  with `bandOf(spot)`; combo gets broadcast bands + `AM`; `buildSpotRow` sets Language and picks
+  `GetFlagImageForAssetCode(CountryCode)` for SWL; text filter includes Language; status line
+  shows SWL count/loading/url; `PrefillCallsign` restores the toggle; `onToggleSwl` clears rows
+  and refreshes.
+- **`display.cs`**: `shouldDrawSpots` also `HasSpotsFromPrefix("swl:")`; `isClusterSpot` also
+  matches `"swl:"`.
+- **`DxClusterServersForm.cs`**: editable **SWL URL** field + "Default" button (prefilled from
+  `Settings.SwlUrl`; blank = season-derived); `applySwlUrl` persists and reloads if SWL is on.
+- Build: MSBuild (VS18) `/p:Configuration=Release /p:Platform=x64` -> 0 errors.
+
+> NOTE: SWL content uses the embedded ITU table for country/flag and the runtime README legend
+> for language names; if the README cannot be fetched the raw language code is shown.
 
 ---
