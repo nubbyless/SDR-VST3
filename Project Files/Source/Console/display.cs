@@ -4525,7 +4525,7 @@ namespace Thetis
                                 break;
                             case DisplayMode.PANADAPTER:
                                 DrawPanadapterDX2D(0, displayTargetWidth, m_nRX1DisplayHeight, 1, false, _pan3DEnabled);
-                                if (_showTCISpots) drawSpots(1, 0, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(1, 0, displayTargetWidth, false);
                                 break;
                             case DisplayMode.SCOPE:
                                 DrawScopeDX2D(displayTargetWidth, m_nRX1DisplayHeight, false);
@@ -4541,7 +4541,7 @@ namespace Thetis
                                 break;
                             case DisplayMode.WATERFALL:
                                 DrawWaterfallDX2D(0, displayTargetWidth, m_nRX1DisplayHeight, 1, false);
-                                if (_showTCISpots) drawSpots(1, 0, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(1, 0, displayTargetWidth, false);
                                 break;
                             case DisplayMode.HISTOGRAM:
                                 DrawHistogramDX2D(1, displayTargetWidth, m_nRX1DisplayHeight);
@@ -4553,7 +4553,7 @@ namespace Thetis
                                     split_display = PanafallSplitBarPos <= (displayTargetHeight / 2);
                                     DrawPanadapterDX2D(0, displayTargetWidth, m_nRX1DisplayHeight, 1, false, _pan3DEnabled);
                                     DrawWaterfallDX2D(PanafallSplitBarPos, displayTargetWidth, displayTargetHeight - m_nRX1DisplayHeight, 1, true);
-                                    if (_showTCISpots) drawSpots(1, 0, displayTargetWidth, false);
+                                    if (shouldDrawSpots) drawSpots(1, 0, displayTargetWidth, false);
                                     split_display = false;
                                 }
                                 break;
@@ -4564,7 +4564,7 @@ namespace Thetis
                                     split_display = true;
                                     DrawPanadapterDX2D(0, displayTargetWidth, m_nRX1DisplayHeight, 1, false);
                                     DrawScopeDX2D(displayTargetWidth, m_nRX1DisplayHeight, true);
-                                    if (_showTCISpots) drawSpots(1, 0, displayTargetWidth, false);
+                                    if (shouldDrawSpots) drawSpots(1, 0, displayTargetWidth, false);
                                     split_display = false;
                                 }
                                 break;
@@ -4603,11 +4603,11 @@ namespace Thetis
                                 break;
                             case DisplayMode.PANADAPTER:
                                 DrawPanadapterDX2D(0, displayTargetWidth, m_nRX1DisplayHeight, 1, false, _pan3DEnabled);
-                                if (_showTCISpots) drawSpots(1, 0, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(1, 0, displayTargetWidth, false);
                                 break;
                             case DisplayMode.WATERFALL:
                                 DrawWaterfallDX2D(0, displayTargetWidth, m_nRX1DisplayHeight, 1, false);
-                                if (_showTCISpots) drawSpots(1, 0, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(1, 0, displayTargetWidth, false);
                                 break;
                             case DisplayMode.HISTOGRAM:
                                 DrawHistogramDX2D(1, displayTargetWidth, m_nRX1DisplayHeight);
@@ -4616,7 +4616,7 @@ namespace Thetis
                                 m_nRX1DisplayHeight = displayTargetHeight / 4;
                                 DrawPanadapterDX2D(0, displayTargetWidth, m_nRX1DisplayHeight, 1, false, _pan3DEnabled);
                                 DrawWaterfallDX2D(m_nRX1DisplayHeight, displayTargetWidth, m_nRX1DisplayHeight, 1, true);
-                                if (_showTCISpots) drawSpots(1, 0, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(1, 0, displayTargetWidth, false);
                                 break;
                         }
 
@@ -4627,17 +4627,17 @@ namespace Thetis
 
                             case DisplayMode.PANADAPTER:
                                 DrawPanadapterDX2D(m_nRX2DisplayHeight, displayTargetWidth, m_nRX2DisplayHeight, 2, true, _pan3DEnabled);
-                                if (_showTCISpots) drawSpots(2, m_nRX2DisplayHeight, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(2, m_nRX2DisplayHeight, displayTargetWidth, false);
                                 break;
                             case DisplayMode.WATERFALL:
                                 DrawWaterfallDX2D(m_nRX2DisplayHeight, displayTargetWidth, m_nRX2DisplayHeight, 2, true);
-                                if (_showTCISpots) drawSpots(2, m_nRX2DisplayHeight, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(2, m_nRX2DisplayHeight, displayTargetWidth, false);
                                 break;
                             case DisplayMode.PANAFALL:
                                 m_nRX2DisplayHeight = displayTargetHeight / 4;
                                 DrawPanadapterDX2D(m_nRX2DisplayHeight * 2, displayTargetWidth, m_nRX2DisplayHeight, 2, false, _pan3DEnabled);
                                 DrawWaterfallDX2D(m_nRX2DisplayHeight * 3, displayTargetWidth, m_nRX2DisplayHeight, 2, true);
-                                if (_showTCISpots) drawSpots(2, m_nRX2DisplayHeight * 2, displayTargetWidth, false);
+                                if (shouldDrawSpots) drawSpots(2, m_nRX2DisplayHeight * 2, displayTargetWidth, false);
                                 break;
                         }
                     }
@@ -13370,6 +13370,14 @@ namespace Thetis
             for (int i = 0; i < sortedSpots.Length; i++)
             {
                 SpotManager2.smSpot spot = sortedSpots[i];
+
+                // DX cluster spots are drawn regardless of the TCI-spot flag; the flag only gates TCI spots
+                if (!_showTCISpots && !isClusterSpot(spot))
+                {
+                    spot.Visible[rxIndex] = false;
+                    continue;
+                }
+
                 if (spot.frequencyHZ < vfoLow || spot.frequencyHZ > vfoHigh)
                 {
                     spot.Visible[rxIndex] = false;
@@ -13663,6 +13671,19 @@ namespace Thetis
         {
             get { return _showTCISpots; }
             set { _showTCISpots = value; }
+        }
+
+        // true when there is anything to draw: all spots if the TCI-spot flag is set, otherwise
+        // just DX cluster spots (which are always drawn when present)
+        private static bool shouldDrawSpots
+        {
+            get { return _showTCISpots || SpotManager2.HasSpotsFromPrefix("dxcluster:"); }
+        }
+
+        private static bool isClusterSpot(SpotManager2.smSpot spot)
+        {
+            return spot != null && spot.source != null &&
+                   spot.source.StartsWith("dxcluster:", StringComparison.OrdinalIgnoreCase);
         }
         private static bool _flashNewTCISpots = false;
         public static bool FlashNewTCISpots

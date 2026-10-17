@@ -145,6 +145,7 @@ namespace Thetis
         public FilterForm filterRX1Form;
         public FilterForm filterRX2Form;
         public DiversityForm diversityForm;
+        public DxClusterForm dxClusterForm;
         // G8NJJ
         public SliderSettingsForm sliderForm;
         public ModeButtonsPopup modePopupForm;
@@ -28696,6 +28697,7 @@ namespace Thetis
             if (m_frmVstChainManager != null) m_frmVstChainManager.Hide();
             if (memoryForm != null) memoryForm.Hide();
             if (diversityForm != null) diversityForm.Hide();
+            if (dxClusterForm != null) dxClusterForm.Hide();
 
             if (psform != null) psform.Hide();
             if (m_frmNotchPopup != null) m_frmNotchPopup.Hide();
@@ -28754,6 +28756,10 @@ namespace Thetis
             if (memoryForm != null) memoryForm.Close();
             if (ScanForm != null && !ScanForm.IsDisposed) ScanForm.Dispose();
             if (diversityForm != null) diversityForm.Close();
+
+            DxClusterManager.DisconnectAll();
+            DxClusterManager.SaveSettings();
+            if (dxClusterForm != null) dxClusterForm.Close();
 
             if (psform != null) psform.Close();
             if (_frmReleaseNotes != null) _frmReleaseNotes.Close();
@@ -43985,6 +43991,33 @@ namespace Thetis
             showHideDiversity(true);
         }
 
+        private void dxClusterToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            showDxClusterForm();
+        }
+
+        private void showDxClusterForm()
+        {
+            if (dxClusterForm == null || dxClusterForm.IsDisposed)
+                dxClusterForm = new DxClusterForm(this);
+
+            if (dxClusterForm.InvokeRequired)
+            {
+                dxClusterForm.Invoke(new MethodInvoker(() =>
+                {
+                    dxClusterForm.Show();
+                    dxClusterForm.BringToFront();
+                    dxClusterForm.Focus();
+                }));
+            }
+            else
+            {
+                dxClusterForm.Show();
+                dxClusterForm.BringToFront();
+                dxClusterForm.Focus();
+            }
+        }
+
         private void fldigiToolStripMenuItem_Click(object sender, EventArgs e)
         {
             // The menu (re)launches the sidecar; it does NOT close it.  The
@@ -45970,6 +46003,9 @@ namespace Thetis
             // update check - quiet GitHub releases query, status-bar label only when a newer release exists
             initUpdateCheck();
 
+            // DX Cluster - load saved nodes and auto-connect any flagged for auto-connect
+            initDxCluster();
+
             // set the multifunction setting to the status bar
             DataTable multitable = AndromedaSet.Tables["Multifunction Settings"];
             toolStripStatusLabelAndromedaMulti.Text = multitable.Rows[CurrentMultifunctionOption]["Multi Description"].ToString();
@@ -46001,6 +46037,19 @@ namespace Thetis
             toolStripStatusLabel_UTCTime.Width = 92;
             toolStripStatusLabel_Date.Width = 104;
             toolStripStatusLabel_LocalTime.Width = 92;
+        }
+
+        private void initDxCluster()
+        {
+            try
+            {
+                DxClusterManager.LoadSettings();
+                DxClusterManager.ConnectAutoNodes();
+            }
+            catch (Exception ex)
+            {
+                Common.LogString("DXCluster init error: " + ex.Message);
+            }
         }
 
         public bool TwoTone

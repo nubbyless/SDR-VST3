@@ -98,6 +98,7 @@ namespace Thetis
             public bool IsSWL;
             public long SWLSecondsToLive;
             public long distance;
+            public string source; // origin of the spot, e.g. "dxcluster:<host>" (empty = unknown/TCI)
 
             public bool previously_highlighted;
             public bool flashing;
@@ -137,6 +138,7 @@ namespace Thetis
                 utc_spot_time = now;
                 IsSWL = false;
                 SWLSecondsToLive = 0;
+                source = "";
                 previously_highlighted = false;
                 flashing = false;
                 flash_start_time = now;
@@ -470,10 +472,11 @@ namespace Thetis
             return getFlagImage(country_ansi);
         }
 
-        public static void AddSpot(string callsign, DSPMode mode, long frequencyHz, Color colour, string additionalText, JsonSpotData jsonSpotData = null)
+        public static void AddSpot(string callsign, DSPMode mode, long frequencyHz, Color colour, string additionalText, JsonSpotData jsonSpotData = null, string source = "")
         {
             callsign = callsign.ToUpper().Trim();
             additionalText = additionalText.Trim();
+            source = (source ?? "").Trim();
 
             string date_time = "";
             string spotter = "";
@@ -558,7 +561,8 @@ namespace Thetis
                 text_colour = text_colour,
                 use_text_colour = use_text_colour,
 
-                distance = distance
+                distance = distance,
+                source = source
             };
 
             if (_replaceOwnCallAppearance && spot.callsign == _replaceCall)
@@ -625,10 +629,13 @@ namespace Thetis
                 int count_non_swl = 0;
                 for (int i = 0; i < _spots.Count; i++)
                 {
-                    if (!_spots[i].IsSWL) count_non_swl++;
+                    smSpot s = _spots[i];
+                    if (!s.IsSWL && !isExternallySourced(s)) count_non_swl++;
                 }
 
-                if (!spot.IsSWL && count_non_swl >= _maxNumber)
+                // externally sourced spots (e.g. DX cluster) are excluded from the TCI spot cap,
+                // so they never evict TCI spots and the TCI "max spots" setting keeps its meaning
+                if (!spot.IsSWL && !isExternallySourced(spot) && count_non_swl >= _maxNumber)
                 {
                     int spotsToRemove = count_non_swl - _maxNumber + 1;
 
@@ -640,7 +647,7 @@ namespace Thetis
                         for (int i = 0; i < _spots.Count; i++)
                         {
                             smSpot candidate = _spots[i];
-                            if (candidate.IsSWL || candidate.timeAdded >= oldestTime) continue;
+                            if (candidate.IsSWL || isExternallySourced(candidate) || candidate.timeAdded >= oldestTime) continue;
 
                             oldestTime = candidate.timeAdded;
                             oldestIndex = i;
@@ -690,7 +697,7 @@ namespace Thetis
                 for (int i = _spots.Count - 1; i >= 0; i--)
                 {
                     smSpot spot = _spots[i];
-                    bool removeSpot = (non_swl && !spot.IsSWL) || (swl && spot.IsSWL);
+                    bool removeSpot = ((non_swl && !spot.IsSWL) || (swl && spot.IsSWL)) && !isExternallySourced(spot);
                     if (!removeSpot) continue;
 
                     clearHighlightedReference(spot);
@@ -699,6 +706,52 @@ namespace Thetis
                 }
 
                 if (removed) markSortedSpotsDirty();
+            }
+        }
+
+        public static int ClearSpotsBySource(string sourcePrefix)
+        {
+            lock (_objLock)
+            {
+                int removed = 0;
+
+                for (int i = _spots.Count - 1; i >= 0; i--)
+                {
+                    smSpot spot = _spots[i];
+                    bool match = string.IsNullOrEmpty(sourcePrefix) ||
+                        (spot.source != null && spot.source.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase));
+                    if (!match) continue;
+
+                    clearHighlightedReference(spot);
+                    _spots.RemoveAt(i);
+                    removed++;
+                }
+
+                if (removed > 0) markSortedSpotsDirty();
+
+                return removed;
+            }
+        }
+
+        private static bool isExternallySourced(smSpot spot)
+        {
+            return spot != null && !string.IsNullOrEmpty(spot.source);
+        }
+
+        public static bool HasSpotsFromPrefix(string sourcePrefix)
+        {
+            if (string.IsNullOrEmpty(sourcePrefix)) return _spots.Count > 0;
+
+            lock (_objLock)
+            {
+                for (int i = 0; i < _spots.Count; i++)
+                {
+                    smSpot spot = _spots[i];
+                    if (spot.source != null && spot.source.StartsWith(sourcePrefix, StringComparison.OrdinalIgnoreCase))
+                        return true;
+                }
+
+                return false;
             }
         }
 
