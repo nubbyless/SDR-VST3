@@ -57,6 +57,7 @@ namespace Thetis
         public string LoginCallsign { get; set; } = "";
         public bool ShowOnPanadapter { get; set; } = true;
         public string FilterBand { get; set; } = "All";
+        public string FilterMode { get; set; } = "All";
         public string FilterText { get; set; } = "";
         public List<DxClusterNodeSettings> Nodes { get; set; } = new List<DxClusterNodeSettings>();
 
@@ -299,6 +300,20 @@ namespace Thetis
             }
         }
 
+        public static DxClusterSpot FindSpot(long id)
+        {
+            lock (_lock)
+            {
+                for (int i = _spots.Count - 1; i >= 0; i--)
+                {
+                    DxClusterSpot spot = _spots[i];
+                    if (spot != null && spot.Id == id) return spot;
+                }
+            }
+
+            return null;
+        }
+
         public static int SpotCount
         {
             get { lock (_lock) { return _spots.Count; } }
@@ -400,8 +415,8 @@ namespace Thetis
 
         private static void pushSpot(DxClusterSpot spot, Color color)
         {
-            // cluster spots carry no mode; default to SSB and let the frequency decide USB/LSB
-            DSPMode mode = SpotManager2.SpotModeNumberToDSPMode(0, spot.FrequencyHz);
+            // map the detected mode (default SSB) to a RX DSP mode for the panadapter spot
+            DSPMode mode = SpotManager2.SpotModeNumberToDSPMode(spot.ModeNumber, spot.FrequencyHz);
 
             SpotManager2.JsonSpotData json = new SpotManager2.JsonSpotData
             {

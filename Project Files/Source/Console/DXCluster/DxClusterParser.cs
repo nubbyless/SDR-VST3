@@ -38,6 +38,9 @@ namespace Thetis
         public string Callsign { get; set; } = "";
         public long FrequencyHz { get; set; }
         public string Comment { get; set; } = "";
+        public string Country { get; set; } = "";
+        public string Mode { get; set; } = "";
+        public int ModeNumber { get; set; }
         public DateTime UtcTime { get; set; } = DateTime.UtcNow;
         public string Raw { get; set; } = "";
     }
@@ -48,6 +51,97 @@ namespace Thetis
 
         private static readonly Regex FrequencyRegex = new Regex(@"^\d+(?:\.\d+)?$", RegexOptions.Compiled);
         private static readonly Regex TimeRegex = new Regex(@"^(?<hh>\d{2})(?<mm>\d{2})Z?$", RegexOptions.Compiled);
+
+        // mode is derived from the spot frequency against the band plan; segments are in kHz
+        // and cover the common HF/VHF sub-bands (CW / data / SSB / FM)
+        private struct BandSegment
+        {
+            public readonly long Low;
+            public readonly long High;
+            public readonly string Label;
+            public readonly int Number;
+
+            public BandSegment(long lowKhz, long highKhz, string label, int number)
+            {
+                Low = lowKhz * 1000L;
+                High = highKhz * 1000L;
+                Label = label;
+                Number = number;
+            }
+        }
+
+        private static readonly BandSegment[] BandPlan = new BandSegment[]
+        {
+            new BandSegment(1800, 1840, "CW", 1),
+            new BandSegment(1840, 2000, "SSB", 0),
+
+            new BandSegment(3500, 3570, "CW", 1),
+            new BandSegment(3570, 3600, "DIGI", 10),
+            new BandSegment(3600, 4000, "SSB", 0),
+
+            new BandSegment(5000, 5500, "SSB", 0),
+
+            new BandSegment(7000, 7040, "CW", 1),
+            new BandSegment(7040, 7100, "DIGI", 10),
+            new BandSegment(7100, 7300, "SSB", 0),
+
+            new BandSegment(10100, 10130, "CW", 1),
+            new BandSegment(10130, 10150, "DIGI", 10),
+
+            new BandSegment(14000, 14070, "CW", 1),
+            new BandSegment(14070, 14100, "DIGI", 10),
+            new BandSegment(14100, 14350, "SSB", 0),
+
+            new BandSegment(18068, 18095, "CW", 1),
+            new BandSegment(18095, 18110, "DIGI", 10),
+            new BandSegment(18110, 18168, "SSB", 0),
+
+            new BandSegment(21000, 21070, "CW", 1),
+            new BandSegment(21070, 21090, "DIGI", 10),
+            new BandSegment(21090, 21450, "SSB", 0),
+
+            new BandSegment(24890, 24915, "CW", 1),
+            new BandSegment(24915, 24930, "DIGI", 10),
+            new BandSegment(24930, 24990, "SSB", 0),
+
+            new BandSegment(28000, 28070, "CW", 1),
+            new BandSegment(28070, 28150, "DIGI", 10),
+            new BandSegment(28150, 29000, "SSB", 0),
+            new BandSegment(29000, 29700, "FM", 11),
+
+            new BandSegment(50000, 50100, "CW", 1),
+            new BandSegment(50100, 50500, "SSB", 0),
+            new BandSegment(50500, 54000, "FM", 11),
+        };
+
+        private static void inferModeFromFrequency(long hz, out string label, out int number)
+        {
+            label = "";
+            number = 0;
+
+            for (int i = 0; i < BandPlan.Length; i++)
+            {
+                if (hz < BandPlan[i].Low || hz >= BandPlan[i].High) continue;
+
+                label = BandPlan[i].Label;
+                number = BandPlan[i].Number;
+                return;
+            }
+        }
+
+        // country/entity of the spotted callsign, from the bundled cty.dat prefix database
+        private static string lookupCountry(string callsign)
+        {
+            try
+            {
+                CountryData.PrefixData data = CountryData.GetCallsignData(callsign);
+                return data == null ? "" : (data.Country ?? "");
+            }
+            catch
+            {
+                return "";
+            }
+        }
 
         public static bool TryParse(string line, out DxClusterSpot spot)
         {
@@ -109,13 +203,20 @@ namespace Thetis
             int commentCount = commentEnd - 2;
             string comment = commentCount > 0 ? string.Join(" ", tokens, 2, commentCount) : "";
 
+            long freqHz = (long)Math.Round(freqKhz * 1000.0);
+
+            inferModeFromFrequency(freqHz, out string modeLabel, out int modeNumber);
+
             spot = new DxClusterSpot
             {
                 Node = node ?? "",
                 Spotter = spotter,
                 Callsign = call,
-                FrequencyHz = (long)Math.Round(freqKhz * 1000.0),
+                FrequencyHz = freqHz,
                 Comment = comment,
+                Country = lookupCountry(call),
+                Mode = modeLabel,
+                ModeNumber = modeNumber,
                 UtcTime = utc,
                 Raw = raw
             };

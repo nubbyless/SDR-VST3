@@ -50,10 +50,13 @@ namespace Thetis
 
         private const int COL_SPOT_TIME = 0;
         private const int COL_SPOT_MHZ = 1;
-        private const int COL_SPOT_CALL = 2;
-        private const int COL_SPOT_SPOTTER = 3;
-        private const int COL_SPOT_COMMENT = 4;
-        private const int COL_SPOT_NODE = 5;
+        private const int COL_SPOT_BAND = 2;
+        private const int COL_SPOT_CALL = 3;
+        private const int COL_SPOT_COUNTRY = 4;
+        private const int COL_SPOT_MODE = 5;
+        private const int COL_SPOT_SPOTTER = 6;
+        private const int COL_SPOT_COMMENT = 7;
+        private const int COL_SPOT_NODE = 8;
 
         private readonly Console _console;
 
@@ -65,6 +68,7 @@ namespace Thetis
 
         private ToolStrip filterStrip;
         private ToolStripComboBox comboBand;
+        private ToolStripComboBox comboMode;
         private ToolStripTextBox txtFilter;
         private ToolStripButton btnFilterReset;
 
@@ -86,6 +90,7 @@ namespace Thetis
         private bool _updatingFilters;
 
         private string _bandFilter = "All";
+        private string _modeFilter = "All";
         private string _textFilter = "";
 
         public DxClusterForm(Console console)
@@ -213,9 +218,25 @@ namespace Thetis
             comboBand.ForeColor = DxClusterTheme.TextPrimary;
             comboBand.SelectedIndexChanged += onFilterChanged;
 
-            ToolStripLabel lblText = new ToolStripLabel("Filter:") { ForeColor = DxClusterTheme.TextSecondary };
+            ToolStripLabel lblMode = new ToolStripLabel("Mode:") { ForeColor = DxClusterTheme.TextSecondary };
 
-            txtFilter = new ToolStripTextBox { Width = 180, ToolTipText = "Show only spots whose callsign, spotter or comment contains this text" };
+            comboMode = new ToolStripComboBox
+            {
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Width = 80,
+                FlatStyle = FlatStyle.Flat,
+            };
+            comboMode.Items.AddRange(new object[]
+            {
+                "All", "CW", "SSB", "DIGI", "FM"
+            });
+            comboMode.BackColor = DxClusterTheme.Inset;
+            comboMode.ForeColor = DxClusterTheme.TextPrimary;
+            comboMode.SelectedIndexChanged += onFilterChanged;
+
+            ToolStripLabel lblText = new ToolStripLabel("Text Filter:") { ForeColor = DxClusterTheme.TextSecondary };
+
+            txtFilter = new ToolStripTextBox { Width = 180, ToolTipText = "Show only spots whose callsign, country, mode, band, spotter or comment contains this text" };
             StyleInput(txtFilter);
             txtFilter.TextChanged += onFilterChanged;
 
@@ -223,6 +244,8 @@ namespace Thetis
 
             filterStrip.Items.Add(lblBand);
             filterStrip.Items.Add(comboBand);
+            filterStrip.Items.Add(lblMode);
+            filterStrip.Items.Add(comboMode);
             filterStrip.Items.Add(new ToolStripSeparator());
             filterStrip.Items.Add(lblText);
             filterStrip.Items.Add(txtFilter);
@@ -319,8 +342,8 @@ namespace Thetis
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Time (UTC)", Width = 90, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn
             {
-                HeaderText = "MHz",
-                Width = 80,
+                HeaderText = "Frequency (MHz)",
+                Width = 120,
                 ReadOnly = true,
                 SortMode = DataGridViewColumnSortMode.NotSortable,
                 DefaultCellStyle = new DataGridViewCellStyle
@@ -329,10 +352,13 @@ namespace Thetis
                     Format = "F4",
                 },
             });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Band", Width = 55, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
             gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Callsign", Width = 100, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
-            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Spotter", Width = 100, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
-            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Comment", Width = 300, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
-            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Node", Width = 170, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Country", Width = 150, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Mode", Width = 70, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Spotter", Width = 90, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Comment", Width = 280, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
+            gridSpots.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "Node", Width = 160, ReadOnly = true, SortMode = DataGridViewColumnSortMode.NotSortable });
 
             gridSpots.CellDoubleClick += onSpotDoubleClick;
 
@@ -453,10 +479,15 @@ namespace Thetis
             try
             {
                 _bandFilter = string.IsNullOrEmpty(DxClusterManager.Settings.FilterBand) ? "All" : DxClusterManager.Settings.FilterBand;
+                _modeFilter = string.IsNullOrEmpty(DxClusterManager.Settings.FilterMode) ? "All" : DxClusterManager.Settings.FilterMode;
                 _textFilter = DxClusterManager.Settings.FilterText ?? "";
 
                 int index = comboBand.Items.IndexOf(_bandFilter);
                 comboBand.SelectedIndex = index >= 0 ? index : 0;
+
+                int modeIndex = comboMode.Items.IndexOf(_modeFilter);
+                comboMode.SelectedIndex = modeIndex >= 0 ? modeIndex : 0;
+
                 txtFilter.Text = _textFilter;
             }
             catch { }
@@ -597,9 +628,11 @@ namespace Thetis
             if (_updatingFilters) return;
 
             _bandFilter = comboBand.SelectedItem as string ?? "All";
+            _modeFilter = comboMode.SelectedItem as string ?? "All";
             _textFilter = (txtFilter.Text ?? "").Trim();
 
             DxClusterManager.Settings.FilterBand = _bandFilter;
+            DxClusterManager.Settings.FilterMode = _modeFilter;
             DxClusterManager.Settings.FilterText = txtFilter.Text ?? "";
             DxClusterManager.SaveSettings();
 
@@ -612,10 +645,13 @@ namespace Thetis
             try
             {
                 comboBand.SelectedIndex = 0;
+                comboMode.SelectedIndex = 0;
                 txtFilter.Text = "";
                 _bandFilter = "All";
+                _modeFilter = "All";
                 _textFilter = "";
                 DxClusterManager.Settings.FilterBand = "All";
+                DxClusterManager.Settings.FilterMode = "All";
                 DxClusterManager.Settings.FilterText = "";
                 DxClusterManager.SaveSettings();
             }
@@ -771,7 +807,14 @@ namespace Thetis
                 string call = row.Cells[COL_SPOT_CALL].Value as string ?? "";
                 long hz = (long)Math.Round(mhz * 1000000.0);
 
-                DSPMode mode = SpotManager2.SpotModeNumberToDSPMode(0, hz);
+                int modeNumber = 0;
+                if (row.Tag is long id)
+                {
+                    DxClusterSpot spot = DxClusterManager.FindSpot(id);
+                    if (spot != null) modeNumber = spot.ModeNumber;
+                }
+
+                DSPMode mode = SpotManager2.SpotModeNumberToDSPMode(modeNumber, hz);
                 if (mode != DSPMode.FIRST && _console.RX1DSPMode != mode) _console.RX1DSPMode = mode;
                 if (_console.VFOAFreq != mhz) _console.VFOAFreq = mhz;
 
@@ -838,12 +881,16 @@ namespace Thetis
         private bool passesFilter(DxClusterSpot spot)
         {
             if (_bandFilter != "All" && bandOf(spot.FrequencyHz) != _bandFilter) return false;
+            if (_modeFilter != "All" && !string.Equals(spot.Mode ?? "", _modeFilter, StringComparison.OrdinalIgnoreCase)) return false;
 
             if (!string.IsNullOrEmpty(_textFilter))
             {
                 string t = _textFilter.ToUpperInvariant();
                 if ((spot.Callsign ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
                     (spot.Spotter ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
+                    (spot.Country ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
+                    (spot.Mode ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
+                    bandOf(spot.FrequencyHz).ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0 &&
                     (spot.Comment ?? "").ToUpperInvariant().IndexOf(t, StringComparison.Ordinal) < 0)
                     return false;
             }
@@ -934,7 +981,10 @@ namespace Thetis
             row.Tag = spot.Id;
             row.Cells[COL_SPOT_TIME].Value = spot.UtcTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
             row.Cells[COL_SPOT_MHZ].Value = spot.FrequencyHz / 1000000.0;
+            row.Cells[COL_SPOT_BAND].Value = bandOf(spot.FrequencyHz);
             row.Cells[COL_SPOT_CALL].Value = spot.Callsign;
+            row.Cells[COL_SPOT_COUNTRY].Value = spot.Country;
+            row.Cells[COL_SPOT_MODE].Value = spot.Mode;
             row.Cells[COL_SPOT_SPOTTER].Value = spot.Spotter;
             row.Cells[COL_SPOT_COMMENT].Value = spot.Comment;
             row.Cells[COL_SPOT_NODE].Value = spot.Node;
