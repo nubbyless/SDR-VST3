@@ -112,6 +112,17 @@ namespace Thetis
         private LabelTS lblPHROTAsymIn;
         private LabelTS lblPHROTAsymOut;
         private LabelTS lblPHROTFc;
+        // NR5 (NNR) tuning tab, built programmatically in InitNnrControls()
+        private TabPage tpDSPNR5;
+        private NumericUpDownTS[] nudNR5_model;
+        private NumericUpDownTS[] nudNR5_floor;
+        private NumericUpDownTS[] nudNR5_maxgain;
+        private NumericUpDownTS[] nudNR5_alpha;
+        private NumericUpDownTS[] nudNR5_knee;
+        private NumericUpDownTS[] nudNR5_tau;
+        private NumericUpDownTS[] nudNR5_smooth_att;
+        private NumericUpDownTS[] nudNR5_smooth_rel;
+        private CheckBoxTS[] chkNR5_cmode;
 
         #endregion
 
@@ -124,6 +135,7 @@ namespace Thetis
             InitializeVacVstControls();
             InitializeTciVstControls();
             InitPhaseRotatorControls(); // Yurij-eu2av - 2026-07-08: build Phase Rotator extras programmatically
+            InitNnrControls(); // NR5 (NNR) tuning tab
 
             _original_pnlP1_adcs_location = pnlP1_adcs.Location;
 
@@ -2827,6 +2839,11 @@ namespace Thetis
             nudNR4_snr_rx2_ValueChanged(this, e);
 
             setupNR4algorithm();
+            //
+
+            //nr5 (nnr)
+            ApplyNnrRx(1);
+            ApplyNnrRx(2);
             //
 
             // Transmit Tab
@@ -29273,6 +29290,203 @@ namespace Thetis
             lblPHROTFc.TabIndex = 163;
             lblPHROTFc.Text = "FC: -";
             grpPhRot.Controls.Add(lblPHROTFc);
+        }
+
+        // NR5 (NNR) tuning tab.  Built programmatically so the NR/ANF tab can
+        // stay as-is.  Controls use the TS types so the generic options
+        // save/restore system persists them by name.
+        private void InitNnrControls()
+        {
+            if (tcDSP == null) return;
+
+            tpDSPNR5 = new TabPage();
+            tpDSPNR5.BackColor = SystemColors.Control;
+            tpDSPNR5.Name = "tpDSPNR5";
+            tpDSPNR5.Padding = new Padding(3);
+            tpDSPNR5.Size = new Size(724, 414);
+            tpDSPNR5.TabIndex = tcDSP.TabCount;
+            tpDSPNR5.Text = "NR5";
+
+            nudNR5_model = new NumericUpDownTS[3];
+            nudNR5_floor = new NumericUpDownTS[3];
+            nudNR5_maxgain = new NumericUpDownTS[3];
+            nudNR5_alpha = new NumericUpDownTS[3];
+            nudNR5_knee = new NumericUpDownTS[3];
+            nudNR5_tau = new NumericUpDownTS[3];
+            nudNR5_smooth_att = new NumericUpDownTS[3];
+            nudNR5_smooth_rel = new NumericUpDownTS[3];
+            chkNR5_cmode = new CheckBoxTS[3];
+
+            for (int rx = 1; rx <= 2; rx++)
+            {
+                int rxi = rx;
+                GroupBoxTS grp = new GroupBoxTS();
+                grp.Location = new Point(rx == 1 ? 8 : 364, 8);
+                grp.Name = "grpNR5_rx" + rx;
+                grp.Size = new Size(352, 398);
+                grp.TabIndex = rx;
+                grp.TabStop = false;
+                grp.Text = "RX" + rx;
+                tpDSPNR5.Controls.Add(grp);
+
+                int y = 24;
+                nudNR5_model[rx] = AddNnrNumeric(grp, "model", rx, "Model (0-3):", y,
+                    0m, 3m, 1m, 0, 1m, "NNR model slot to use (0-3)");
+                y += 30;
+                nudNR5_floor[rx] = AddNnrNumeric(grp, "floor", rx, "Mask floor (dB):", y,
+                    -60m, 0m, -25m, 1, 1m, "Minimum mask magnitude in dB");
+                y += 30;
+                nudNR5_maxgain[rx] = AddNnrNumeric(grp, "maxgain", rx, "Max gain (dB):", y,
+                    0m, 24m, 12m, 1, 1m, "Maximum suppression gain in dB");
+                y += 30;
+                nudNR5_alpha[rx] = AddNnrNumeric(grp, "alpha", rx, "Alpha:", y,
+                    0m, 4m, 1m, 3, 0.05m, "Gain smoothing alpha (0-4)");
+                y += 30;
+                nudNR5_knee[rx] = AddNnrNumeric(grp, "knee", rx, "Alpha knee (dB):", y,
+                    0m, 40m, 10m, 1, 1m, "Knee for the gain smoothing curve in dB");
+                y += 30;
+                nudNR5_tau[rx] = AddNnrNumeric(grp, "tau", rx, "Tau (s):", y,
+                    0.05m, 30m, 2m, 3, 0.05m, "Noise estimate time constant in seconds");
+                y += 30;
+                nudNR5_smooth_att[rx] = AddNnrNumeric(grp, "smooth_att", rx, "Smooth attack (ms):", y,
+                    0m, 500m, 0m, 1, 5m, "Gain attack smoothing time in milliseconds");
+                y += 30;
+                nudNR5_smooth_rel[rx] = AddNnrNumeric(grp, "smooth_rel", rx, "Smooth release (ms):", y,
+                    0m, 500m, 0m, 1, 5m, "Gain release smoothing time in milliseconds");
+                y += 34;
+
+                chkNR5_cmode[rx] = new CheckBoxTS();
+                chkNR5_cmode[rx].AutoSize = true;
+                chkNR5_cmode[rx].Image = null;
+                chkNR5_cmode[rx].Location = new Point(12, y);
+                chkNR5_cmode[rx].Name = "chkNR5_cmode_rx" + rx;
+                chkNR5_cmode[rx].Size = new Size(260, 17);
+                chkNR5_cmode[rx].TabIndex = 20;
+                chkNR5_cmode[rx].Text = "Output audio in both I and Q";
+                chkNR5_cmode[rx].UseVisualStyleBackColor = true;
+                toolTip1.SetToolTip(chkNR5_cmode[rx],
+                    "Checked puts audio in both I and Q (cmode 0); unchecked puts audio in I and 0 in Q (cmode 1).");
+                chkNR5_cmode[rx].CheckedChanged += new EventHandler((s, e) =>
+                {
+                    if (!initializing) ApplyNnrRx(rxi);
+                });
+                grp.Controls.Add(chkNR5_cmode[rx]);
+                y += 30;
+
+                ButtonTS btnReset = new ButtonTS();
+                btnReset.Image = null;
+                btnReset.Location = new Point(12, y);
+                btnReset.Name = "btnNR5_reset_rx" + rx;
+                btnReset.Selectable = true;
+                btnReset.Size = new Size(90, 23);
+                btnReset.TabIndex = 21;
+                btnReset.Text = "Defaults";
+                btnReset.UseVisualStyleBackColor = true;
+                toolTip1.SetToolTip(btnReset, "Restore the default NNR parameters for this receiver");
+                btnReset.Click += new EventHandler((s, e) => ResetNnrRx(rxi));
+                grp.Controls.Add(btnReset);
+            }
+
+            tcDSP.Controls.Add(tpDSPNR5);
+        }
+
+        private NumericUpDownTS AddNnrNumeric(GroupBoxTS parent, string baseName, int rx,
+            string caption, int y, decimal min, decimal max, decimal value,
+            int decimals, decimal increment, string tip)
+        {
+            LabelTS lbl = new LabelTS();
+            lbl.AutoSize = true;
+            lbl.Image = null;
+            lbl.Location = new Point(12, y + 3);
+            lbl.Name = "lblNR5_" + baseName + "_rx" + rx;
+            lbl.Size = new Size(120, 13);
+            lbl.TabIndex = 0;
+            lbl.Text = caption;
+            parent.Controls.Add(lbl);
+
+            NumericUpDownTS nud = new NumericUpDownTS();
+            nud.DecimalPlaces = decimals;
+            nud.Increment = increment;
+            nud.Location = new Point(150, y);
+            nud.Maximum = max;
+            nud.Minimum = min;
+            nud.Name = "nudNR5_" + baseName + "_rx" + rx;
+            nud.Size = new Size(75, 20);
+            nud.TabIndex = 1;
+            nud.TinyStep = false;
+            nud.Value = value;
+            toolTip1.SetToolTip(nud, tip);
+            nud.ValueChanged += new EventHandler((s, e) =>
+            {
+                if (!initializing) ApplyNnrRx(rx);
+            });
+            parent.Controls.Add(nud);
+
+            return nud;
+        }
+
+        private void ResetNnrRx(int rx)
+        {
+            if (nudNR5_model == null) return;
+            if (rx < 1 || rx > 2) return;
+
+            nudNR5_model[rx].Value = 1m;
+            nudNR5_floor[rx].Value = -25m;
+            nudNR5_maxgain[rx].Value = 12m;
+            nudNR5_alpha[rx].Value = 1m;
+            nudNR5_knee[rx].Value = 10m;
+            nudNR5_tau[rx].Value = 2m;
+            nudNR5_smooth_att[rx].Value = 0m;
+            nudNR5_smooth_rel[rx].Value = 0m;
+            chkNR5_cmode[rx].Checked = false;
+
+            ApplyNnrRx(rx);
+        }
+
+        private void ApplyNnrRx(int rx)
+        {
+            if (console == null || nudNR5_model == null) return;
+            if (rx < 1 || rx > 2) return;
+
+            int model = (int)nudNR5_model[rx].Value;
+            double floor = (double)nudNR5_floor[rx].Value;
+            double maxgain = (double)nudNR5_maxgain[rx].Value;
+            double alpha = (double)nudNR5_alpha[rx].Value;
+            double knee = (double)nudNR5_knee[rx].Value;
+            double tau = (double)nudNR5_tau[rx].Value;
+            double smooth_att = (double)nudNR5_smooth_att[rx].Value;
+            double smooth_rel = (double)nudNR5_smooth_rel[rx].Value;
+            int cmode = chkNR5_cmode[rx].Checked ? 0 : 1;
+
+            RadioDSPRX rad = console.radio.GetDSPRX(rx - 1, 0);
+            RadioDSPRX sub = console.radio.GetDSPRX(rx - 1, 1);
+
+            rad.RXANR5Model = model;
+            sub.RXANR5Model = model;
+
+            rad.RXANR5MaskFloor = floor;
+            sub.RXANR5MaskFloor = floor;
+
+            rad.RXANR5MaxGain = maxgain;
+            sub.RXANR5MaxGain = maxgain;
+
+            rad.RXANR5Alpha = alpha;
+            sub.RXANR5Alpha = alpha;
+
+            rad.RXANR5AlphaKnee = knee;
+            sub.RXANR5AlphaKnee = knee;
+
+            rad.RXANR5Tau = tau;
+            sub.RXANR5Tau = tau;
+
+            rad.RXANR5SmoothAtt = smooth_att;
+            sub.RXANR5SmoothAtt = smooth_att;
+
+            rad.RXANR5SmoothRel = smooth_rel;
+            sub.RXANR5SmoothRel = smooth_rel;
+
+            rad.RXANR5cmode = cmode;
+            sub.RXANR5cmode = cmode;
         }
 
         // Yurij-eu2av - 2026-07-08: Phase Rotator Auto FC toggle.

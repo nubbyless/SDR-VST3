@@ -283,6 +283,44 @@ namespace Thetis
         public static extern void SetRXASBNRnoiseScalingType(int channel, int noise_scaling_type);        
         //
 
+        //nnr
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRRun", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRRun(int channel, int run);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRPosition", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRPosition(int channel, int position);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRMaskFloor", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRMaskFloor(int channel, double floor_db);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRcmode", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRcmode(int channel, int cmode);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRTestMode", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRTestMode(int channel, int mode);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRAlpha", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRAlpha(int channel, double alpha);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRAlphaKnee", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRAlphaKnee(int channel, double knee_db);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRTau", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRTau(int channel, double tau);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRMaxGain", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRMaxGain(int channel, double gmax_db);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRSmooth", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetRXANNRSmooth(int channel, double att_ms, double rel_ms);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetRXANNRModel", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SetRXANNRModel(int channel, int slot);
+
+        [DllImport("wdsp.dll", EntryPoint = "GetRXANNRModel", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int GetRXANNRModel(int channel);
+        //
+
         [DllImport("wdsp.dll", EntryPoint = "SetRXAEMNRPosition", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetRXAEMNRPosition(int channel, int position);
 

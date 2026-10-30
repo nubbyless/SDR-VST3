@@ -393,6 +393,17 @@ namespace Thetis
             this.RXANR3FixedGain = rx.rx_nr3_fixed_gain;
             this.RXANR4Run = rx.rx_nr4_run;
             this.RXANR4Position = rx.rx_nr4_position;
+            this.RXANR5Run = rx.rx_nr5_run;
+            this.RXANR5Position = rx.rx_nr5_position;
+            this.RXANR5Model = rx.rx_nr5_model;
+            this.RXANR5MaskFloor = rx.rx_nr5_mask_floor;
+            this.RXANR5cmode = rx.rx_nr5_cmode;
+            this.RXANR5Alpha = rx.rx_nr5_alpha;
+            this.RXANR5AlphaKnee = rx.rx_nr5_alpha_knee;
+            this.RXANR5Tau = rx.rx_nr5_tau;
+            this.RXANR5MaxGain = rx.rx_nr5_max_gain;
+            this.RXANR5SmoothAtt = rx.rx_nr5_smooth_att;
+            this.RXANR5SmoothRel = rx.rx_nr5_smooth_rel;
             this.RXASBNRreductionAmount = rx.rx_nr4_reductionAmount;
             this.RXASBNRsmoothingFactor = rx.rx_nr4_smoothingFactor;
             this.RXASBNRwhiteningFactor = rx.rx_nr4_whiteningFactor;
@@ -496,6 +507,17 @@ namespace Thetis
             RXANR3FixedGain = rx_nr3_fixed_gain;
             RXANR4Run = rx_nr4_run;
             RXANR4Position = rx_nr4_position;
+            RXANR5Run = rx_nr5_run;
+            RXANR5Position = rx_nr5_position;
+            RXANR5Model = rx_nr5_model;
+            RXANR5MaskFloor = rx_nr5_mask_floor;
+            RXANR5cmode = rx_nr5_cmode;
+            RXANR5Alpha = rx_nr5_alpha;
+            RXANR5AlphaKnee = rx_nr5_alpha_knee;
+            RXANR5Tau = rx_nr5_tau;
+            RXANR5MaxGain = rx_nr5_max_gain;
+            RXANR5SmoothAtt = rx_nr5_smooth_att;
+            RXANR5SmoothRel = rx_nr5_smooth_rel;
             RXASBNRreductionAmount = rx_nr4_reductionAmount;
             RXASBNRsmoothingFactor = rx_nr4_smoothingFactor;
             RXASBNRwhiteningFactor = rx_nr4_whiteningFactor;
@@ -2361,6 +2383,218 @@ namespace Thetis
                     {
                         WDSP.SetRXASBNRPosition(WDSP.id(thread, subrx), value);
                         rx_nr4_position_dsp = value;
+                    }
+                }
+            }
+        }
+
+        //nnr
+        private int rx_nr5_run = 0;
+        private int rx_nr5_run_dsp = 0;
+        public int RXANR5Run
+        {
+            get { return rx_nr5_run; }
+            set
+            {
+                rx_nr5_run = value;
+                if (update)
+                {
+                    if (value != rx_nr5_run_dsp || force)
+                    {
+                        WDSP.SetRXANNRRun(WDSP.id(thread, subrx), value);
+                        rx_nr5_run_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private int rx_nr5_position = 1;
+        private int rx_nr5_position_dsp = 1;
+        public int RXANR5Position
+        {
+            get { return rx_nr5_position; }
+            set
+            {
+                rx_nr5_position = value;
+                if (update)
+                {
+                    if (value != rx_nr5_position_dsp || force)
+                    {
+                        WDSP.SetRXANNRPosition(WDSP.id(thread, subrx), value);
+                        rx_nr5_position_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private int rx_nr5_model = 1;
+        private int rx_nr5_model_dsp = 1;
+        public int RXANR5Model
+        {
+            get { return rx_nr5_model; }
+            set
+            {
+                rx_nr5_model = value;
+                if (update)
+                {
+                    if (value != rx_nr5_model_dsp || force)
+                    {
+                        WDSP.SetRXANNRModel(WDSP.id(thread, subrx), value);
+                        rx_nr5_model_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private double rx_nr5_mask_floor = -25.0;
+        private double rx_nr5_mask_floor_dsp = -25.0;
+        public double RXANR5MaskFloor
+        {
+            get { return rx_nr5_mask_floor; }
+            set
+            {
+                rx_nr5_mask_floor = value;
+                if (update)
+                {
+                    if (value != rx_nr5_mask_floor_dsp || force)
+                    {
+                        WDSP.SetRXANNRMaskFloor(WDSP.id(thread, subrx), value);
+                        rx_nr5_mask_floor_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private int rx_nr5_cmode = 1;
+        private int rx_nr5_cmode_dsp = 1;
+        public int RXANR5cmode
+        {
+            get { return rx_nr5_cmode; }
+            set
+            {
+                rx_nr5_cmode = value;
+                if (update)
+                {
+                    if (value != rx_nr5_cmode_dsp || force)
+                    {
+                        WDSP.SetRXANNRcmode(WDSP.id(thread, subrx), value);
+                        rx_nr5_cmode_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private double rx_nr5_alpha = 1.0;
+        private double rx_nr5_alpha_dsp = 1.0;
+        public double RXANR5Alpha
+        {
+            get { return rx_nr5_alpha; }
+            set
+            {
+                rx_nr5_alpha = value;
+                if (update)
+                {
+                    if (value != rx_nr5_alpha_dsp || force)
+                    {
+                        WDSP.SetRXANNRAlpha(WDSP.id(thread, subrx), value);
+                        rx_nr5_alpha_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private double rx_nr5_alpha_knee = 10.0;
+        private double rx_nr5_alpha_knee_dsp = 10.0;
+        public double RXANR5AlphaKnee
+        {
+            get { return rx_nr5_alpha_knee; }
+            set
+            {
+                rx_nr5_alpha_knee = value;
+                if (update)
+                {
+                    if (value != rx_nr5_alpha_knee_dsp || force)
+                    {
+                        WDSP.SetRXANNRAlphaKnee(WDSP.id(thread, subrx), value);
+                        rx_nr5_alpha_knee_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private double rx_nr5_tau = 2.0;
+        private double rx_nr5_tau_dsp = 2.0;
+        public double RXANR5Tau
+        {
+            get { return rx_nr5_tau; }
+            set
+            {
+                rx_nr5_tau = value;
+                if (update)
+                {
+                    if (value != rx_nr5_tau_dsp || force)
+                    {
+                        WDSP.SetRXANNRTau(WDSP.id(thread, subrx), value);
+                        rx_nr5_tau_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private double rx_nr5_max_gain = 12.0;
+        private double rx_nr5_max_gain_dsp = 12.0;
+        public double RXANR5MaxGain
+        {
+            get { return rx_nr5_max_gain; }
+            set
+            {
+                rx_nr5_max_gain = value;
+                if (update)
+                {
+                    if (value != rx_nr5_max_gain_dsp || force)
+                    {
+                        WDSP.SetRXANNRMaxGain(WDSP.id(thread, subrx), value);
+                        rx_nr5_max_gain_dsp = value;
+                    }
+                }
+            }
+        }
+
+        private double rx_nr5_smooth_att = 0.0;
+        private double rx_nr5_smooth_att_dsp = 0.0;
+        public double RXANR5SmoothAtt
+        {
+            get { return rx_nr5_smooth_att; }
+            set
+            {
+                rx_nr5_smooth_att = value;
+                if (update)
+                {
+                    if (value != rx_nr5_smooth_att_dsp || rx_nr5_smooth_rel != rx_nr5_smooth_rel_dsp || force)
+                    {
+                        WDSP.SetRXANNRSmooth(WDSP.id(thread, subrx), rx_nr5_smooth_att, rx_nr5_smooth_rel);
+                        rx_nr5_smooth_att_dsp = rx_nr5_smooth_att;
+                        rx_nr5_smooth_rel_dsp = rx_nr5_smooth_rel;
+                    }
+                }
+            }
+        }
+
+        private double rx_nr5_smooth_rel = 0.0;
+        private double rx_nr5_smooth_rel_dsp = 0.0;
+        public double RXANR5SmoothRel
+        {
+            get { return rx_nr5_smooth_rel; }
+            set
+            {
+                rx_nr5_smooth_rel = value;
+                if (update)
+                {
+                    if (value != rx_nr5_smooth_rel_dsp || rx_nr5_smooth_att != rx_nr5_smooth_att_dsp || force)
+                    {
+                        WDSP.SetRXANNRSmooth(WDSP.id(thread, subrx), rx_nr5_smooth_att, rx_nr5_smooth_rel);
+                        rx_nr5_smooth_att_dsp = rx_nr5_smooth_att;
+                        rx_nr5_smooth_rel_dsp = rx_nr5_smooth_rel;
                     }
                 }
             }

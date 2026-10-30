@@ -547,8 +547,6 @@ namespace Thetis
 
         private bool m_bResizeDX2Display = false; // flag to say that dx2 is in middle of resize, drawing will be prevented
 
-        private bool _check_error_log = true;
-        private long _error_log_initial_size = -1;
         private bool _touch_support = false;
 
         // audio recording and playback
@@ -700,12 +698,6 @@ namespace Thetis
 #endif
             AppDataPath = app_data_path;
             //AppDataPath has been set at this point
-
-            if (_check_error_log)
-            {
-                //store size of ErrorLog.txt at this point, and compare at shutdown. If different display a msg
-                _error_log_initial_size = getErrorLogSize();
-            }
 
             if (!Directory.Exists(AppDataPath))
                 Directory.CreateDirectory(AppDataPath);
@@ -1341,24 +1333,6 @@ namespace Thetis
                 _frmShutDownForm.Close(); // last thing to get rid of
                 _frmShutDownForm.Dispose();
                 shutdownLogStringToPath("After _frmShutDownForm.Dispose()");
-            }
-
-            if (_check_error_log)
-            {
-                shutdownLogStringToPath("Before error log size check");
-                //check error log size
-                long new_szie = getErrorLogSize();
-                if (new_szie != _error_log_initial_size)
-                {
-                    //log file has changed
-                    MessageBox.Show("The ErrorLog.txt has been updated during this sesson.\n\n" +
-                    "Please email it to MW0LGE at : [mw0lge@grange-lane.co.uk].\n\n" +
-                    "It is located in this folder : [" + AppDataPath + "].",
-                    "Error Log Change",
-                    MessageBoxButtons.OK,
-                    MessageBoxIcon.Warning, MessageBoxDefaultButton.Button1, Common.MB_TOPMOST);
-                }
-                shutdownLogStringToPath("After error log size check");
             }
 
             if (disposing)
@@ -28805,16 +28779,6 @@ namespace Thetis
 
             shutdownLogStringToPath("Leaving Console_Closing()");
         }
-        private long getErrorLogSize()
-        {
-            string errorLogPath = Path.Combine(AppDataPath, "ErrorLog.txt");
-            if (File.Exists(errorLogPath))
-            {
-                FileInfo fileInfo = new FileInfo(errorLogPath);
-                return fileInfo.Length;
-            }
-            return -1;
-        }
         private void shutdownLogStringToPath(string entry)
         {
             if (!m_bLogShutdown || string.IsNullOrEmpty(entry)) return;
@@ -43621,6 +43585,12 @@ namespace Thetis
                         SelectNR(1, true, is_on ? 0 : 4);
                     }
                     break;
+                case "NR5":
+                    {
+                        bool is_on = _nr_selected[0] == 5;
+                        SelectNR(1, true, is_on ? 0 : 5);
+                    }
+                    break;
                 case "ANF":
                     chkANF.Checked = !chkANF.Checked;
                     break;
@@ -43680,6 +43650,12 @@ namespace Thetis
                     {
                         bool is_on = _nr_selected[1] == 4;
                         SelectNR(2, true, is_on ? 0 : 4);
+                    }
+                    break;
+                case "NR5":
+                    {
+                        bool is_on = _nr_selected[1] == 5;
+                        SelectNR(2, true, is_on ? 0 : 5);
                     }
                     break;
                 case "ANF":
@@ -44474,7 +44450,7 @@ namespace Thetis
             int old_nr = _nr_selected[rx - 1];
 
             _nr_selected[rx - 1] += 1;
-            if (_nr_selected[rx - 1] > 4) _nr_selected[rx - 1] = 0;
+            if (_nr_selected[rx - 1] > 5) _nr_selected[rx - 1] = 0;
 
             setupNR(rx, false);
             setupNR(rx, true);
@@ -44484,7 +44460,7 @@ namespace Thetis
         public void SelectNR(int rx, bool incude_sub, int nr)
         {
             if (rx < 1 || rx > 2) return;
-            if (nr < 0 || nr > 4) return;
+            if (nr < 0 || nr > 5) return;
 
             int old_nr = _nr_selected[rx - 1];
 
@@ -44504,23 +44480,26 @@ namespace Thetis
         {
             //rx = 1 ...
             //sub = true/false on the rx
-            //nr = 1,2,3,4
+            //nr = 0,1,2,3,4,5
             if (rx < 1 || rx > 2) return;
 
             RadioDSPRX rad = radio.GetDSPRX(rx - 1, sub ? 1 : 0);
 
             nR2ToolStripMenuItem.Checked = false;
             NR2StripMenuItem2.Checked = false;
+            NR5ToolStripMenuItem.Checked = false;
+            NR5ToolStripMenuItem_rx2.Checked = false;
             cat_rx2_nr_status = 0;
             cat_rx2_nr2_status = 0;
 
             int nr = _nr_selected[rx - 1];
             if (nr < 0) nr = 0;
-            if (nr > 4) nr = 4;
+            if (nr > 5) nr = 5;
 
             switch (nr)
             {
                 case 0: // all off
+                    rad.RXANR5Run = 0;
                     rad.RXANR4Run = 0;
                     rad.RXANR3Run = 0;
                     rad.RXANR2Run = 0;
@@ -44553,6 +44532,7 @@ namespace Thetis
                     }
                     break;
                 case 1: //nr1
+                    rad.RXANR5Run = 0;
                     rad.RXANR4Run = 0;
                     rad.RXANR3Run = 0;
                     rad.RXANR2Run = 0;
@@ -44585,6 +44565,7 @@ namespace Thetis
                     }
                     break;
                 case 2: //nr2
+                    rad.RXANR5Run = 0;
                     rad.RXANR4Run = 0;
                     rad.RXANR3Run = 0;
                     rad.RXANR1Run = 0;
@@ -44617,6 +44598,7 @@ namespace Thetis
                     }
                     break;
                 case 3: //nr3
+                    rad.RXANR5Run = 0;
                     rad.RXANR4Run = 0;
                     rad.RXANR2Run = 0;
                     rad.RXANR1Run = 0;
@@ -44649,6 +44631,7 @@ namespace Thetis
                     }
                     break;
                 case 4: //nr4
+                    rad.RXANR5Run = 0;
                     rad.RXANR3Run = 0;
                     rad.RXANR2Run = 0;
                     rad.RXANR1Run = 0;
@@ -44676,6 +44659,41 @@ namespace Thetis
                             NR4ToolStripMenuItem_rx2.Checked = true;
                             chkRX2NR.Text = "NR4";
                             lblRX2NRLabel.Text = "NR4";
+                            chkRX2NR.Checked = true;
+                            break;
+                    }
+                    break;
+                case 5: //nnr
+                    rad.RXANR4Run = 0;
+                    rad.RXANR3Run = 0;
+                    rad.RXANR2Run = 0;
+                    rad.RXANR1Run = 0;
+                    rad.RXANR5Run = 1;
+
+                    switch (rx)
+                    {
+                        case 1:
+                            cat_nr_status = 0;
+                            cat_nr2_status = 0;
+                            NRToolStripMenuItem.Checked = false;
+                            NR2ToolStripMenuItem1.Checked = false;
+                            NR3ToolStripMenuItem.Checked = false;
+                            NR4ToolStripMenuItem.Checked = false;
+                            NR5ToolStripMenuItem.Checked = true;
+                            chkNR.Text = "NR5";
+                            lblNRLabel.Text = "NR5";
+                            chkNR.Checked = true;
+                            break;
+                        case 2:
+                            cat_rx2_nr_status = 0;
+                            cat_rx2_nr2_status = 0;
+                            nR2ToolStripMenuItem.Checked = false;
+                            NR2StripMenuItem2.Checked = false;
+                            NR3ToolStripMenuItem_rx2.Checked = false;
+                            NR4ToolStripMenuItem_rx2.Checked = false;
+                            NR5ToolStripMenuItem_rx2.Checked = true;
+                            chkRX2NR.Text = "NR5";
+                            lblRX2NRLabel.Text = "NR5";
                             chkRX2NR.Checked = true;
                             break;
                     }
