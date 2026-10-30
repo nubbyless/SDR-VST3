@@ -29387,7 +29387,8 @@ namespace Thetis
                 grp.Controls.Add(btnReset);
             }
 
-            tcDSP.Controls.Add(tpDSPNR5);
+            int nrIndex = tcDSP.TabPages.IndexOf(tpDSPNR);
+            tcDSP.TabPages.Insert(nrIndex >= 0 ? nrIndex + 1 : tcDSP.TabPages.Count, tpDSPNR5);
         }
 
         private NumericUpDownTS AddNnrNumeric(GroupBoxTS parent, string baseName, int rx,
