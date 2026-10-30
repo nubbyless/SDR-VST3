@@ -407,31 +407,20 @@ void create_txa (int channel)
 	txa[channel].calcc.p = create_calcc(
 		channel,									// channel number
 		1,											// run calibration
-		1024,											// input buffer size
-		ch[channel].in_rate,							// samplerate
-		16,												// ints
-		256,											// spi
-		(1.0 / 0.2899),								// hw_scale
-		0.1,											// mox delay
-		0.0,											// loop delay
-		0.8,											// ptol
-		0,												// mox
-		0,												// solidmox
-		1,												// pin mode
-		0,												// map mode
-		1,												// stbl mode
-		256,											// pin samples
-		0.0);										// EMA alpha = 0.0 (UI 1.0 = no smoothing)
+		1024,										// input buffer size
+		ch[channel].in_rate,						// samplerate
+		(1.0 / 0.4072),								// hw_scale
+		0.1,										// mox delay
+		0.0,										// loop delay
+		0);											// mox
 
-	txa[channel].iqc.p0 = txa[channel].iqc.p1 = create_iqc(
+	txa[channel].iqc.p = create_iqc(
 		0,											// run
 		ch[channel].dsp_size,						// size
 		txa[channel].midbuff,						// input buffer
 		txa[channel].midbuff,						// output buffer
 		(double)ch[channel].dsp_rate,				// sample rate
-		16,												// ints
-		0.005,											// changeover time
-		256);
+		0.005);										// changeover time
 
 	txa[channel].cfir.p = create_cfir(
 		0,											// run
@@ -487,7 +476,7 @@ void destroy_txa (int channel)
 	destroy_resample (txa[channel].rsmpout.p);
 	destroy_cfir(txa[channel].cfir.p);
 	destroy_calcc (txa[channel].calcc.p);
-	destroy_iqc (txa[channel].iqc.p0);
+	destroy_iqc (txa[channel].iqc.p);
 	destroy_siphon (txa[channel].sip1.p);
 	destroy_meter (txa[channel].alcmeter.p);
 	destroy_uslew (txa[channel].uslew.p);
@@ -550,7 +539,7 @@ void flush_txa (int channel)
 	flush_uslew (txa[channel].uslew.p);
 	flush_meter (txa[channel].alcmeter.p);
 	flush_siphon (txa[channel].sip1.p);
-	flush_iqc (txa[channel].iqc.p0);
+	flush_iqc (txa[channel].iqc.p);
 	flush_cfir(txa[channel].cfir.p);
 	flush_resample (txa[channel].rsmpout.p);
 	flush_meter (txa[channel].outmeter.p);
@@ -587,7 +576,7 @@ void xtxa (int channel)
 	xuslew (txa[channel].uslew.p);					// up-slew for AM, FM, and gens
 	xmeter (txa[channel].alcmeter.p);				// ALC Meter
 	xsiphon (txa[channel].sip1.p, 0);				// siphon data for display
-	xiqc (txa[channel].iqc.p0);						// PureSignal correction
+	xiqc (txa[channel].iqc.p);						// PureSignal correction
 	xcfir(txa[channel].cfir.p);						// compensating FIR filter (used Protocol_2 only)
 	//xsnoop(channel);
 	xresample (txa[channel].rsmpout.p);				// output resampler
@@ -661,7 +650,7 @@ void setDSPSamplerate_txa (int channel)
 	setSamplerate_uslew (txa[channel].uslew.p, ch[channel].dsp_rate);
 	setSamplerate_meter (txa[channel].alcmeter.p, ch[channel].dsp_rate);
 	setSamplerate_siphon (txa[channel].sip1.p, ch[channel].dsp_rate);
-	setSamplerate_iqc (txa[channel].iqc.p0, ch[channel].dsp_rate);
+	setSamplerate_iqc (txa[channel].iqc.p, ch[channel].dsp_rate);
 	setSamplerate_cfir (txa[channel].cfir.p, ch[channel].dsp_rate);
 	// output resampler
 	setBuffers_resample (txa[channel].rsmpout.p, txa[channel].midbuff, txa[channel].outbuff);
@@ -735,8 +724,8 @@ void setDSPBuffsize_txa (int channel)
 	setSize_meter (txa[channel].alcmeter.p, ch[channel].dsp_size);
 	setBuffers_siphon (txa[channel].sip1.p, txa[channel].midbuff);
 	setSize_siphon (txa[channel].sip1.p, ch[channel].dsp_size);
-	setBuffers_iqc (txa[channel].iqc.p0, txa[channel].midbuff, txa[channel].midbuff);
-	setSize_iqc (txa[channel].iqc.p0, ch[channel].dsp_size);
+	setBuffers_iqc (txa[channel].iqc.p, txa[channel].midbuff, txa[channel].midbuff);
+	setSize_iqc (txa[channel].iqc.p, ch[channel].dsp_size);
 	setBuffers_cfir (txa[channel].cfir.p, txa[channel].midbuff, txa[channel].midbuff);
 	setSize_cfir (txa[channel].cfir.p, ch[channel].dsp_size);
 	// output resampler
@@ -762,7 +751,7 @@ void SetTXAMode (int channel, int mode)
 		txa[channel].mode = mode;
 		txa[channel].ammod.p->run   = 0;
 		txa[channel].fmmod.p->run   = 0;
-		txa[channel].preemph.p->run = 0;
+		SetTXAFMPreEmphRun (channel, 0);
 		switch (mode)
 		{
 		case TXA_AM:
@@ -781,7 +770,7 @@ void SetTXAMode (int channel, int mode)
 			break;
 		case TXA_FM:
 			txa[channel].fmmod.p->run   = 1;
-			txa[channel].preemph.p->run = 1;
+			SetTXAFMPreEmphRun (channel, 1);
 			break;
 		default:
 

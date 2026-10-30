@@ -46,8 +46,9 @@ int WDSPwisdom (char* directory)
 	double* fftout;
 	char wisdom_file[1024];
 	const int maxsize = MAX_WISDOM_SIZE + 1;
-	strcpy (wisdom_file, directory);
-	strncat (wisdom_file, "wdspWisdom01", 16);
+	if (directory == NULL) return -1;
+	int pathlen = snprintf(wisdom_file, sizeof(wisdom_file), "%s%s", directory, "wdspWisdom01");
+	if (pathlen < 0 || (size_t)pathlen >= sizeof(wisdom_file)) return -1;
 	if(!fftw_import_wisdom_from_filename(wisdom_file))
 	{
 		fftin =  (double *) malloc0 (maxsize * sizeof (complex));
@@ -84,11 +85,11 @@ int WDSPwisdom (char* directory)
 		while (psize <= MAX_WISDOM_SIZE)
 		{
 			fprintf(stdout, "Planning REAL    FORWARD  FFT size %d\n", psize);
-				fflush(stdout);
+			fflush(stdout);
 			sprintf(status, "Planning REAL    FORWARD  FFT size %d\n", psize);
 			tplan = fftw_plan_dft_r2c_1d(psize, fftin, (fftw_complex *)fftout, FFTW_PATIENT);
-				fftw_execute (tplan);
-				fftw_destroy_plan (tplan);
+			fftw_execute (tplan);
+			fftw_destroy_plan (tplan);
 			fprintf(stdout, "Planning REAL    INVERSE  FFT size %d\n", psize);
 			fflush(stdout);
 			sprintf(status, "Planning REAL    INVERSE  FFT size %d\n", psize);

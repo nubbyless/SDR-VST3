@@ -24,7 +24,6 @@ warren@pratt.one
 
 */
 
-// Yurij_eu2av: updated for eq_impulse Q parameter
 #include "comm.h"
 
 void calc_fmsq (FMSQ a)
@@ -43,7 +42,7 @@ void calc_fmsq (FMSQ a)
 	a->G[3] = +20.0 * log10(20000.0 / *a->pllpole);
 	a->peqimp = create_eqimp (3, a->nc, 2, 16);
 	a->impulse = (double*) malloc0 (a->nc * sizeof (complex));
-	eq_impulse (a->peqimp, a->nc, 3, a->F, a->G, NULL, a->rate, 1.0 / (2.0 * a->size), 0, 0, 0, 
+	eq_impulse (a->peqimp, a->nc, 3, a->F, a->G, a->rate, 1.0 / (2.0 * a->size), 0, 0, 0, 
 		a->impulse);
 	a->p = create_fircore (a->size, a->trigger, a->noise, a->nc, a->mp, 4, a->impulse);
 	// noise averaging
@@ -266,7 +265,7 @@ void SetRXAFMSQNC (int channel, int nc)
 		_aligned_free(a->impulse);
 		a->impulse = (double*)malloc0(a->nc * sizeof(complex));
 		a->peqimp = create_eqimp(3, a->nc, 2, 16);
-		eq_impulse(a->peqimp, a->nc, 3, a->F, a->G, NULL, a->rate, 1.0 / (2.0 * a->size), 0, 0, 0,
+		eq_impulse(a->peqimp, a->nc, 3, a->F, a->G, a->rate, 1.0 / (2.0 * a->size), 0, 0, 0,
 			a->impulse);
 		setNc_fircore (a->p, a->nc, a->impulse);
 	}

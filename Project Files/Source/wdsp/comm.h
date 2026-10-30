@@ -24,8 +24,6 @@ warren@wpratt.com
 
 */
 
-// Yurij_eu2av: Thetis patch ported to WDSP 2.00
-
 #include <Windows.h>
 #include <process.h>
 #include <intrin.h>
@@ -57,8 +55,6 @@ warren@wpratt.com
 #include "doublepole.h"
 #include "eer.h"
 #include "emnr.h"
-#include "rnnr.h" // NR3 + NR4 support
-#include "sbnr.h" // NR3 + NR4 support
 #include "emph.h"
 #include "eq.h"
 #include "fcurve.h"
@@ -81,6 +77,8 @@ warren@wpratt.com
 #include "meter.h"
 #include "meterlog10.h"
 #include "nbp.h"
+#include "nnr.h"
+#include "nnrbypass.h"
 #include "nob.h"
 #include "nobII.h"
 #include "nurbs.h"
@@ -90,6 +88,8 @@ warren@wpratt.com
 #include "resample.h"
 #include "reshb.h"
 #include "rmatch.h"
+#include "rnnr.h"
+#include "sbnr.h"
 #include "RXA.h"
 #include "sender.h"
 #include "shift.h"

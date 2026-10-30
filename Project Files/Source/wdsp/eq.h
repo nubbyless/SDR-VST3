@@ -29,7 +29,6 @@ warren@pratt.one
 *									Partitioned Overlap-Save Equalizer									*
 *																										*
 ********************************************************************************************************/
-// Yurij_eu2av: Q-factor parametric EQ port
 
 #ifndef _eqp_h
 #define _eqp_h
@@ -57,7 +56,6 @@ typedef struct _eqp
 	int max_freqs;
 	double* F;
 	double* G;
-	double* Q;
 	int ctfmode;
 	int wintype;
 	double samplerate;
@@ -72,7 +70,7 @@ extern EQIMP create_eqimp(int nfreqs, int nc, int wintype, int max_freqs);
 
 extern void destroy_eqimp (EQIMP a);
 
-extern void eq_impulse(EQIMP a, int N, int nfreqs, double* F, double* G, double* Q,
+extern void eq_impulse(EQIMP a, int N, int nfreqs, double* F, double* G,
 	double samplerate, double scale, int ctfmode, int wintype, int deg,
 	double* impulse);
 
@@ -114,7 +112,7 @@ __declspec (dllexport) void SetTXAEQMP (int channel, int mp);
 
 typedef struct _eq
 {
-	int run;
+	int run;				
 	int size;
 	double* in;
 	double* out;
@@ -135,7 +133,7 @@ typedef struct _eq
 	double* impulse;
 }eq, *EQ;
 
-extern double* eq_mults(EQIMP peqimp, int size, int nfreqs, double* F, double* G, double* Q, double samplerate,
+extern double* eq_mults(EQIMP peqimp, int size, int nfreqs, double* F, double* G, double samplerate,
 	double scale, int ctfmode, int wintype, int deg, double* impulse);
 
 extern EQ create_eq (int run, int size, double *in, double *out, int nfreqs, 

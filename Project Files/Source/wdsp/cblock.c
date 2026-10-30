@@ -24,9 +24,24 @@ warren@wpratt.com
 
 */
 
-// Yurij_eu2av: Thetis patch ported to WDSP 2.00
-
 #include "comm.h"
+
+typedef struct _cbl
+{
+	int run;							//run
+	int buff_size;						//buffer size
+	double* in_buff;					//pointer to input buffer
+	double* out_buff;					//pointer to output buffer
+	int mode;
+	double sample_rate;					//sample rate
+	double prevIin;
+	double prevQin;
+	double prevIout;
+	double prevQout;
+	double tau;							//carrier removal time constant
+	double mtau;						//carrier removal multiplier
+	int position;						//0 before AGC, 1 after AGC
+} cbl, * CBL;
 
 void calc_cbl (CBL a)
 {
@@ -57,7 +72,7 @@ CBL create_cbl
 	a->mode = mode;
 	a->sample_rate = (double)sample_rate;
 	a->tau = tau;
-	a->position = position; // 0 = before agc, 1 = after agc
+	a->position = position;
 	calc_cbl (a);
 	return a;
 }
@@ -77,7 +92,6 @@ void flush_cbl (CBL a)
 
 void xcbl (CBL a, int position)
 {
-	// position, 0=before agc, 1=after agc
 	if (a->run && (a->position == position))
 	{
 		int i;
@@ -130,11 +144,11 @@ SetRXACBLRun(int channel, int setit)
 	LeaveCriticalSection (&ch[channel].csDSP);
 }
 
-PORT
-void SetRXACBLPosition(int channel, int position)
+PORT void
+SetRXACBLPosition(int channel, int position)
 {
 	//0=before AGC, 1=after
-	EnterCriticalSection(&ch[channel].csDSP);
+	EnterCriticalSection (&ch[channel].csDSP);
 	rxa[channel].cbl.p->position = position;
-	LeaveCriticalSection(&ch[channel].csDSP);
+	LeaveCriticalSection (&ch[channel].csDSP);
 }

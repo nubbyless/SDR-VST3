@@ -231,7 +231,7 @@ void xssql (SSQL a)
 {
 	if (a->run)
 	{
-		xcbl (a->dcbl, 0);											// dc block the input signal
+		xcbl (a->dcbl, 0);										// dc block the input signal
 		for (int i = 0; i < a->size; i++)						// extract 'I' component
 			a->ibuff[i] = a->b1[2 * i];
 		xftov (a->cvtr);										// convert frequency to voltage, ignoring amplitude

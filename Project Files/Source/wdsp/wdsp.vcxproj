@@ -167,6 +167,11 @@ popd</Command>
     <ClInclude Include="meter.h" />
     <ClInclude Include="meterlog10.h" />
     <ClInclude Include="nbp.h" />
+    <ClInclude Include="nnet.h" />
+    <ClInclude Include="nnet_profile.h" />
+    <ClInclude Include="nnio.h" />
+    <ClInclude Include="nnr.h" />
+    <ClInclude Include="nnrbypass.h" />
     <ClInclude Include="nob.h" />
     <ClInclude Include="nobII.h" />
     <ClInclude Include="nurbs.h" />
@@ -195,6 +200,8 @@ popd</Command>
     <ClInclude Include="varsamp.h" />
     <ClInclude Include="wbfm.h" />
     <ClInclude Include="wcpAGC.h" />
+    <ClInclude Include="wdsp.h" />
+    <ClInclude Include="wdsp_align.h" />
     <ClInclude Include="zetaHat.h" />
   </ItemGroup>
   <ItemGroup>
@@ -243,6 +250,14 @@ popd</Command>
     <ClCompile Include="main.c" />
     <ClCompile Include="meter.c" />
     <ClCompile Include="nbp.c" />
+    <ClCompile Include="nnet.c" />
+    <ClCompile Include="nnio.c" />
+    <ClCompile Include="nnr.c" />
+    <ClCompile Include="nnrbypass.c" />
+    <ClCompile Include="nnr_model_0.c" />
+    <ClCompile Include="nnr_model_1.c" />
+    <ClCompile Include="nnr_model_2.c" />
+    <ClCompile Include="nnr_model_3.c" />
     <ClCompile Include="nob.c" />
     <ClCompile Include="nobII.c" />
     <ClCompile Include="nurbs.c" />

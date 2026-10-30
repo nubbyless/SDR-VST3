@@ -189,24 +189,23 @@ namespace Thetis
                 chart1.Series["Ref"].Points[1].SetValueXY(1.0, 1.0);
             }
             chart1.Series["MagCorr"].Points[0].SetValueXY(0.0, 0.0);
-            k = ints - 1;
-            dx = t[ints] - t[ints - 1];
-            qyc = cc[4 * k + 0] + dx * (cc[4 * k + 1] + dx * (cc[4 * k + 2] + dx * cc[4 * k + 3]));
-            qys = cs[4 * k + 0] + dx * (cs[4 * k + 1] + dx * (cs[4 * k + 2] + dx * cs[4 * k + 3]));
-            phs_base = 180.0 / Math.PI * Math.Atan2(qys, qyc);
+            int npts = cpts_out[0];
+            if (npts < 2) npts = 2;
             int nLastGoodPoint = -1;
             for (int i = 1; i <= np; i++)
             {
-                if ((k = (int)(qx * ints)) > ints - 1) k = ints - 1;
-                dx = qx - t[k];
-                qym = cm[4 * k + 0] + dx * (cm[4 * k + 1] + dx * (cm[4 * k + 2] + dx * cm[4 * k + 3]));
-                qyc = cc[4 * k + 0] + dx * (cc[4 * k + 1] + dx * (cc[4 * k + 2] + dx * cc[4 * k + 3]));
-                qys = cs[4 * k + 0] + dx * (cs[4 * k + 1] + dx * (cs[4 * k + 2] + dx * cs[4 * k + 3]));
+                qx = (double)i / (double)np;
+                double pos = qx * (double)(npts - 1);
+                int j = (int)pos;
+                if (j > npts - 2) j = npts - 2;
+                double frac = pos - (double)j;
+                qym = ym_cor[j] + frac * (ym_cor[j + 1] - ym_cor[j]);
+                qys = ya_cor[j] + frac * (ya_cor[j + 1] - ya_cor[j]);
                 if (!showgain)
                     chart1.Series["MagCorr"].Points[i].SetValueXY(qx, qym * qx);
                 else
                     chart1.Series["MagCorr"].Points[i].SetValueXY(qx, qym);
-                phs = 180.0 / Math.PI * Math.Atan2(qys, qyc) - phs_base;
+                phs = qys;
                 if (phs > -180.0 && phs < +180.0)
                 {
                     chart1.Series["PhsCorr"].Points[i-1].SetValueXY(qx, phs);
@@ -226,7 +225,6 @@ namespace Thetis
                     }
                     
                 }
-                qx += delta;
             }
             k = ints * spi - 1;
             phs_base = 180.0 / Math.PI * Math.Atan2(yc[k], ys[k]);
@@ -401,9 +399,9 @@ namespace Thetis
                         new IntPtr(pym),
                         new IntPtr(pyc),
                         new IntPtr(pys),
-                        new IntPtr(pcm),
-                        new IntPtr(pcc),
-                        new IntPtr(pcs),
+                        new IntPtr(pxm_cor),
+                        new IntPtr(pym_cor),
+                        new IntPtr(pxa_cor),
                         new IntPtr(pya_cor),
                         new IntPtr(pnsamps_out),
                         new IntPtr(pcpts_out),

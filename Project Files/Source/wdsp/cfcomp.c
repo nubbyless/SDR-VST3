@@ -21,32 +21,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 The author can be reached by email at  
 
 warren@pratt.one
-mw0lge@grange-lane.co.uk - Richard Samphire (c) 2026
 
 */
-//
-//============================================================================================//
-// Dual-Licensing Statement (Applies Only to Author's Contributions, Richard Samphire MW0LGE) //
-// ------------------------------------------------------------------------------------------ //
-// For any code originally written by Richard Samphire MW0LGE, or for any modifications       //
-// made by him, the copyright holder for those portions (Richard Samphire) reserves the       //
-// right to use, license, and distribute such code under different terms, including           //
-// closed-source and proprietary licences, in addition to the GNU General Public License      //
-// granted above. Nothing in this statement restricts any rights granted to recipients under  //
-// the GNU GPL. Code contributed by others (not Richard Samphire) remains licensed under      //
-// its original terms and is not affected by this dual-licensing statement in any way.        //
-// Richard Samphire can be reached by email at :  mw0lge@grange-lane.co.uk                    //
-//============================================================================================//
 
-// Yurij_eu2av: Q-factor parametric CFCOMP port
 #include "comm.h"
-
-// Yurij_eu2av: Q-factor parametric CFCOMP support (ported from MW0LGE Thetis patch)
-#define TAIL_MIX 0.08
-#define TAIL_SCALE 2.5
-#define BW_REF_HZ 1000.0
-#define MIN_SIGMA 1.0e-12
-#define FWHM_TO_SIGMA (1.0 / sqrt(2.0 * log(2.0)))
 
 void calc_cfcwindow (CFCOMP a)
 {
@@ -105,16 +83,6 @@ int fCOMPcompare (const void * a, const void * b)
 		return 1;
 }
 
-static int fEQcompare3(const void* a, const void* b)
-{
-	const double* da = (const double*)a;
-	const double* db = (const double*)b;
-
-	if (da[0] < db[0]) return -1;
-	if (da[0] > db[0]) return 1;
-	return 0;
-}
-
 #ifndef M_LN2_10
 #define M_LN2_10 3.32192809488736234787
 #endif
@@ -153,61 +121,7 @@ void calc_compG (CFCOMP a)
 		a->gp[j] = a->G[i];
 	}
 	fincr = a->rate / (double)a->fsize;
-	if (a->Qg != NULL)
-	{
-		// Q-factor parametric compression gain path (ported from MW0LGE Thetis patch, Yurij_eu2av)
-		double* sary3 = (double*)malloc0(3 * a->nfreqsG * sizeof(double));
-		double* fc_hz = (double*)malloc0(a->nfreqsG * sizeof(double));
-		double* sigma_inv_g = (double*)malloc0(a->nfreqsG * sizeof(double));
-		double* gain_db = (double*)malloc0(a->nfreqsG * sizeof(double));
-		const double tail_norm = 1.0 / (1.0 + TAIL_MIX);
-		const double tail_coeff = TAIL_MIX * tail_norm;
-		const double tail_scale_inv = 1.0 / TAIL_SCALE;
-		const double min_fwhm_bins = 2.0;
-		const double q_sharpen = 1.0;
-
-		for (i = 0; i < a->nfreqsG; i++)
-		{
-			sary3[3 * i + 0] = a->Fg[i];
-			sary3[3 * i + 1] = a->G[i];
-			sary3[3 * i + 2] = max(a->Qg[i], 0.01);
-		}
-		qsort(sary3, a->nfreqsG, 3 * sizeof(double), fEQcompare3);
-		for (i = 0; i < a->nfreqsG; i++)
-		{
-			double min_fwhm_hz = min_fwhm_bins * fincr;
-			double qi = sary3[3 * i + 2];
-			double fwhm_hz = (q_sharpen * BW_REF_HZ) / qi;
-			if (fwhm_hz < min_fwhm_hz) fwhm_hz = min_fwhm_hz;
-			double sig = (0.5 * fwhm_hz) * FWHM_TO_SIGMA;
-			if (sig < MIN_SIGMA) sig = MIN_SIGMA;
-			fc_hz[i] = sary3[3 * i + 0];
-			gain_db[i] = sary3[3 * i + 1];
-			sigma_inv_g[i] = 1.0 / sig;
-		}
-		for (i = 0; i < a->msize; i++)
-		{
-			double f_hz = fincr * (double)i;
-			double gdb = 0.0;
-			for (j = 0; j < a->nfreqsG; j++)
-			{
-				double df = f_hz - fc_hz[j];
-				double x0 = df * sigma_inv_g[j];
-				double w0 = exp(-0.5 * x0 * x0);
-				double x1 = x0 * tail_scale_inv;
-				double w1 = exp(-0.5 * x1 * x1);
-				double w = (w0 + tail_coeff * w1);
-				gdb += gain_db[j] * w;
-			}
-			a->comp[i] = pow(10.0, 0.05 * gdb);
-			a->cfc_gain[i] = a->precomplin * a->comp[i];
-		}
-		_aligned_free(gain_db);
-		_aligned_free(sigma_inv_g);
-		_aligned_free(fc_hz);
-		_aligned_free(sary3);
-	}
-	else if (a->gdeg == 0)
+	if (a->gdeg == 0)
 	{
 		for (i = 0, j = 0; i < a->msize; i++)
 		{
@@ -295,60 +209,7 @@ void calc_compE(CFCOMP a)
 		a->ep[j] = a->E[i];
 	}
 	fincr = a->rate / (double)a->fsize;
-	if (a->Qe != NULL)
-	{
-		// Q-factor parametric post-equalizer path (ported from MW0LGE Thetis patch, Yurij_eu2av)
-		double* sary3 = (double*)malloc0(3 * a->nfreqsE * sizeof(double));
-		double* fc_hz = (double*)malloc0(a->nfreqsE * sizeof(double));
-		double* sigma_inv_e = (double*)malloc0(a->nfreqsE * sizeof(double));
-		double* peq_db = (double*)malloc0(a->nfreqsE * sizeof(double));
-		const double tail_norm = 1.0 / (1.0 + TAIL_MIX);
-		const double tail_coeff = TAIL_MIX * tail_norm;
-		const double tail_scale_inv = 1.0 / TAIL_SCALE;
-		const double min_fwhm_bins = 2.0;
-		const double q_sharpen = 1.0;
-
-		for (i = 0; i < a->nfreqsE; i++)
-		{
-			sary3[3 * i + 0] = a->Fe[i];
-			sary3[3 * i + 1] = a->E[i];
-			sary3[3 * i + 2] = max(a->Qe[i], 0.01);
-		}
-		qsort(sary3, a->nfreqsE, 3 * sizeof(double), fEQcompare3);
-		for (i = 0; i < a->nfreqsE; i++)
-		{
-			double min_fwhm_hz = min_fwhm_bins * fincr;
-			double qi = sary3[3 * i + 2];
-			double fwhm_hz = (q_sharpen * BW_REF_HZ) / qi;
-			if (fwhm_hz < min_fwhm_hz) fwhm_hz = min_fwhm_hz;
-			double sig = (0.5 * fwhm_hz) * FWHM_TO_SIGMA;
-			if (sig < MIN_SIGMA) sig = MIN_SIGMA;
-			fc_hz[i] = sary3[3 * i + 0];
-			peq_db[i] = sary3[3 * i + 1];
-			sigma_inv_e[i] = 1.0 / sig;
-		}
-		for (i = 0; i < a->msize; i++)
-		{
-			double f_hz = fincr * (double)i;
-			double edb = 0.0;
-			for (j = 0; j < a->nfreqsE; j++)
-			{
-				double df = f_hz - fc_hz[j];
-				double x0 = df * sigma_inv_e[j];
-				double w0 = exp(-0.5 * x0 * x0);
-				double x1 = x0 * tail_scale_inv;
-				double w1 = exp(-0.5 * x1 * x1);
-				double w = (w0 + tail_coeff * w1);
-				edb += peq_db[j] * w;
-			}
-			a->peq[i] = pow(10.0, 0.05 * edb);
-		}
-		_aligned_free(peq_db);
-		_aligned_free(sigma_inv_e);
-		_aligned_free(fc_hz);
-		_aligned_free(sary3);
-	}
-	else if (a->edeg == 0)
+	if (a->edeg == 0)
 	{
 		for (i = 0, j = 0; i < a->msize; i++)
 		{
@@ -522,8 +383,6 @@ CFCOMP create_cfcomp(int run, int position, int peq_run, int size, double* in, d
 	a->Fe = (double *)malloc0 (a->max_freqs * sizeof (double));
 	a->G  = (double *)malloc0 (a->max_freqs * sizeof (double));
 	a->E  = (double *)malloc0 (a->max_freqs * sizeof (double));
-	a->Qg = NULL;
-	a->Qe = NULL;
 	a->saryG = (double*)malloc0 (2 * a->max_freqs * sizeof (double));
 	a->saryE = (double*)malloc0 (2 * a->max_freqs * sizeof (double));
 	memcpy (a->Fg, Fg, a->nfreqsG * sizeof (double));
@@ -570,8 +429,6 @@ void destroy_cfcomp (CFCOMP a)
 	destroy_nurbs (a->png);
 	_aligned_free (a->saryE);
 	_aligned_free (a->saryG);
-	_aligned_free (a->Qe);
-	_aligned_free (a->Qg);
 	_aligned_free (a->E);
 	_aligned_free (a->G);
 	_aligned_free (a->Fe);
@@ -735,32 +592,21 @@ void SetTXACFCOMPPosition (int channel, int pos)
 // This function was retained for interfaces, such as that of the Legacy UI,
 // for which the Compressor and Equalizer have identical frequency sets.
 PORT
-void SetTXACFCOMPprofile (int channel, int nfreqs, double* F, double* G, double *E, double* Qg, double* Qe)
+void SetTXACFCOMPprofile (int channel, int nfreqs, double* F, double* G, double *E)
 {
 	CFCOMP a = txa[channel].cfcomp.p;
 	EnterCriticalSection (&ch[channel].csDSP);
+	if (nfreqs < 1 || nfreqs > a->max_freqs || F == 0 || G == 0 || E == 0)
+	{
+		LeaveCriticalSection (&ch[channel].csDSP);
+		return;
+	}
 	a->nfreqsG = nfreqs;
 	a->nfreqsE = nfreqs;
 	memcpy (a->Fg, F, a->nfreqsG * sizeof (double));
 	memcpy (a->Fe, F, a->nfreqsE * sizeof (double));
 	memcpy (a->G,  G, a->nfreqsG * sizeof (double));
 	memcpy (a->E,  E, a->nfreqsE * sizeof (double));
-	_aligned_free (a->Qg);
-	_aligned_free (a->Qe);
-	if (Qg != NULL)
-	{
-		a->Qg = (double*)malloc0 (a->nfreqsG * sizeof (double));
-		memcpy (a->Qg, Qg, a->nfreqsG * sizeof (double));
-	}
-	else
-		a->Qg = NULL;
-	if (Qe != NULL)
-	{
-		a->Qe = (double*)malloc0 (a->nfreqsE * sizeof (double));
-		memcpy (a->Qe, Qe, a->nfreqsE * sizeof (double));
-	}
-	else
-		a->Qe = NULL;
 	calc_compG(a);
 	calc_compE(a);
 	LeaveCriticalSection (&ch[channel].csDSP);
@@ -772,6 +618,11 @@ void SetTXACFCOMPGprofile(int channel, int nfreqs, double* F, double* G)
 {
 	CFCOMP a = txa[channel].cfcomp.p;
 	EnterCriticalSection(&ch[channel].csDSP);
+	if (nfreqs < 1 || nfreqs > a->max_freqs || F == 0 || G == 0)
+	{
+		LeaveCriticalSection (&ch[channel].csDSP);
+		return;
+	}
 	a->nfreqsG = nfreqs;
 	memcpy(a->Fg, F, a->nfreqsG * sizeof(double));
 	memcpy(a->G,  G, a->nfreqsG * sizeof(double));
@@ -785,6 +636,11 @@ void SetTXACFCOMPEprofile(int channel, int nfreqs, double* F, double* E)
 {
 	CFCOMP a = txa[channel].cfcomp.p;
 	EnterCriticalSection(&ch[channel].csDSP);
+	if (nfreqs < 1 || nfreqs > a->max_freqs || F == 0 || E == 0)
+	{
+		LeaveCriticalSection (&ch[channel].csDSP);
+		return;
+	}
 	a->nfreqsE = nfreqs;
 	memcpy(a->Fe, F, a->nfreqsE * sizeof(double));
 	memcpy(a->E,  E, a->nfreqsE * sizeof(double));

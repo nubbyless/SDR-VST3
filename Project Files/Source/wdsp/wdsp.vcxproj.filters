@@ -159,6 +159,27 @@
     <ClInclude Include="nbp.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="nnet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nnet_profile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nnio.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nnr.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nnrbypass.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wdsp.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="wdsp_align.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="snb.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -384,6 +405,30 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="nbp.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnet.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnio.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnr.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnrbypass.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnr_model_0.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnr_model_1.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnr_model_2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="nnr_model_3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="snb.c">
