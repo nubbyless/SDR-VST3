@@ -411,8 +411,14 @@ Project Files/Source/Thetis-Installer/redist/*.exe
 HANDOFF.md
 MIGRATION_HANDOFF.md
 WDSP2_CONVERSION_PLAN.md
+WDSP_2.11_HANDOFF.md
+WDSP*_HANDOFF.md
 LAYOUTCHECK_HANDOFF.md
 DX_CLUSTER_HANDOFF.md
+
+# WDSP upgrade backups and temporary source files
+Project Files/Source/wdsp.backup.*/
+*.up211
 
 # LayoutCheck is a local-only dev tool - never publish to GitHub
 Project Files/Source/LayoutCheck/
