@@ -41,16 +41,18 @@ namespace Thetis
         private Button btnAdd;
         private Button btnOk;
         private TextBox txtCall;
+        private TextBox txtPass;
         private TextBox txtSwl;
         private bool _loading;
 
-        public DxClusterServersForm(IEnumerable<DxClusterServerEntry> entries, string callsign)
+        public DxClusterServersForm(IEnumerable<DxClusterServerEntry> entries, string callsign, string password)
         {
             BuildUi();
 
             txtCall.Text = (callsign ?? "").Trim();
+            txtPass.Text = password ?? "";
             txtSwl.Text = (DxClusterManager.Settings.SwlUrl ?? "").Trim();
-            FormClosing += (s, e) => { applyLoginCallsign(); applySwlUrl(); };
+            FormClosing += (s, e) => { applyLoginCallsign(); applyLoginPassword(); applySwlUrl(); };
 
             _loading = true;
             try
@@ -79,7 +81,7 @@ namespace Thetis
             Panel topPanel = new Panel { Dock = DockStyle.Top, Height = 108, BackColor = DxClusterTheme.Void };
             Label lblIntro = new Label
             {
-                Text = "Tick a node to connect now and auto-connect on startup; untick to disconnect and remove it. A callsign is required to receive spots.",
+                Text = "Tick a node to connect now and auto-connect on startup; untick to disconnect and remove it. A callsign is required to receive spots; add a password if the node asks.",
                 Location = new Point(6, 4),
                 Size = new Size(448, 38),
                 ForeColor = DxClusterTheme.TextSecondary,
@@ -87,6 +89,10 @@ namespace Thetis
             Label lblCall = new Label { Text = "Callsign", Location = new Point(6, 48), AutoSize = true, ForeColor = DxClusterTheme.TextSecondary };
             txtCall = new TextBox { Location = new Point(64, 44), Width = 120, BackColor = DxClusterTheme.Inset, ForeColor = DxClusterTheme.TextPrimary, BorderStyle = BorderStyle.FixedSingle };
             txtCall.Leave += (s, e) => applyLoginCallsign();
+
+            Label lblPass = new Label { Text = "Password", Location = new Point(196, 48), AutoSize = true, ForeColor = DxClusterTheme.TextSecondary };
+            txtPass = new TextBox { Location = new Point(256, 44), Width = 120, BackColor = DxClusterTheme.Inset, ForeColor = DxClusterTheme.TextPrimary, BorderStyle = BorderStyle.FixedSingle, UseSystemPasswordChar = true };
+            txtPass.Leave += (s, e) => applyLoginPassword();
 
             Label lblSwl = new Label { Text = "SWL URL", Location = new Point(6, 76), AutoSize = true, ForeColor = DxClusterTheme.TextSecondary };
             txtSwl = new TextBox
@@ -120,6 +126,8 @@ namespace Thetis
             topPanel.Controls.Add(lblIntro);
             topPanel.Controls.Add(lblCall);
             topPanel.Controls.Add(txtCall);
+            topPanel.Controls.Add(lblPass);
+            topPanel.Controls.Add(txtPass);
             topPanel.Controls.Add(lblSwl);
             topPanel.Controls.Add(txtSwl);
             topPanel.Controls.Add(lblSwlHint);
@@ -169,6 +177,11 @@ namespace Thetis
             get { return (txtCall.Text ?? "").Trim(); }
         }
 
+        private string CurrentPassword
+        {
+            get { return txtPass.Text ?? ""; }
+        }
+
         // persist the callsign and hand it to any live node that has not logged in yet
         private void applyLoginCallsign()
         {
@@ -178,6 +191,16 @@ namespace Thetis
             if (string.Equals(current, saved, StringComparison.OrdinalIgnoreCase)) return;
 
             DxClusterManager.SetLoginCallsign(current);
+        }
+
+        private void applyLoginPassword()
+        {
+            string current = CurrentPassword;
+            string saved = DxClusterManager.Settings.LoginPassword ?? "";
+
+            if (string.Equals(current, saved, StringComparison.Ordinal)) return;
+
+            DxClusterManager.SetLoginPassword(current);
         }
 
         // persist the custom broadcast schedule URL (blank = season-derived EiBi default)
@@ -229,7 +252,7 @@ namespace Thetis
             finally { _loading = false; }
 
             // a newly added node is connected straight away and remembers to auto-connect
-            DxClusterManager.EnsureConnected(host, port, (txtCall.Text ?? "").Trim());
+            DxClusterManager.EnsureConnected(host, port, CurrentCallsign, CurrentPassword);
             DxClusterManager.GetOrCreateNode(host, port).AutoConnect = true;
             DxClusterManager.SaveSettings();
             DxClusterManager.ResyncPanadapter();
@@ -283,7 +306,7 @@ namespace Thetis
 
             if (e.NewValue == CheckState.Checked)
             {
-                DxClusterManager.EnsureConnected(entry.Host, entry.Port, (txtCall.Text ?? "").Trim());
+                DxClusterManager.EnsureConnected(entry.Host, entry.Port, CurrentCallsign, CurrentPassword);
                 DxClusterManager.GetOrCreateNode(entry.Host, entry.Port).AutoConnect = true;
             }
             else

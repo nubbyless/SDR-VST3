@@ -689,7 +689,7 @@ namespace Thetis
                 if (!known) entries.Add(new DxClusterServerEntry(node.Host, node.Host, node.Port));
             }
 
-            using (DxClusterServersForm dialog = new DxClusterServersForm(entries, callsign))
+            using (DxClusterServersForm dialog = new DxClusterServersForm(entries, callsign, DxClusterManager.Settings.LoginPassword))
             {
                 dialog.ShowDialog(this);
             }
@@ -726,7 +726,7 @@ namespace Thetis
             }
             else
             {
-                DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign).Connect();
+                DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign, DxClusterManager.Settings.LoginPassword).Connect();
             }
 
             RefreshConnections();
@@ -968,7 +968,7 @@ namespace Thetis
             {
                 DxClusterNodeSettings node = DxClusterManager.FindNodeByKey(key);
                 if (node != null)
-                    DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign).Connect();
+                    DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign, DxClusterManager.Settings.LoginPassword).Connect();
             }
 
             RefreshConnections();

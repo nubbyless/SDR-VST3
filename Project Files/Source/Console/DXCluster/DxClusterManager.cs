@@ -58,6 +58,7 @@ namespace Thetis
         private const string OptionsKey = "dx_cluster";
 
         public string LoginCallsign { get; set; } = "";
+        public string LoginPassword { get; set; } = "";
         public bool ShowOnPanadapter { get; set; } = true;
         public string FilterBand { get; set; } = "All";
         public string FilterMode { get; set; } = "All";
@@ -187,7 +188,7 @@ namespace Thetis
             return node;
         }
 
-        public static DxClusterConnection AddConnection(string host, int port, string loginCallsign = "")
+        public static DxClusterConnection AddConnection(string host, int port, string loginCallsign = "", string loginPassword = "")
         {
             string key = NodeKey(host, port);
 
@@ -197,7 +198,7 @@ namespace Thetis
 
             DxClusterNodeSettings node = GetOrCreateNode(host, port);
 
-            DxClusterConnection connection = new DxClusterConnection(host, port, loginCallsign)
+            DxClusterConnection connection = new DxClusterConnection(host, port, loginCallsign, loginPassword)
             {
                 Node = node,
                 SpotColor = Color.FromArgb(node.ColorArgb),
@@ -257,7 +258,7 @@ namespace Thetis
                     NodeKey(c.Host, c.Port) == NodeKey(node.Host, node.Port));
                 if (existing != null) continue;
 
-                AddConnection(node.Host, node.Port, Settings.LoginCallsign).Connect();
+                AddConnection(node.Host, node.Port, Settings.LoginCallsign, Settings.LoginPassword).Connect();
             }
         }
 
@@ -266,19 +267,23 @@ namespace Thetis
             return FindNode(host, port) != null;
         }
 
-        public static DxClusterConnection EnsureConnected(string host, int port, string loginCallsign = "")
+        public static DxClusterConnection EnsureConnected(string host, int port, string loginCallsign = "", string loginPassword = "")
         {
             string key = NodeKey(host, port);
             DxClusterConnection connection = Connections.FirstOrDefault(c => NodeKey(c.Host, c.Port) == key);
 
             if (connection == null)
             {
-                connection = AddConnection(host, port, loginCallsign);
+                connection = AddConnection(host, port, loginCallsign, loginPassword);
                 connection.Connect();
             }
-            else if (connection.State == DxClusterConnectionState.Disconnected || connection.State == DxClusterConnectionState.Error)
+            else
             {
-                connection.Connect();
+                connection.LoginCallsign = (loginCallsign ?? "").Trim();
+                connection.LoginPassword = loginPassword ?? "";
+
+                if (connection.State == DxClusterConnectionState.Disconnected || connection.State == DxClusterConnectionState.Error)
+                    connection.Connect();
             }
 
             return connection;
@@ -295,6 +300,20 @@ namespace Thetis
             {
                 connection.LoginCallsign = callsign;
                 connection.SendLogin(callsign);
+            }
+
+            SaveSettings();
+        }
+
+        public static void SetLoginPassword(string password)
+        {
+            password = password ?? "";
+            Settings.LoginPassword = password;
+
+            foreach (DxClusterConnection connection in Connections)
+            {
+                connection.LoginPassword = password;
+                connection.SendPassword(password);
             }
 
             SaveSettings();

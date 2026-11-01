@@ -50,7 +50,9 @@ namespace Thetis
         public string Host { get; }
         public int Port { get; }
         public string LoginCallsign { get; set; }
+        public string LoginPassword { get; set; }
         public bool LoginSent { get; private set; }
+        public bool PasswordSent { get; private set; }
         public DxClusterConnectionState State { get; private set; }
         public string LastError { get; private set; }
 
@@ -65,12 +67,14 @@ namespace Thetis
         private StreamWriter _writer;
         private Thread _thread;
         private volatile bool _running;
+        private volatile bool _passwordRequested;
 
-        public DxClusterConnection(string host, int port, string loginCallsign = "")
+        public DxClusterConnection(string host, int port, string loginCallsign = "", string loginPassword = "")
         {
             Host = host ?? "";
             Port = port;
             LoginCallsign = loginCallsign ?? "";
+            LoginPassword = loginPassword ?? "";
             Id = Guid.NewGuid().ToString("N");
             State = DxClusterConnectionState.Disconnected;
             LastError = "";
@@ -84,6 +88,8 @@ namespace Thetis
 
                 _running = true;
                 LoginSent = false;
+                PasswordSent = false;
+                _passwordRequested = false;
                 LastError = "";
                 setState(DxClusterConnectionState.Connecting);
 
@@ -120,6 +126,21 @@ namespace Thetis
             LoginCallsign = callsign;
             Send(callsign);
             LoginSent = true;
+        }
+
+        public void SendPassword(string password)
+        {
+            password = password ?? "";
+            LoginPassword = password;
+
+            if (password.Length == 0) return;
+            if (!_passwordRequested) return;
+            if (PasswordSent) return;
+            if (State != DxClusterConnectionState.Connected) return;
+
+            Send(password);
+            PasswordSent = true;
+            Common.LogString("DXCluster password sent (" + Host + ":" + Port + ")");
         }
 
         public void Send(string text)
@@ -161,6 +182,12 @@ namespace Thetis
                 string line;
                 while (_running && (line = _reader.ReadLine()) != null)
                 {
+                    if (isPasswordPrompt(line))
+                    {
+                        _passwordRequested = true;
+                        SendPassword(LoginPassword);
+                    }
+
                     LineReceived?.Invoke(this, line);
                 }
             }
@@ -183,6 +210,15 @@ namespace Thetis
             // only reached on a clean exit (server closed the stream / user disconnected)
             if (State != DxClusterConnectionState.Error)
                 setState(DxClusterConnectionState.Disconnected);
+        }
+
+        private static bool isPasswordPrompt(string line)
+        {
+            string prompt = (line ?? "").Trim();
+            if (prompt.Length == 0 || !prompt.EndsWith(":", StringComparison.Ordinal)) return false;
+
+            string lower = prompt.ToLowerInvariant();
+            return lower.Contains("password") || lower.Contains("passcode");
         }
 
         private void cleanUp()
