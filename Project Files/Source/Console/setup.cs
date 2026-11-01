@@ -20096,6 +20096,7 @@ namespace Thetis
         private bool _gpuMeshSavedState = false;
         private bool _gpuComputeSavedState = false;
         private bool _gpuOverlaySavedState = false;
+        private bool _forceCPURenderingActive = false;
 
         private void chkForceCPURendering_CheckedChanged(object sender, EventArgs e)
         {
@@ -20106,9 +20107,13 @@ namespace Thetis
             // forcing CPU rendering forces all GPU features to the CPU mode
             if (chkForceCPURendering.Checked)
             {
-                _gpuMeshSavedState = chkGpuMesh3D.Checked;
-                _gpuComputeSavedState = chkGpuComputeShaders.Checked;
-                _gpuOverlaySavedState = chkGpuOverlay.Checked;
+                if (!_forceCPURenderingActive)
+                {
+                    _gpuMeshSavedState = chkGpuMesh3D.Checked;
+                    _gpuComputeSavedState = chkGpuComputeShaders.Checked;
+                    _gpuOverlaySavedState = chkGpuOverlay.Checked;
+                    _forceCPURenderingActive = true;
+                }
 
                 chkGpuMesh3D.Checked = false;
                 chkGpuComputeShaders.Checked = false;
@@ -20128,9 +20133,16 @@ namespace Thetis
                 chkGpuComputeShaders.Enabled = true;
                 chkGpuOverlay.Enabled = true;
 
-                chkGpuMesh3D.Checked = _gpuMeshSavedState;
-                chkGpuComputeShaders.Checked = _gpuComputeSavedState;
-                chkGpuOverlay.Checked = _gpuOverlaySavedState;
+                // only restore the GPU toggles when we are actually leaving the
+                // forced CPU state; otherwise the saved-state fields would
+                // overwrite the values freshly loaded from the database.
+                if (_forceCPURenderingActive)
+                {
+                    chkGpuMesh3D.Checked = _gpuMeshSavedState;
+                    chkGpuComputeShaders.Checked = _gpuComputeSavedState;
+                    chkGpuOverlay.Checked = _gpuOverlaySavedState;
+                    _forceCPURenderingActive = false;
+                }
             }
 
             console.RestartDisplayDX();
