@@ -52817,6 +52817,11 @@ namespace Thetis
                         if (GetSelectedNR(rx) == 4) { SelectNR(rx, true, 0); } else { SelectNR(rx, true, 4); }
                     }
                     break;
+                case OtherButtonId.NR5:
+                    {
+                        if (GetSelectedNR(rx) == 5) { SelectNR(rx, true, 0); } else { SelectNR(rx, true, 5); }
+                    }
+                    break;
                 case OtherButtonId.NB1:
                     {
                         if (GetSelectedNB(rx) == 1) { SetSelectedNB(rx, 0); } else { SetSelectedNB(rx, 1); }
@@ -53005,6 +53010,7 @@ namespace Thetis
                 case OtherButtonId.NR2:
                 case OtherButtonId.NR3:
                 case OtherButtonId.NR4:
+                case OtherButtonId.NR5:
                 case OtherButtonId.ANF:
                     SetupForm.ShowSetupTab(Setup.SetupTab.NR_Tab);
                     break;
@@ -53409,6 +53415,7 @@ namespace Thetis
                 case OtherButtonId.NR2: return GetSelectedNR(rx) == 2;
                 case OtherButtonId.NR3: return GetSelectedNR(rx) == 3;
                 case OtherButtonId.NR4: return GetSelectedNR(rx) == 4;
+                case OtherButtonId.NR5: return GetSelectedNR(rx) == 5;
                 case OtherButtonId.NB1: return GetSelectedNB(rx) == 1;
                 case OtherButtonId.NB2: return GetSelectedNB(rx) == 2;
                 case OtherButtonId.XPA: 
