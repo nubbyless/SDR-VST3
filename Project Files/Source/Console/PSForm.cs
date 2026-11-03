@@ -880,17 +880,6 @@ namespace Thetis
             puresignal.SetPSEMAAlpha(_txachannel, (double)udPSEMAAlpha.Value);
         }
 
-        private void udPSPinAlpha_ValueChanged(object sender, EventArgs e)
-        {
-            puresignal.SetPSPinAlpha(_txachannel, (double)udPSPinAlpha.Value);
-        }
-
-        private void chkPSPin_CheckedChanged(object sender, EventArgs e)
-        {
-            // Yurij_eu2av: Toggle COS/SIN start-point pin (WDSP 2.00 NURBS fit).
-            puresignal.SetPSPinMode(_txachannel, chkPSPin.Checked ? 1 : 0);
-        }
-
         private void chkPSEQ_CheckedChanged(object sender, EventArgs e)
         {
             puresignal.SetPSEQEnable(_txachannel, chkPSEQ.Checked ? 1 : 0);
@@ -973,8 +962,6 @@ namespace Thetis
             // WDSP 2.00 PureSignal 3.0 recommended defaults
             chkPSStbl.Checked = true;
             udPSEMAAlpha.Value = 1.00m;
-            udPSPinAlpha.Value = 0.10m;
-            chkPSPin.Checked = true;
             chkPSEQ.Checked = true;
             comboPSTint.SelectedIndex = 0;
             udPSOutlierSigma.Value = (decimal)console.SetupForm.PSOutlierSigma;
@@ -1046,8 +1033,6 @@ namespace Thetis
             chkPSAutoAttenuate_CheckedChanged(this, e);
             chkPSStbl_CheckedChanged(this, e);
             udPSEMAAlpha_ValueChanged(this, e);
-            udPSPinAlpha_ValueChanged(this, e);
-            chkPSPin_CheckedChanged(this, e);
             chkPSEQ_CheckedChanged(this, e);
             comboPSTint_SelectedIndexChanged(this, e);
             udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
@@ -1153,12 +1138,6 @@ namespace Thetis
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSEMAAlpha", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSEMAAlpha(int channel, double alpha);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSPinAlpha", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSPinAlpha(int channel, double alpha);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSPinMode", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSPinMode(int channel, int pin);
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSIntsAndSpi", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSIntsAndSpi(int channel, int ints, int spi);

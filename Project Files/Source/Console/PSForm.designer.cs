@@ -39,12 +39,9 @@
             this.udPSTargetFeedback = new System.Windows.Forms.NumericUpDownTS();
             this.lblPSTargetFeedback = new System.Windows.Forms.LabelTS();
             this.chkPSEQ = new System.Windows.Forms.CheckBoxTS();
-            this.chkPSPin = new System.Windows.Forms.CheckBoxTS();
             this.udPSDCBCap = new System.Windows.Forms.NumericUpDownTS();
             this.lblPSDCBCap = new System.Windows.Forms.LabelTS();
             this.chkPSDCB = new System.Windows.Forms.CheckBoxTS();
-            this.udPSPinAlpha = new System.Windows.Forms.NumericUpDownTS();
-            this.lblPSPinAlpha = new System.Windows.Forms.LabelTS();
             this.udPSEMAAlpha = new System.Windows.Forms.NumericUpDownTS();
             this.lblPSEMAAlpha = new System.Windows.Forms.LabelTS();
             this.btnPSRestore = new System.Windows.Forms.ButtonTS();
@@ -201,47 +198,6 @@
             this.toolTip1.SetToolTip(this.udPSEMAAlpha, "EMA alpha across calibration cycles (0 = frozen, 1 = no smoothing, range 0.00–2.00).");
             this.udPSEMAAlpha.ValueChanged += new System.EventHandler(this.udPSEMAAlpha_ValueChanged);
             // 
-            // lblPSPinAlpha
-            // 
-            this.lblPSPinAlpha.AutoSize = true;
-            this.lblPSPinAlpha.ForeColor = System.Drawing.Color.White;
-            this.lblPSPinAlpha.Image = null;
-            this.lblPSPinAlpha.Location = new System.Drawing.Point(434, 88);
-            this.lblPSPinAlpha.Name = "lblPSPinAlpha";
-            this.lblPSPinAlpha.Size = new System.Drawing.Size(40, 13);
-            this.lblPSPinAlpha.TabIndex = 62;
-            this.lblPSPinAlpha.Text = "Pin α";
-            // 
-            // udPSPinAlpha
-            // 
-            this.udPSPinAlpha.DecimalPlaces = 2;
-            this.udPSPinAlpha.Increment = new decimal(new int[] {
-            5,
-            0,
-            0,
-            131072});
-            this.udPSPinAlpha.Location = new System.Drawing.Point(490, 86);
-            this.udPSPinAlpha.Maximum = new decimal(new int[] {
-            200,
-            0,
-            0,
-            131072});
-            this.udPSPinAlpha.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.udPSPinAlpha.Name = "udPSPinAlpha";
-            this.udPSPinAlpha.Size = new System.Drawing.Size(50, 20);
-            this.udPSPinAlpha.TabIndex = 63;
-            this.udPSPinAlpha.Value = new decimal(new int[] {
-            10,
-            0,
-            0,
-            131072});
-            this.toolTip1.SetToolTip(this.udPSPinAlpha, "COS/SIN start-point pin smoothing. Range 0.00–2.00.");
-            this.udPSPinAlpha.ValueChanged += new System.EventHandler(this.udPSPinAlpha_ValueChanged);
-            // 
             // chkPSEQ
             // 
             this.chkPSEQ.AutoSize = true;
@@ -257,22 +213,6 @@
             this.toolTip1.SetToolTip(this.chkPSEQ, "Enable density equalization of feedback samples before NURBS fitting.");
             this.chkPSEQ.UseVisualStyleBackColor = true;
             this.chkPSEQ.CheckedChanged += new System.EventHandler(this.chkPSEQ_CheckedChanged);
-            // 
-            // chkPSPin
-            // 
-            this.chkPSPin.AutoSize = true;
-            this.chkPSPin.Checked = true;
-            this.chkPSPin.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPSPin.ForeColor = System.Drawing.SystemColors.HighlightText;
-            this.chkPSPin.Image = null;
-            this.chkPSPin.Location = new System.Drawing.Point(480, 155);
-            this.chkPSPin.Name = "chkPSPin";
-            this.chkPSPin.Size = new System.Drawing.Size(40, 17);
-            this.chkPSPin.TabIndex = 70;
-            this.chkPSPin.Text = "Pin";
-            this.toolTip1.SetToolTip(this.chkPSPin, "Pin COS/SIN NURBS curves at the low-drive start point.");
-            this.chkPSPin.UseVisualStyleBackColor = true;
-            this.chkPSPin.CheckedChanged += new System.EventHandler(this.chkPSPin_CheckedChanged);
             // 
             // udPSOutlierSigma
             // 
@@ -1106,12 +1046,9 @@
             this.Controls.Add(this.udPSTargetFeedback);
             this.Controls.Add(this.lblPSTargetFeedback);
             this.Controls.Add(this.chkPSEQ);
-            this.Controls.Add(this.chkPSPin);
             this.Controls.Add(this.udPSDCBCap);
             this.Controls.Add(this.lblPSDCBCap);
             this.Controls.Add(this.chkPSDCB);
-            this.Controls.Add(this.udPSPinAlpha);
-            this.Controls.Add(this.lblPSPinAlpha);
             this.Controls.Add(this.udPSEMAAlpha);
             this.Controls.Add(this.lblPSEMAAlpha);
             this.Controls.Add(this.btnPSRestore);
@@ -1193,12 +1130,9 @@
         private System.Windows.Forms.NumericUpDownTS udPSTargetFeedback;
         private System.Windows.Forms.LabelTS lblPSTargetFeedback;
         private System.Windows.Forms.CheckBoxTS chkPSEQ;
-        private System.Windows.Forms.CheckBoxTS chkPSPin;
         private System.Windows.Forms.NumericUpDownTS udPSDCBCap;
         private System.Windows.Forms.LabelTS lblPSDCBCap;
         private System.Windows.Forms.CheckBoxTS chkPSDCB;
-        private System.Windows.Forms.NumericUpDownTS udPSPinAlpha;
-        private System.Windows.Forms.LabelTS lblPSPinAlpha;
         private System.Windows.Forms.NumericUpDownTS udPSEMAAlpha;
         private System.Windows.Forms.LabelTS lblPSEMAAlpha;
         private System.Windows.Forms.ButtonTS btnPSAmpView;
