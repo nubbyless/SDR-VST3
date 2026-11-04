@@ -47,6 +47,7 @@ typedef struct _calcc
 	volatile int scOK;
 	double hw_scale;
 	double rx_scale;
+	double deadlock_min_frac;
 
 	PSCOLLECTION ps_colct;
 
@@ -299,7 +300,7 @@ void print_EQ_Samples(CALCC a);
 #define SCHECK_PTS                40             
 #define SCHECK_TOL                0.10        
 #define TOP_BUCKET_PTS            100          
-#define DEADLOCK_MIN_FRAC         0.06           
+#define DEFAULT_DEADLOCK_MIN_FRAC 0.06           
 #define SC_IDENTITY_PTS           20           
 #define SC_IDENTITY_TOL		      0.05        
 
@@ -821,7 +822,7 @@ static int sin_cos_identity_check(CALCC a)
 	return error;
 }
 
-static double top_bucket_useful_frac(const CurveEMA* m, double bottom)
+static double top_bucket_useful_frac(const CurveEMA* m, double bottom, double min_frac)
 {
 	double dummy = 0.0;
 	int contiguous = 0;
@@ -834,7 +835,7 @@ static double top_bucket_useful_frac(const CurveEMA* m, double bottom)
 		else break;
 	}
 	frac_top_bucket = (double)contiguous / (double)TOP_BUCKET_PTS;
-	if(frac_top_bucket < DEADLOCK_MIN_FRAC)
+	if(frac_top_bucket < min_frac)
 		dprintf("***** PS: Top Bucket Available Fraction = %.4f\n", frac_top_bucket);
 	return frac_top_bucket;
 }
@@ -1029,6 +1030,7 @@ CALCC create_calcc (int channel, int runcal, int size, int rate, double hw_scale
 	a->size = size;
 	a->rate = rate;
 	a->hw_scale = hw_scale;
+	a->deadlock_min_frac = DEFAULT_DEADLOCK_MIN_FRAC;
 	a->ctrl.moxdelay = moxdelay;
 	a->ctrl.loopdelay = loopdelay;
 	a->mox = mox;
@@ -1983,7 +1985,7 @@ void pscc (int channel, int size, double* tx, double* rx)
 				else if (full)
 					a->ctrl.state = MOXCHECK;
 				else if (top_bucket_useful_frac(&a->m_calavg,
-					a->ps_colct->bbtm[SAMPLE_NBUCKS - 1]) < DEADLOCK_MIN_FRAC)
+					a->ps_colct->bbtm[SAMPLE_NBUCKS - 1], a->deadlock_min_frac) < a->deadlock_min_frac)
 				{
 					a->ctrl.state = LRESET;
 					a->info[6] |= 2;
@@ -2024,7 +2026,7 @@ void pscc (int channel, int size, double* tx, double* rx)
 					else if (a->scOK)
 					{
 						if (top_bucket_useful_frac(&a->m_calavg,
-							a->ps_colct->bbtm[SAMPLE_NBUCKS - 1]) < DEADLOCK_MIN_FRAC)
+							a->ps_colct->bbtm[SAMPLE_NBUCKS - 1], a->deadlock_min_frac) < a->deadlock_min_frac)
 						{
 							a->ctrl.state = LRESET;
 							a->info[6] |= 2;
@@ -2210,6 +2212,18 @@ void SetPSMoxDelay (int channel, double delay)
 	a = txa[channel].calcc.p;
 	a->ctrl.moxdelay = delay;
 	a->ctrl.moxsamps = (int)(a->rate * a->ctrl.moxdelay);
+	LeaveCriticalSection (&txa[channel].calcc.cs_update);
+}
+
+PORT
+void SetPSDeadlockMinFrac (int channel, double frac)
+{
+	CALCC a;
+	if (frac < 0.0) frac = 0.0;
+	if (frac > 1.0) frac = 1.0;
+	EnterCriticalSection (&txa[channel].calcc.cs_update);
+	a = txa[channel].calcc.p;
+	a->deadlock_min_frac = frac;
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
 }
 

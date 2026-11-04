@@ -74021,30 +74021,6 @@
             this.udPSTargetFeedbackLevel.Visible = false;
             ((System.ComponentModel.ISupportInitialize)(this.udPSTargetFeedbackLevel)).EndInit();
             this.Controls.Add(this.udPSTargetFeedbackLevel);
-            // Yurij_eu2av: hidden persisted PureSignal outlier settings
-            this.udPSOutlierSigma = new System.Windows.Forms.NumericUpDownTS();
-            ((System.ComponentModel.ISupportInitialize)(this.udPSOutlierSigma)).BeginInit();
-            this.udPSOutlierSigma.Location = new System.Drawing.Point(-100, -100);
-            this.udPSOutlierSigma.Name = "udPSOutlierSigma";
-            this.udPSOutlierSigma.Size = new System.Drawing.Size(50, 20);
-            this.udPSOutlierSigma.TabIndex = 999;
-            this.udPSOutlierSigma.DecimalPlaces = 1;
-            this.udPSOutlierSigma.Increment = new decimal(new int[] { 1, 0, 0, 65536 });
-            this.udPSOutlierSigma.Minimum = new decimal(new int[] { 1, 0, 0, 65536 });
-            this.udPSOutlierSigma.Maximum = new decimal(new int[] { 50, 0, 0, 65536 });
-            this.udPSOutlierSigma.Value = new decimal(new int[] { 25, 0, 0, 65536 });
-            this.udPSOutlierSigma.Visible = false;
-            ((System.ComponentModel.ISupportInitialize)(this.udPSOutlierSigma)).EndInit();
-            this.Controls.Add(this.udPSOutlierSigma);
-            this.chkPSOutlierEnable = new System.Windows.Forms.CheckBoxTS();
-            this.chkPSOutlierEnable.AutoSize = true;
-            this.chkPSOutlierEnable.Location = new System.Drawing.Point(-100, -100);
-            this.chkPSOutlierEnable.Name = "chkPSOutlierEnable";
-            this.chkPSOutlierEnable.Size = new System.Drawing.Size(80, 17);
-            this.chkPSOutlierEnable.TabIndex = 999;
-            this.chkPSOutlierEnable.Text = "Outlier";
-            this.chkPSOutlierEnable.Visible = false;
-            this.Controls.Add(this.chkPSOutlierEnable);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -78650,8 +78626,6 @@
         private CheckBoxTS chkWaterfall_smear;
         private CheckBoxTS chkN1mm_include_cw_shift;
         private NumericUpDownTS udPSTargetFeedbackLevel;
-        private NumericUpDownTS udPSOutlierSigma;
-        private CheckBoxTS chkPSOutlierEnable;
     }
 }
 

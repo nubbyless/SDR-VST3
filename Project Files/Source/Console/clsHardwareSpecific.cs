@@ -342,38 +342,6 @@ namespace Thetis
             }
         }
 
-        public static bool PSOutlierEnableDefault
-        {
-            get
-            {
-                switch (_model)
-                {
-                    case HPSDRModel.ANAN7000D:
-                    case HPSDRModel.ANAN8000D:
-                    case HPSDRModel.ANVELINAPRO3:
-                        return true;
-                    default:
-                        return false;
-                }
-            }
-        }
-
-        public static double PSOutlierSigmaDefault
-        {
-            get
-            {
-                switch (_model)
-                {
-                    case HPSDRModel.ANAN7000D:
-                    case HPSDRModel.ANAN8000D:
-                    case HPSDRModel.ANVELINAPRO3:
-                        return 5.0;
-                    default:
-                        return 2.5;
-                }
-            }
-        }
-
         #region STRING_CONVERSION
         // enums/string conversion
         public static HPSDRModel StringModelToEnum(string sModel)

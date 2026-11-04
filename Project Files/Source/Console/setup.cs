@@ -549,11 +549,9 @@ namespace Thetis
 
             initStreamOutTab(); //prior to getOptions setup streaming output options
 
-            // Yurij_eu2av: hardware-specific defaults for PureSignal advanced settings.
+            // Yurij_eu2av: hardware-specific default for PureSignal target feedback.
             // Done before getOptions() so a saved user override takes precedence.
             PSTargetFeedbackLevel = HardwareSpecific.PSTargetFeedbackLevel;
-            PSOutlierEnable = HardwareSpecific.PSOutlierEnableDefault;
-            PSOutlierSigma = HardwareSpecific.PSOutlierSigmaDefault;
 
             LogTool.AddLogEntry("        Setup getting options...", "GETOPTIONS");
             getOptions();
@@ -4401,37 +4399,6 @@ namespace Thetis
                     if (value > (int)udPSTargetFeedbackLevel.Maximum) value = (int)udPSTargetFeedbackLevel.Maximum;
                     if (value < (int)udPSTargetFeedbackLevel.Minimum) value = (int)udPSTargetFeedbackLevel.Minimum;
                     udPSTargetFeedbackLevel.Value = value;
-                }
-            }
-        }
-
-        public bool PSOutlierEnable
-        {
-            get
-            {
-                if (chkPSOutlierEnable != null) return chkPSOutlierEnable.Checked;
-                else return HardwareSpecific.PSOutlierEnableDefault;
-            }
-            set
-            {
-                if (chkPSOutlierEnable != null) chkPSOutlierEnable.Checked = value;
-            }
-        }
-
-        public double PSOutlierSigma
-        {
-            get
-            {
-                if (udPSOutlierSigma != null) return (double)udPSOutlierSigma.Value;
-                else return HardwareSpecific.PSOutlierSigmaDefault;
-            }
-            set
-            {
-                if (udPSOutlierSigma != null)
-                {
-                    if (value > (double)udPSOutlierSigma.Maximum) value = (double)udPSOutlierSigma.Maximum;
-                    if (value < (double)udPSOutlierSigma.Minimum) value = (double)udPSOutlierSigma.Minimum;
-                    udPSOutlierSigma.Value = (decimal)value;
                 }
             }
         }

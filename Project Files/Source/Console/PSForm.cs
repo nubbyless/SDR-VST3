@@ -74,8 +74,6 @@ namespace Thetis
             
             Common.RestoreForm(this, "PureSignal", false); // will also restore txtPSpeak //MW0LGE_21k9rc5
 
-            _advancedON = chkAdvancedViewHidden.Checked; //MW0LGE_[2.9.0.6]
-
             console.PowerChangeHanders += onPowerOn;
             console.ConsoleClosingHandlersAsync += onConsoleClosingAsync;
 
@@ -159,17 +157,13 @@ namespace Thetis
             set { m_bQuckAttenuate = value; }
         }
 
-        private int _ints = 16;
         public int Ints
         {
-            get { return _ints; }
-            set { _ints = value; }
+            get { return 16; }
         }
-        private int _spi = 256;
         public int Spi
         {
-            get { return _spi; }
-            set { _spi = value; }
+            get { return 256; }
         }
 
         public ToolTip ToolTip //[2.10.3.9]MW0LGE used by finder
@@ -399,8 +393,6 @@ namespace Thetis
             }
 
             txtPSpeak.Text = _PShwpeak.ToString();
-
-            setAdvancedView();  //MW0LGE_[2.9.0.7]
         }
 
         private void PSForm_Closing(object sender, FormClosingEventArgs e)
@@ -413,8 +405,6 @@ namespace Thetis
             //    ampv.Close();
             //    ampv = null;
             //}
-            //_advancedON = true;//MW0LGE_[2.9.0.7]
-            //btnPSAdvanced_Click(this, e); //MW0LGE_[2.9.0.7]
             this.Hide();
             e.Cancel = true;
             Common.SaveForm(this, "PureSignal");
@@ -866,75 +856,6 @@ namespace Thetis
             cmaster.PSLoopback = checkLoopback.Checked;
         }
 
-        private void chkPSStbl_CheckedChanged(object sender, EventArgs e)
-        {
-            // Yurij_eu2av: SetPSStabilize toggles CurveEMA smoothing in WDSP 2.00.
-            if (chkPSStbl.Checked)
-                puresignal.SetPSStabilize(_txachannel, 1);
-            else
-                puresignal.SetPSStabilize(_txachannel, 0);
-        }
-
-        private void udPSEMAAlpha_ValueChanged(object sender, EventArgs e)
-        {
-            puresignal.SetPSEMAAlpha(_txachannel, (double)udPSEMAAlpha.Value);
-        }
-
-        private void chkPSEQ_CheckedChanged(object sender, EventArgs e)
-        {
-            puresignal.SetPSEQEnable(_txachannel, chkPSEQ.Checked ? 1 : 0);
-        }
-
-        private void comboPSTint_SelectedIndexChanged(object sender, EventArgs e)
-        {
-            // Yurij_eu2av: WDSP 2.00 variable bucket configuration mapped to legacy TINT items.
-            switch (comboPSTint.SelectedIndex)
-            {
-                case 0:
-                    puresignal.SetPSIntsAndSpi(_txachannel, 16, 256);
-                    _ints = 16;
-                    _spi = 256;
-                    btnPSSave.Enabled = btnPSRestore.Enabled = true;
-                    break;
-                case 1:
-                    puresignal.SetPSIntsAndSpi(_txachannel, 8, 512);
-                    _ints = 8;
-                    _spi = 512;
-                    btnPSSave.Enabled = btnPSRestore.Enabled = false;
-                    break;
-                case 2:
-                    puresignal.SetPSIntsAndSpi(_txachannel, 4, 1024);
-                    _ints = 4;
-                    _spi = 1024;
-                    btnPSSave.Enabled = btnPSRestore.Enabled = false;
-                    break;
-                default:
-                    puresignal.SetPSIntsAndSpi(_txachannel, 16, 256);
-                    _ints = 16;
-                    _spi = 256;
-                    btnPSSave.Enabled = btnPSRestore.Enabled = true;
-                    break;
-            }
-        }
-
-        private void udPSOutlierSigma_ValueChanged(object sender, EventArgs e)
-        {
-            if (_psFormReady && console != null && console.SetupForm != null)
-                console.SetupForm.PSOutlierSigma = (double)udPSOutlierSigma.Value;
-            if (chkPSOutlierEnable.Checked)
-                puresignal.SetPSOutlierSigma(_txachannel, (double)udPSOutlierSigma.Value);
-        }
-
-        private void chkPSOutlierEnable_CheckedChanged(object sender, EventArgs e)
-        {
-            if (_psFormReady && console != null && console.SetupForm != null)
-                console.SetupForm.PSOutlierEnable = chkPSOutlierEnable.Checked;
-            if (chkPSOutlierEnable.Checked)
-                puresignal.SetPSOutlierSigma(_txachannel, (double)udPSOutlierSigma.Value);
-            else
-                puresignal.SetPSOutlierSigma(_txachannel, 0.0);
-        }
-
         private void udPSTargetFeedback_ValueChanged(object sender, EventArgs e)
         {
             puresignal.TargetFeedbackLevel = (int)udPSTargetFeedback.Value;
@@ -942,52 +863,22 @@ namespace Thetis
                 console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
         }
 
-        private void chkPSDCB_CheckedChanged(object sender, EventArgs e)
+        private void comboPSDeadlock_SelectedIndexChanged(object sender, EventArgs e)
         {
-            puresignal.SetPSDCBEnable(_txachannel, chkPSDCB.Checked ? 1 : 0);
+            // DL1BZ: adjustable WDSP 2.00+ deadlock minimum useful fraction.
+            // Strict = WDSP default, Medium/Relaxed restore 1.29-style stability.
+            double frac;
+            switch (comboPSDeadlock.SelectedIndex)
+            {
+                case 1: frac = 0.04; break; // Medium
+                case 2: frac = 0.02; break; // Relaxed
+                default: frac = 0.06; break; // Strict
+            }
+
+            if (_psFormReady)
+                puresignal.SetPSDeadlockMinFrac(_txachannel, frac);
         }
 
-        private void udPSDCBCap_ValueChanged(object sender, EventArgs e)
-        {
-            puresignal.SetPSDCBCap(_txachannel, (double)udPSDCBCap.Value);
-        }
-
-        private void btnPSResetEngine_Click(object sender, EventArgs e)
-        {
-            SetPSAdvancedDefaults();
-        }
-
-        private void SetPSAdvancedDefaults()
-        {
-            // WDSP 2.00 PureSignal 3.0 recommended defaults
-            chkPSStbl.Checked = true;
-            udPSEMAAlpha.Value = 1.00m;
-            chkPSEQ.Checked = true;
-            comboPSTint.SelectedIndex = 0;
-            udPSOutlierSigma.Value = (decimal)console.SetupForm.PSOutlierSigma;
-            chkPSOutlierEnable.Checked = console.SetupForm.PSOutlierEnable;
-            udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
-            chkPSDCB.Checked = false;
-            udPSDCBCap.Value = 0.25m;
-
-            puresignal.ResetPSAdvancedParams(_txachannel);
-        }
-
-        private bool _advancedON = false; //MW0LGE_[2.9.0.7]
-        private void btnPSAdvanced_Click(object sender, EventArgs e)
-        {
-            _advancedON = !_advancedON;
-            setAdvancedView();
-        }
-        private void setAdvancedView()
-        {
-            if (_advancedON)
-                console.psform.ClientSize = new System.Drawing.Size(680, 375);
-            else
-                console.psform.ClientSize = new System.Drawing.Size(680, 375);
-
-            chkAdvancedViewHidden.Checked = _advancedON;
-        }
         private void chkPSOnTop_CheckedChanged(object sender, EventArgs e)
         {
             _topmost = chkPSOnTop.Checked;
@@ -1031,18 +922,9 @@ namespace Thetis
             udPSPhnum_ValueChanged(this, e);
             udPSMoxDelay_ValueChanged(this, e);
             chkPSAutoAttenuate_CheckedChanged(this, e);
-            chkPSStbl_CheckedChanged(this, e);
-            udPSEMAAlpha_ValueChanged(this, e);
-            chkPSEQ_CheckedChanged(this, e);
-            comboPSTint_SelectedIndexChanged(this, e);
             udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
             udPSTargetFeedback_ValueChanged(this, e);
-            udPSOutlierSigma.Value = (decimal)console.SetupForm.PSOutlierSigma;
-            chkPSOutlierEnable.Checked = console.SetupForm.PSOutlierEnable;
-            chkPSOutlierEnable_CheckedChanged(this, e);
-            udPSOutlierSigma_ValueChanged(this, e);
-            chkPSDCB_CheckedChanged(this, e);
-            udPSDCBCap_ValueChanged(this, e);
+            comboPSDeadlock_SelectedIndexChanged(this, e);
             chkPSOnTop_CheckedChanged(this, e);
             chkQuickAttenuate_CheckedChanged(this, e);
             chkShow2ToneMeasurements_CheckedChanged(this, e);
@@ -1108,6 +990,9 @@ namespace Thetis
         [DllImport("wdsp.dll", EntryPoint = "SetPSMoxDelay", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSMoxDelay(int channel, double delay);
 
+        [DllImport("wdsp.dll", EntryPoint = "SetPSDeadlockMinFrac", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetPSDeadlockMinFrac(int channel, double frac);
+
         [DllImport("wdsp.dll", EntryPoint = "SetPSTXDelay", CallingConvention = CallingConvention.Cdecl)]
         public static extern double SetPSTXDelay(int channel, double delay);
 
@@ -1131,31 +1016,6 @@ namespace Thetis
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSFeedbackRate", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSFeedbackRate(int channel, int rate);
-
-        // Yurij_eu2av: PureSignal 3.0 (WDSP 2.00) advanced property functions
-        [DllImport("wdsp.dll", EntryPoint = "SetPSStabilize", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSStabilize(int channel, int stbl);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSEMAAlpha", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSEMAAlpha(int channel, double alpha);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSIntsAndSpi", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSIntsAndSpi(int channel, int ints, int spi);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSDCBEnable", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSDCBEnable(int channel, int enable);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSDCBCap", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSDCBCap(int channel, double cap);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSEQEnable", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSEQEnable(int channel, int enable);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSOutlierSigma", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSOutlierSigma(int channel, double sigma);
-
-        [DllImport("wdsp.dll", EntryPoint = "ResetPSAdvancedParams", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void ResetPSAdvancedParams(int channel);
 
         #endregion
 

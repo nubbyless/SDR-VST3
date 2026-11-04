@@ -31,23 +31,12 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PSForm));
             this.chkPSOnTop = new System.Windows.Forms.CheckBoxTS();
-            this.btnPSResetEngine = new System.Windows.Forms.ButtonTS();
-            this.comboPSTint = new System.Windows.Forms.ComboBoxTS();
-            this.udPSOutlierSigma = new System.Windows.Forms.NumericUpDownTS();
-            this.lblPSOutlierSigma = new System.Windows.Forms.LabelTS();
-            this.chkPSOutlierEnable = new System.Windows.Forms.CheckBoxTS();
             this.udPSTargetFeedback = new System.Windows.Forms.NumericUpDownTS();
             this.lblPSTargetFeedback = new System.Windows.Forms.LabelTS();
-            this.chkPSEQ = new System.Windows.Forms.CheckBoxTS();
-            this.udPSDCBCap = new System.Windows.Forms.NumericUpDownTS();
-            this.lblPSDCBCap = new System.Windows.Forms.LabelTS();
-            this.chkPSDCB = new System.Windows.Forms.CheckBoxTS();
-            this.udPSEMAAlpha = new System.Windows.Forms.NumericUpDownTS();
-            this.lblPSEMAAlpha = new System.Windows.Forms.LabelTS();
+            this.comboPSDeadlock = new System.Windows.Forms.ComboBoxTS();
+            this.lblPSDeadlock = new System.Windows.Forms.LabelTS();
             this.btnPSRestore = new System.Windows.Forms.ButtonTS();
             this.btnPSSave = new System.Windows.Forms.ButtonTS();
-            this.btnPSAdvanced = new System.Windows.Forms.ButtonTS();
-            this.chkPSStbl = new System.Windows.Forms.CheckBoxTS();
             this.chkPSAutoAttenuate = new System.Windows.Forms.CheckBoxTS();
             this.btnPSAmpView = new System.Windows.Forms.ButtonTS();
             this.btnPSTwoToneGen = new System.Windows.Forms.ButtonTS();
@@ -89,7 +78,6 @@
             this.labelTS140 = new System.Windows.Forms.LabelTS();
             this.udPSCalWait = new System.Windows.Forms.NumericUpDownTS();
             this.chkQuickAttenuate = new System.Windows.Forms.CheckBoxTS();
-            this.chkAdvancedViewHidden = new System.Windows.Forms.CheckBoxTS();
             this.pbWarningSetPk = new System.Windows.Forms.PictureBox();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.chkShow2ToneMeasurements = new System.Windows.Forms.CheckBoxTS();
@@ -143,132 +131,6 @@
             this.btnPSSave.UseVisualStyleBackColor = false;
             this.btnPSSave.Click += new System.EventHandler(this.btnPSSave_Click);
             // 
-            // btnPSAdvanced
-            // 
-            this.btnPSAdvanced.BackColor = System.Drawing.SystemColors.Control;
-            this.btnPSAdvanced.Image = null;
-            this.btnPSAdvanced.Location = new System.Drawing.Point(245, 12);
-            this.btnPSAdvanced.Name = "btnPSAdvanced";
-            this.btnPSAdvanced.Selectable = true;
-            this.btnPSAdvanced.Size = new System.Drawing.Size(71, 20);
-            this.btnPSAdvanced.TabIndex = 46;
-            this.btnPSAdvanced.Text = "Advanced";
-            this.btnPSAdvanced.UseVisualStyleBackColor = false;
-            this.btnPSAdvanced.Click += new System.EventHandler(this.btnPSAdvanced_Click);
-            // 
-            // 
-            // lblPSEMAAlpha
-            // 
-            this.lblPSEMAAlpha.AutoSize = true;
-            this.lblPSEMAAlpha.ForeColor = System.Drawing.Color.White;
-            this.lblPSEMAAlpha.Image = null;
-            this.lblPSEMAAlpha.Location = new System.Drawing.Point(434, 65);
-            this.lblPSEMAAlpha.Name = "lblPSEMAAlpha";
-            this.lblPSEMAAlpha.Size = new System.Drawing.Size(45, 13);
-            this.lblPSEMAAlpha.TabIndex = 60;
-            this.lblPSEMAAlpha.Text = "EMA α";
-            // 
-            // udPSEMAAlpha
-            // 
-            this.udPSEMAAlpha.DecimalPlaces = 2;
-            this.udPSEMAAlpha.Increment = new decimal(new int[] {
-            5,
-            0,
-            0,
-            131072});
-            this.udPSEMAAlpha.Location = new System.Drawing.Point(490, 63);
-            this.udPSEMAAlpha.Maximum = new decimal(new int[] {
-            200,
-            0,
-            0,
-            131072});
-            this.udPSEMAAlpha.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.udPSEMAAlpha.Name = "udPSEMAAlpha";
-            this.udPSEMAAlpha.Size = new System.Drawing.Size(50, 20);
-            this.udPSEMAAlpha.TabIndex = 61;
-            this.udPSEMAAlpha.Value = new decimal(new int[] {
-            100,
-            0,
-            0,
-            131072});
-            this.toolTip1.SetToolTip(this.udPSEMAAlpha, "EMA alpha across calibration cycles (0 = frozen, 1 = no smoothing, range 0.00–2.00).");
-            this.udPSEMAAlpha.ValueChanged += new System.EventHandler(this.udPSEMAAlpha_ValueChanged);
-            // 
-            // chkPSEQ
-            // 
-            this.chkPSEQ.AutoSize = true;
-            this.chkPSEQ.Checked = true;
-            this.chkPSEQ.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPSEQ.ForeColor = System.Drawing.SystemColors.HighlightText;
-            this.chkPSEQ.Image = null;
-            this.chkPSEQ.Location = new System.Drawing.Point(434, 155);
-            this.chkPSEQ.Name = "chkPSEQ";
-            this.chkPSEQ.Size = new System.Drawing.Size(40, 17);
-            this.chkPSEQ.TabIndex = 64;
-            this.chkPSEQ.Text = "EQ";
-            this.toolTip1.SetToolTip(this.chkPSEQ, "Enable density equalization of feedback samples before NURBS fitting.");
-            this.chkPSEQ.UseVisualStyleBackColor = true;
-            this.chkPSEQ.CheckedChanged += new System.EventHandler(this.chkPSEQ_CheckedChanged);
-            // 
-            // udPSOutlierSigma
-            // 
-            this.udPSOutlierSigma.DecimalPlaces = 1;
-            this.udPSOutlierSigma.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-            this.udPSOutlierSigma.Location = new System.Drawing.Point(505, 109);
-            this.udPSOutlierSigma.Maximum = new decimal(new int[] {
-            50,
-            0,
-            0,
-            65536});
-            this.udPSOutlierSigma.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            65536});
-            this.udPSOutlierSigma.Name = "udPSOutlierSigma";
-            this.udPSOutlierSigma.Size = new System.Drawing.Size(50, 20);
-            this.udPSOutlierSigma.TabIndex = 65;
-            this.udPSOutlierSigma.Value = new decimal(new int[] {
-            25,
-            0,
-            0,
-            65536});
-            this.toolTip1.SetToolTip(this.udPSOutlierSigma, "Outlier-rejection sigma. Range 0.1–5.0 (lower = more aggressive culling). Default 5.0 for Orion MK2 rigs.");
-            this.udPSOutlierSigma.ValueChanged += new System.EventHandler(this.udPSOutlierSigma_ValueChanged);
-            // 
-            // lblPSOutlierSigma
-            // 
-            this.lblPSOutlierSigma.AutoSize = true;
-            this.lblPSOutlierSigma.ForeColor = System.Drawing.Color.White;
-            this.lblPSOutlierSigma.Image = null;
-            this.lblPSOutlierSigma.Location = new System.Drawing.Point(485, 111);
-            this.lblPSOutlierSigma.Name = "lblPSOutlierSigma";
-            this.lblPSOutlierSigma.Size = new System.Drawing.Size(14, 13);
-            this.lblPSOutlierSigma.TabIndex = 69;
-            this.lblPSOutlierSigma.Text = "σ";
-            // 
-            // chkPSOutlierEnable
-            // 
-            this.chkPSOutlierEnable.AutoSize = true;
-            this.chkPSOutlierEnable.ForeColor = System.Drawing.SystemColors.HighlightText;
-            this.chkPSOutlierEnable.Image = null;
-            this.chkPSOutlierEnable.Location = new System.Drawing.Point(434, 111);
-            this.chkPSOutlierEnable.Name = "chkPSOutlierEnable";
-            this.chkPSOutlierEnable.Size = new System.Drawing.Size(54, 17);
-            this.chkPSOutlierEnable.TabIndex = 72;
-            this.chkPSOutlierEnable.Text = "Outlier";
-            this.toolTip1.SetToolTip(this.chkPSOutlierEnable, "Enable robust outlier rejection before cubic-spline fitting. Default ON at sigma 5.0 for Orion MK2 rigs (ANAN-7000/8000/Anvelina PRO3).");
-            this.chkPSOutlierEnable.UseVisualStyleBackColor = true;
-            this.chkPSOutlierEnable.CheckedChanged += new System.EventHandler(this.chkPSOutlierEnable_CheckedChanged);
-            // 
             // udPSTargetFeedback
             // 
             this.udPSTargetFeedback.Location = new System.Drawing.Point(490, 131);
@@ -304,107 +166,33 @@
             this.lblPSTargetFeedback.TabIndex = 74;
             this.lblPSTargetFeedback.Text = "FB Target";
             // 
-            // chkPSDCB
+            // lblPSDeadlock
             // 
-            this.chkPSDCB.AutoSize = true;
-            this.chkPSDCB.ForeColor = System.Drawing.SystemColors.HighlightText;
-            this.chkPSDCB.Image = null;
-            this.chkPSDCB.Location = new System.Drawing.Point(434, 178);
-            this.chkPSDCB.Name = "chkPSDCB";
-            this.chkPSDCB.Size = new System.Drawing.Size(46, 17);
-            this.chkPSDCB.TabIndex = 66;
-            this.chkPSDCB.Text = "DCB";
-            this.toolTip1.SetToolTip(this.chkPSDCB, "Enable DC-balance / anchor correction for noisy low-level feedback.");
-            this.chkPSDCB.UseVisualStyleBackColor = true;
-            this.chkPSDCB.CheckedChanged += new System.EventHandler(this.chkPSDCB_CheckedChanged);
+            this.lblPSDeadlock.AutoSize = true;
+            this.lblPSDeadlock.ForeColor = System.Drawing.Color.White;
+            this.lblPSDeadlock.Image = null;
+            this.lblPSDeadlock.Location = new System.Drawing.Point(434, 158);
+            this.lblPSDeadlock.Name = "lblPSDeadlock";
+            this.lblPSDeadlock.Size = new System.Drawing.Size(69, 13);
+            this.lblPSDeadlock.TabIndex = 76;
+            this.lblPSDeadlock.Text = "PS Correction";
             // 
-            // udPSDCBCap
+            // comboPSDeadlock
             // 
-            this.udPSDCBCap.DecimalPlaces = 2;
-            this.udPSDCBCap.Increment = new decimal(new int[] {
-            5,
-            0,
-            0,
-            131072});
-            this.udPSDCBCap.Location = new System.Drawing.Point(510, 176);
-            this.udPSDCBCap.Maximum = new decimal(new int[] {
-            100,
-            0,
-            0,
-            131072});
-            this.udPSDCBCap.Minimum = new decimal(new int[] {
-            0,
-            0,
-            0,
-            0});
-            this.udPSDCBCap.Name = "udPSDCBCap";
-            this.udPSDCBCap.Size = new System.Drawing.Size(40, 20);
-            this.udPSDCBCap.TabIndex = 67;
-            this.udPSDCBCap.Value = new decimal(new int[] {
-            25,
-            0,
-            0,
-            131072});
-            this.toolTip1.SetToolTip(this.udPSDCBCap, "DC-balance cap (max anchor magnitude).");
-            this.udPSDCBCap.ValueChanged += new System.EventHandler(this.udPSDCBCap_ValueChanged);
-            // 
-            // lblPSDCBCap
-            // 
-            this.lblPSDCBCap.AutoSize = true;
-            this.lblPSDCBCap.ForeColor = System.Drawing.Color.White;
-            this.lblPSDCBCap.Image = null;
-            this.lblPSDCBCap.Location = new System.Drawing.Point(480, 178);
-            this.lblPSDCBCap.Name = "lblPSDCBCap";
-            this.lblPSDCBCap.Size = new System.Drawing.Size(26, 13);
-            this.lblPSDCBCap.TabIndex = 70;
-            this.lblPSDCBCap.Text = "Cap";
-            // 
-            // chkPSStbl
-            // 
-            this.chkPSStbl.AutoSize = true;
-            this.chkPSStbl.Checked = true;
-            this.chkPSStbl.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkPSStbl.ForeColor = System.Drawing.SystemColors.HighlightText;
-            this.chkPSStbl.Image = null;
-            this.chkPSStbl.Location = new System.Drawing.Point(434, 201);
-            this.chkPSStbl.Name = "chkPSStbl";
-            this.chkPSStbl.Size = new System.Drawing.Size(53, 17);
-            this.chkPSStbl.TabIndex = 44;
-            this.chkPSStbl.Text = "STBL";
-            this.toolTip1.SetToolTip(this.chkPSStbl, "Enable EMA smoothing of calibration curves across cycles.");
-            this.chkPSStbl.UseVisualStyleBackColor = true;
-            this.chkPSStbl.CheckedChanged += new System.EventHandler(this.chkPSStbl_CheckedChanged);
-            // 
-            // btnPSResetEngine
-            // 
-            this.btnPSResetEngine.BackColor = System.Drawing.SystemColors.Control;
-            this.btnPSResetEngine.ForeColor = System.Drawing.SystemColors.ControlText;
-            this.btnPSResetEngine.Image = null;
-            this.btnPSResetEngine.Location = new System.Drawing.Point(434, 224);
-            this.btnPSResetEngine.Name = "btnPSResetEngine";
-            this.btnPSResetEngine.Selectable = true;
-            this.btnPSResetEngine.Size = new System.Drawing.Size(120, 20);
-            this.btnPSResetEngine.TabIndex = 68;
-            this.btnPSResetEngine.Text = "Reset PSA defaults";
-            this.toolTip1.SetToolTip(this.btnPSResetEngine, "Restore WDSP 2.00 recommended PureSignal default parameters.");
-            this.btnPSResetEngine.UseVisualStyleBackColor = false;
-            this.btnPSResetEngine.Click += new System.EventHandler(this.btnPSResetEngine_Click);
-            // 
-            // comboPSTint
-            // 
-            this.comboPSTint.ForeColor = System.Drawing.Color.Black;
-            this.comboPSTint.FormattingEnabled = true;
-            this.comboPSTint.Items.AddRange(new object[] {
-            "0.5",
-            "1.1",
-            "2.5"});
-            this.comboPSTint.Location = new System.Drawing.Point(434, 250);
-            this.comboPSTint.Name = "comboPSTint";
-            this.comboPSTint.Size = new System.Drawing.Size(100, 21);
-            this.comboPSTint.TabIndex = 71;
-            this.comboPSTint.Text = "0.5";
-            this.toolTip1.SetToolTip(this.comboPSTint, "Bucket configuration: 0.5=16x256, 1.1=8x512, 2.5=4x1024.");
-            this.comboPSTint.SelectedIndexChanged += new System.EventHandler(this.comboPSTint_SelectedIndexChanged);
+            this.comboPSDeadlock.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboPSDeadlock.ForeColor = System.Drawing.Color.Black;
+            this.comboPSDeadlock.FormattingEnabled = true;
+            this.comboPSDeadlock.Items.AddRange(new object[] {
+            "Strict",
+            "Medium",
+            "Relaxed"});
+            this.comboPSDeadlock.Location = new System.Drawing.Point(520, 154);
+            this.comboPSDeadlock.Name = "comboPSDeadlock";
+            this.comboPSDeadlock.Size = new System.Drawing.Size(100, 21);
+            this.comboPSDeadlock.TabIndex = 75;
+            this.comboPSDeadlock.SelectedIndex = 0;
+            this.toolTip1.SetToolTip(this.comboPSDeadlock, "PureSignal correction aggressiveness via the deadlock minimum useful fraction. Strict = 0.06 (WDSP 2.00 default), Medium = 0.04, Relaxed = 0.02 (closest to 1.29).");
+            this.comboPSDeadlock.SelectedIndexChanged += new System.EventHandler(this.comboPSDeadlock_SelectedIndexChanged);
             // 
             // chkPSAutoAttenuate
             // 
@@ -990,19 +778,6 @@
             this.chkQuickAttenuate.UseVisualStyleBackColor = true;
             this.chkQuickAttenuate.CheckedChanged += new System.EventHandler(this.chkQuickAttenuate_CheckedChanged);
             // 
-            // chkAdvancedViewHidden
-            // 
-            this.chkAdvancedViewHidden.AutoSize = true;
-            this.chkAdvancedViewHidden.BackColor = System.Drawing.SystemColors.ControlLightLight;
-            this.chkAdvancedViewHidden.Image = null;
-            this.chkAdvancedViewHidden.Location = new System.Drawing.Point(397, 189);
-            this.chkAdvancedViewHidden.Name = "chkAdvancedViewHidden";
-            this.chkAdvancedViewHidden.Size = new System.Drawing.Size(150, 17);
-            this.chkAdvancedViewHidden.TabIndex = 50;
-            this.chkAdvancedViewHidden.Text = "chkAdvancedViewHidden";
-            this.chkAdvancedViewHidden.UseVisualStyleBackColor = false;
-            this.chkAdvancedViewHidden.Visible = false;
-            // 
             // pbWarningSetPk
             // 
             this.pbWarningSetPk.Image = ((System.Drawing.Image)(resources.GetObject("pbWarningSetPk.Image")));
@@ -1035,26 +810,14 @@
             this.ClientSize = new System.Drawing.Size(680, 375);
             this.Controls.Add(this.chkShow2ToneMeasurements);
             this.Controls.Add(this.pbWarningSetPk);
-            this.Controls.Add(this.chkAdvancedViewHidden);
             this.Controls.Add(this.chkQuickAttenuate);
             this.Controls.Add(this.chkPSOnTop);
-            this.Controls.Add(this.btnPSResetEngine);
-            this.Controls.Add(this.comboPSTint);
-            this.Controls.Add(this.udPSOutlierSigma);
-            this.Controls.Add(this.lblPSOutlierSigma);
-            this.Controls.Add(this.chkPSOutlierEnable);
             this.Controls.Add(this.udPSTargetFeedback);
             this.Controls.Add(this.lblPSTargetFeedback);
-            this.Controls.Add(this.chkPSEQ);
-            this.Controls.Add(this.udPSDCBCap);
-            this.Controls.Add(this.lblPSDCBCap);
-            this.Controls.Add(this.chkPSDCB);
-            this.Controls.Add(this.udPSEMAAlpha);
-            this.Controls.Add(this.lblPSEMAAlpha);
+            this.Controls.Add(this.comboPSDeadlock);
+            this.Controls.Add(this.lblPSDeadlock);
             this.Controls.Add(this.btnPSRestore);
             this.Controls.Add(this.btnPSSave);
-            this.Controls.Add(this.btnPSAdvanced);
-            this.Controls.Add(this.chkPSStbl);
             this.Controls.Add(this.chkPSAutoAttenuate);
             this.Controls.Add(this.btnPSAmpView);
             this.Controls.Add(this.btnPSTwoToneGen);
@@ -1122,19 +885,10 @@
         private System.Windows.Forms.TextBoxTS txtPSpeak;
         private System.Windows.Forms.TextBoxTS GetPSpeak;
         private System.Windows.Forms.LabelTS labelTS3;
-        private System.Windows.Forms.ButtonTS btnPSResetEngine;
-        private System.Windows.Forms.ComboBoxTS comboPSTint;
-        private System.Windows.Forms.NumericUpDownTS udPSOutlierSigma;
-        private System.Windows.Forms.LabelTS lblPSOutlierSigma;
-        private System.Windows.Forms.CheckBoxTS chkPSOutlierEnable;
         private System.Windows.Forms.NumericUpDownTS udPSTargetFeedback;
         private System.Windows.Forms.LabelTS lblPSTargetFeedback;
-        private System.Windows.Forms.CheckBoxTS chkPSEQ;
-        private System.Windows.Forms.NumericUpDownTS udPSDCBCap;
-        private System.Windows.Forms.LabelTS lblPSDCBCap;
-        private System.Windows.Forms.CheckBoxTS chkPSDCB;
-        private System.Windows.Forms.NumericUpDownTS udPSEMAAlpha;
-        private System.Windows.Forms.LabelTS lblPSEMAAlpha;
+        private System.Windows.Forms.ComboBoxTS comboPSDeadlock;
+        private System.Windows.Forms.LabelTS lblPSDeadlock;
         private System.Windows.Forms.ButtonTS btnPSAmpView;
         private System.Windows.Forms.CheckBoxTS chkPSAutoAttenuate;
         private System.Windows.Forms.LabelTS lblPSInfo5;
@@ -1144,12 +898,9 @@
         private System.Windows.Forms.LabelTS lblPSInfo6;
         private System.Windows.Forms.LabelTS labelTS7;
         private System.Windows.Forms.CheckBoxTS checkLoopback;
-        private System.Windows.Forms.CheckBoxTS chkPSStbl;
-        private System.Windows.Forms.ButtonTS btnPSAdvanced;
         private System.Windows.Forms.CheckBoxTS chkPSOnTop;
         private System.Windows.Forms.CheckBoxTS chkQuickAttenuate;
         private System.Windows.Forms.ButtonTS btnDefaultPeaks;
-        private System.Windows.Forms.CheckBoxTS chkAdvancedViewHidden;
         private System.Windows.Forms.PictureBox pbWarningSetPk;
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.CheckBoxTS chkShow2ToneMeasurements;
