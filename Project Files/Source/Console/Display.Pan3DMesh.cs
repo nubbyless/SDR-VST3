@@ -106,8 +106,8 @@ namespace Thetis
         {
             // NOTE: whichever rx's pane is drawn LAST owns the single GPU surface
             // this frame; the other pane falls back to the D2D 3D renderer via
-            // GpuMesh3DOwnerRX. The history ring itself is fed by RX1 only
-            // (pre-existing behaviour shared with the D2D path).
+            // GpuMesh3DOwnerRX. Each receiver has its own history ring, so the
+            // surface always reads the owning receiver's data.
             _meshParams.W = W;
             _meshParams.PlotH = H;
             _meshParams.TargetH = displayTargetHeight;
@@ -562,15 +562,18 @@ namespace Thetis
         {
             if (!GpuMeshEnabled || m_eRenderPath != DXRenderPath.Hardware || _device == null || !_bDX2Setup)
                 return false;
-            if (!_pan3DEnabled || _3dHistoryBuffer == null || _3dHistoryCount < 3 || !_meshParams.Valid)
+            if (!_pan3DEnabled || !_meshParams.Valid)
+                return false;
+            int ri = Rx3DIndex(_meshParams.RX);
+            if (_3dHistoryBuffer[ri] == null || _3dHistoryCount[ri] < 3)
                 return false;
             if (_paused_display || localMox(1)) return false;
 
             try
             {
-                float[][] histBuf = _3dHistoryBuffer;
-                int histHead = _3dHistoryHead;
-                int histCount = _3dHistoryCount;
+                float[][] histBuf = _3dHistoryBuffer[ri];
+                int histHead = _3dHistoryHead[ri];
+                int histCount = _3dHistoryCount[ri];
 
                 int linesToDraw = Math.Min(histCount, _pan3DLineCount);
                 if (linesToDraw < 3) return false;
@@ -591,7 +594,7 @@ namespace Thetis
                     // matches push throttle; independent of Waterfall Sync (palette-only)
                     long interval = _3dPushIntervalTicks;
                     if (interval < 10000) interval = 10000;
-                    phase = (nowTicks - _3dLastPushTicks) / (float)interval;
+                    phase = (nowTicks - _3dLastPushTicks[ri]) / (float)interval;
                     if (phase < 0f) phase = 0f; else if (phase > 1f) phase = 1f;
                 }
 

@@ -260,9 +260,12 @@ namespace Thetis
         // 3D panadapter ring buffer
         public const int Max3DHistoryLines = 60;
         public const int Max3DLinesSoftwareRender = 15; // WARP rasterises every stroke on the CPU, keep the row count sane
-        private static float[][] _3dHistoryBuffer;
-        private static int _3dHistoryCount;
-        private static int _3dHistoryHead;
+        // per-receiver rings: index 0 = RX1, 1 = RX2
+        private static readonly float[][][] _3dHistoryBuffer = new float[2][][];
+        private static readonly int[] _3dHistoryCount = new int[2];
+        private static readonly int[] _3dHistoryHead = new int[2];
+
+        private static int Rx3DIndex(int rx) { return rx == 2 ? 1 : 0; }
 
         // 3D panadapter perspective constants (matched to AetherSDR DssRenderer)
         private static float _pan3DPerspective = 0.60f;   // back rows = 60% of front width (kBackWidthFrac)
@@ -278,12 +281,12 @@ namespace Thetis
         private static System.Collections.Generic.Dictionary<int, ID2D1SolidColorBrush> _3dBrushCache; // cross-frame solid brush pool (cleared on device teardown)
         private static byte[] _colormapLUT;               // 3 maps x 256 entries x RGB
 
-        // 3D panadapter temporal median filter (impulse rejection)
-        private static float[][] _3dMedianPrev;
-        private static int _3dMedianCount;
+        // 3D panadapter temporal median filter (impulse rejection), per receiver
+        private static readonly float[][][] _3dMedianPrev = new float[2][][];
+        private static readonly int[] _3dMedianCount = new int[2];
 
         // 3D panadapter row push throttle — configurable FPS
-        private static long _3dLastPushTicks = 0;
+        private static readonly long[] _3dLastPushTicks = new long[2];
         private static long _3dPushIntervalTicks = 400000; // default ~25 FPS (100ns ticks)
         public static int Pan3DSpeed
         {
@@ -547,9 +550,12 @@ namespace Thetis
                 _pan3DEnabled = value;
                 if (!value)
                 {
-                    _3dHistoryCount = 0;
-                    _3dHistoryHead = 0;
-                    _3dMedianCount = 0;
+                    for (int i = 0; i < 2; i++)
+                    {
+                        _3dHistoryCount[i] = 0;
+                        _3dHistoryHead[i] = 0;
+                        _3dMedianCount[i] = 0;
+                    }
                 }
             }
         }
@@ -3819,22 +3825,25 @@ namespace Thetis
 
                     SetDX2BackgoundImage(console.PnlDisplayBackgroundImage);
 
-                    // initialize 3D panadapter ring buffer
+                    // initialize 3D panadapter ring buffers (one per receiver)
                     // build locally and assign once — an atomic reference swap keeps any concurrent
                     // push on the display thread memory-safe (it finishes against the old arrays)
-                    float[][] histBuf = new float[Max3DHistoryLines][];
-                    for (int i = 0; i < Max3DHistoryLines; i++)
-                        histBuf[i] = new float[1]; // will be resized on first use
-                    _3dHistoryBuffer = histBuf;
-                    _3dHistoryCount = 0;
-                    _3dHistoryHead = 0;
+                    for (int rxIdx = 0; rxIdx < 2; rxIdx++)
+                    {
+                        float[][] histBuf = new float[Max3DHistoryLines][];
+                        for (int i = 0; i < Max3DHistoryLines; i++)
+                            histBuf[i] = new float[1]; // will be resized on first use
+                        _3dHistoryBuffer[rxIdx] = histBuf;
+                        _3dHistoryCount[rxIdx] = 0;
+                        _3dHistoryHead[rxIdx] = 0;
 
-                    // initialize 3D temporal median filter buffers
-                    float[][] medBuf = new float[2][];
-                    medBuf[0] = new float[1];
-                    medBuf[1] = new float[1];
-                    _3dMedianPrev = medBuf;
-                    _3dMedianCount = 0;
+                        // initialize 3D temporal median filter buffers
+                        float[][] medBuf = new float[2][];
+                        medBuf[0] = new float[1];
+                        medBuf[1] = new float[1];
+                        _3dMedianPrev[rxIdx] = medBuf;
+                        _3dMedianCount[rxIdx] = 0;
+                    }
 
                     Common.MeshDiagLog("DirectX initialised : render path=" + RenderPathString() + ", adapter='" + _gpu + "', feature level=" + featureLevelString() + (m_bForceCPURendering ? " (forced CPU)" : ""));
                 }
@@ -5781,83 +5790,7 @@ namespace Thetis
 
                     // write to 3D panadapter ring buffer at the spinner-configured rate;
                     // Waterfall Sync couples palette/levels only, never scroll rate
-                    long nowTicks = DateTime.UtcNow.Ticks;
-                    long effectiveInterval = _3dPushIntervalTicks;
-                    if (effectiveInterval < 10000) effectiveInterval = 10000; // floor at 1ms
-                    if (_pan3DEnabled && _3dHistoryBuffer != null &&
-                        (nowTicks - _3dLastPushTicks >= effectiveInterval))
-                    {
-                        // snapshot the ring/median arrays and head — the DX2 setup path can swap
-                        // these on another thread mid-push; working purely on locals guarantees the
-                        // length guard and the copy see the SAME buffers.
-                        // NOTE: copies are done with Array.Copy (bounds-checked) rather than
-                        // Win32.memcpy on purpose — any inconsistency surfaces as a catchable,
-                        // loggable exception instead of silent native memory corruption.
-                        float[][] hist = _3dHistoryBuffer;
-                        float[][] med = _3dMedianPrev;
-                        int head = _3dHistoryHead;
-
-                        if (hist != null && med != null && head >= 0 && head < Max3DHistoryLines)
-                        {
-                            try
-                            {
-                                if (hist[head] == null || hist[head].Length < nDecimatedWidth)
-                                {
-                                    hist[head] = new float[nDecimatedWidth];
-                                }
-
-                                // temporal median filter (impulse rejection)
-                                bool useMedian = _3dMedianCount >= 2 &&
-                                    med[0] != null && med[0].Length >= nDecimatedWidth &&
-                                    med[1] != null && med[1].Length >= nDecimatedWidth;
-
-                                if (useMedian)
-                                {
-                                    for (int c = 0; c < nDecimatedWidth; c++)
-                                    {
-                                        float a = new_display_data[c];
-                                        float b = med[0][c];
-                                        float d = med[1][c];
-                                        // median of 3
-                                        hist[head][c] =
-                                            Math.Max(Math.Min(a, b), Math.Min(Math.Max(a, b), d));
-                                    }
-                                }
-                                else
-                                {
-                                    Array.Copy(new_display_data, hist[head], nDecimatedWidth);
-                                }
-
-                                // shift median history
-                                if (med[1] == null || med[1].Length < nDecimatedWidth)
-                                    med[1] = new float[nDecimatedWidth];
-                                if (med[0] != null && med[0].Length >= nDecimatedWidth)
-                                {
-                                    Array.Copy(med[0], med[1], nDecimatedWidth);
-                                }
-                                if (med[0] == null || med[0].Length < nDecimatedWidth)
-                                    med[0] = new float[nDecimatedWidth];
-                                Array.Copy(new_display_data, med[0], nDecimatedWidth);
-                                if (_3dMedianCount < int.MaxValue) _3dMedianCount++;
-
-                                _3dHistoryHead = (head + 1) % Max3DHistoryLines;
-                                if (_3dHistoryCount < Max3DHistoryLines) _3dHistoryCount++;
-                                _3dLastPushTicks = nowTicks;
-                            }
-                            catch (Exception ex)
-                            {
-                                // never let a push anomaly kill the display thread — log and skip this push
-                                Common.LogString("3D panadapter history push skipped — " +
-                                    $"nDecimatedWidth={nDecimatedWidth} " +
-                                    $"new_display_data={(new_display_data == null ? "null" : new_display_data.Length.ToString())} " +
-                                    $"hist[head]={((hist[head] == null) ? "null" : hist[head].Length.ToString())} " +
-                                    $"med0={(med[0] == null ? "null" : med[0].Length.ToString())} " +
-                                    $"med1={(med[1] == null ? "null" : med[1].Length.ToString())} " +
-                                    $"W={W} decim={m_nDecimation}");
-                                Common.LogException(ex);
-                            }
-                        }
-                    }
+                    Push3DHistory(rx, new_display_data, nDecimatedWidth, W);
                 }
 
                 data = current_display_data;
@@ -5903,6 +5836,9 @@ namespace Thetis
                     Array.Copy(current_display_data_bottom, current_display_data_bottom_copy, nDecimatedWidth);
 
                     data_ready_bottom = false;
+
+                    // feed RX2's own 3D history ring (never RX1's)
+                    Push3DHistory(rx, new_display_data_bottom, nDecimatedWidth, W);
                 }
 
                 data = current_display_data_bottom;
@@ -6108,7 +6044,7 @@ namespace Thetis
                 // vertical mapping as the front row of the stack (Aether-style) so it
                 // becomes the front crest of one continuous surface instead of a
                 // separate full-height overlay (which produced a seam/double image)
-                bool live3DMapping = draw3DHistory && !local_mox && _pan3DEnabled && _3dHistoryCount >= 2;
+                bool live3DMapping = draw3DHistory && !local_mox && _pan3DEnabled && _3dHistoryCount[Rx3DIndex(rx)] >= 2;
                 float live3DBottomY = nVerticalShift + H;
                 float live3DRidge = H * _pan3DRidgeHeight;
                 float live3DZCurve = Math.Max(0.05f, _pan3DZCurve);
@@ -6937,15 +6873,104 @@ namespace Thetis
             return best_index;
         }
 
+        /// <summary>
+        /// Appends one decimated spectrum frame to the 3D history ring for the given
+        /// receiver (rx 1 or 2). Each receiver owns an independent ring, median history
+        /// and push throttle so RX2's 3D surface never shows RX1's data.
+        /// </summary>
+        private static void Push3DHistory(int rx, float[] source, int nDecimatedWidth, int W)
+        {
+            if (!_pan3DEnabled || source == null || nDecimatedWidth <= 0) return;
+
+            int ri = Rx3DIndex(rx);
+            long nowTicks = DateTime.UtcNow.Ticks;
+            long effectiveInterval = _3dPushIntervalTicks;
+            if (effectiveInterval < 10000) effectiveInterval = 10000; // floor at 1ms
+            if (_3dHistoryBuffer[ri] == null) return;
+            if (nowTicks - _3dLastPushTicks[ri] < effectiveInterval) return;
+
+            // snapshot the ring/median arrays and head — the DX2 setup path can swap
+            // these on another thread mid-push; working purely on locals guarantees the
+            // length guard and the copy see the SAME buffers.
+            // NOTE: copies are done with Array.Copy (bounds-checked) rather than
+            // Win32.memcpy on purpose — any inconsistency surfaces as a catchable,
+            // loggable exception instead of silent native memory corruption.
+            float[][] hist = _3dHistoryBuffer[ri];
+            float[][] med = _3dMedianPrev[ri];
+            int head = _3dHistoryHead[ri];
+
+            if (hist == null || med == null || head < 0 || head >= Max3DHistoryLines) return;
+
+            try
+            {
+                if (hist[head] == null || hist[head].Length < nDecimatedWidth)
+                {
+                    hist[head] = new float[nDecimatedWidth];
+                }
+
+                // temporal median filter (impulse rejection)
+                bool useMedian = _3dMedianCount[ri] >= 2 &&
+                    med[0] != null && med[0].Length >= nDecimatedWidth &&
+                    med[1] != null && med[1].Length >= nDecimatedWidth;
+
+                if (useMedian)
+                {
+                    for (int c = 0; c < nDecimatedWidth; c++)
+                    {
+                        float a = source[c];
+                        float b = med[0][c];
+                        float d = med[1][c];
+                        // median of 3
+                        hist[head][c] =
+                            Math.Max(Math.Min(a, b), Math.Min(Math.Max(a, b), d));
+                    }
+                }
+                else
+                {
+                    Array.Copy(source, hist[head], nDecimatedWidth);
+                }
+
+                // shift median history
+                if (med[1] == null || med[1].Length < nDecimatedWidth)
+                    med[1] = new float[nDecimatedWidth];
+                if (med[0] != null && med[0].Length >= nDecimatedWidth)
+                {
+                    Array.Copy(med[0], med[1], nDecimatedWidth);
+                }
+                if (med[0] == null || med[0].Length < nDecimatedWidth)
+                    med[0] = new float[nDecimatedWidth];
+                Array.Copy(source, med[0], nDecimatedWidth);
+                if (_3dMedianCount[ri] < int.MaxValue) _3dMedianCount[ri]++;
+
+                _3dHistoryHead[ri] = (head + 1) % Max3DHistoryLines;
+                if (_3dHistoryCount[ri] < Max3DHistoryLines) _3dHistoryCount[ri]++;
+                _3dLastPushTicks[ri] = nowTicks;
+            }
+            catch (Exception ex)
+            {
+                // never let a push anomaly kill the display thread — log and skip this push
+                Common.LogString("3D panadapter history push skipped — " +
+                    $"rx={rx} " +
+                    $"nDecimatedWidth={nDecimatedWidth} " +
+                    $"source={(source == null ? "null" : source.Length.ToString())} " +
+                    $"hist[head]={((hist[head] == null) ? "null" : hist[head].Length.ToString())} " +
+                    $"med0={(med[0] == null ? "null" : med[0].Length.ToString())} " +
+                    $"med1={(med[1] == null ? "null" : med[1].Length.ToString())} " +
+                    $"W={W} decim={m_nDecimation}");
+                Common.LogException(ex);
+            }
+        }
+
         private static void DrawPanadapter3DHistoryDX2D(int nVerticalShift, int W, int H, int rx, bool bottom,
             float[] liveData, float fOffset, int grid_max, int nDecimatedWidth, int local_Decimation)
         {
             // snapshot ring state once per frame — the DX2 setup path can swap the buffer
             // arrays concurrently; mixing old/new references mid-frame would risk an
             // unhandled exception on this (display) thread, which terminates the process
-            float[][] histBuf = _3dHistoryBuffer;
-            int histHead = _3dHistoryHead;
-            int histCount = _3dHistoryCount;
+            int ri = Rx3DIndex(rx);
+            float[][] histBuf = _3dHistoryBuffer[ri];
+            int histHead = _3dHistoryHead[ri];
+            int histCount = _3dHistoryCount[ri];
             if (!_pan3DEnabled || histBuf == null || histCount < 2) return;
             if (_d2dRenderTarget == null) return;
 
@@ -7023,7 +7048,7 @@ namespace Thetis
                 // matches push throttle; independent of Waterfall Sync (palette-only)
                 long interval = _3dPushIntervalTicks;
                 if (interval < 10000) interval = 10000;
-                phase = (nowTicks - _3dLastPushTicks) / (float)interval;
+                phase = (nowTicks - _3dLastPushTicks[ri]) / (float)interval;
                 if (phase < 0f) phase = 0f;
                 else if (phase > 1f) phase = 1f;
             }
