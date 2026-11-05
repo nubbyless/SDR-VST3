@@ -5462,7 +5462,6 @@ namespace Thetis
             general_settings.Add(OtherButtonId.LOCK_B, _console.GetGeneralSetting(m.RX, OtherButtonId.LOCK_B));
 
             general_settings.Add(OtherButtonId.NF, _console.GetGeneralSetting(m.RX, OtherButtonId.NF));
-            general_settings.Add(OtherButtonId.FREEDV, _console.GetGeneralSetting(m.RX, OtherButtonId.FREEDV));
 
             m.GeneralSettings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.INIT, _old_state = false, _new_state = false, _settings = general_settings };
             //
@@ -6339,6 +6338,14 @@ namespace Thetis
         {
             lock (_metersLock)
             {
+                if (_meters != null)
+                {
+                    foreach (KeyValuePair<string, clsMeter> ms in _meters.Where(o => o.Value.RX == rx))
+                    {
+                        ms.Value.RadaeChanged(rx, enabled);
+                    }
+                }
+
                 if (_lstUCMeters == null) return;
                 foreach (KeyValuePair<string, ucMeter> kvp in _lstUCMeters)
                 {
@@ -10448,7 +10455,10 @@ namespace Thetis
         }
         internal class clsModeButtonBox : clsButtonBox
         {
+            private const int FREEDV_INDEX = 12;
+
             private DSPMode _mode;
+            private bool _freedv;
             clsMeter _owningmeter;
             private bool _click_highlight;
             private System.Timers.Timer _click_timer;
@@ -10468,25 +10478,42 @@ namespace Thetis
                 else if (_owningmeter.RX == 2)
                     _mode = _owningmeter.ModeVfoB;
 
-                Buttons = 12;
+                _freedv = RadaeEnabled;
+
+                Buttons = 13;
 
                 setupButtons();
+            }
+            private bool RadaeEnabled
+            {
+                get
+                {
+                    if (_console == null) return false;
+                    return _owningmeter.RX == 2 ? _console.RadaeRx2Enabled : _console.RadaeRx1Enabled;
+                }
+            }
+            public void RadaeChanged(int rx, bool enabled)
+            {
+                if (_owningmeter.RX != rx) return;
+
+                _freedv = enabled;
+                SetOn(1, FREEDV_INDEX, _freedv);
             }
             public override void ModeChanged(DSPMode oldMode, DSPMode newMode)
             {
                 DSPMode old = _mode;
                 _mode = newMode;
 
-                // just set the mode
-                int index = (int)_mode - (int)DSPMode.LSB;
-                int old_index = (int)old - (int)DSPMode.LSB;
-
-                SetOn(1, old_index, false);
-                SetOn(1, index, true);
+                if (old >= DSPMode.LSB && old <= DSPMode.DRM)
+                    SetOn(1, (int)old - (int)DSPMode.LSB, false);
+                if (_mode >= DSPMode.LSB && _mode <= DSPMode.DRM)
+                    SetOn(1, (int)_mode - (int)DSPMode.LSB, true);
             }
             private void setupButtons()
             {
                 if (!RebuildButtons) return;
+
+                _freedv = RadaeEnabled;
 
                 // copy from 0 to 1. 0 is settings bank, 1 is where renderer reads from
                 for (int i = 0; i < Buttons; i++)
@@ -10539,6 +10566,19 @@ namespace Thetis
                         SetFontSize(1, i, 18f);
 
                         SetOn(1, i, b == _mode);
+                    }
+                    else if (i == FREEDV_INDEX)
+                    {
+                        SetText(1, i, "FreeDV");
+
+                        if (GetEnabled(1, i))
+                            SetFontColour(1, i, text_color);
+                        else
+                            SetFontColour(1, i, System.Drawing.Color.FromArgb(255, (int)(text_color.R * 0.3f), (int)(text_color.G * 0.3f), (int)(text_color.B * 0.3f)));
+
+                        SetFontSize(1, i, 18f);
+
+                        SetOn(1, i, _freedv);
                     }
                 }
 
@@ -10633,6 +10673,12 @@ namespace Thetis
 
                 if (_owningmeter.RX == 2 && !_owningmeter.RX2Enabled) return; // prevent any change when rx2 is disabled, but this container is for rx2
 
+                if (index == FREEDV_INDEX)
+                {
+                    setRadae(!RadaeEnabled);
+                    return;
+                }
+
                 DSPMode m = (DSPMode)((int)DSPMode.LSB + index);
 
                 setMode(m);
@@ -10649,6 +10695,20 @@ namespace Thetis
                     return _owningmeter.VFOBLock;
                 }
                 return abort;
+            }
+            private void setRadae(bool enabled)
+            {
+                if (_console == null) return;
+
+                _console.BeginInvoke(new MethodInvoker(() =>
+                {
+                    if (_console.IsSetupFormNull) return;
+
+                    if (_owningmeter.RX == 2)
+                        _console.SetupForm.RADAERX2 = enabled;
+                    else
+                        _console.SetupForm.RADAE = enabled;
+                }));
             }
             private void setMode(DSPMode m)
             {
@@ -27511,6 +27571,20 @@ namespace Thetis
                         clsMeterItem mi = (clsMeterItem)mis.Value;
 
                         mi.ModeChanged(oldMode, newMode);
+                    }
+                }
+            }
+            public void RadaeChanged(int rx, bool enabled)
+            {
+                if (_console == null) return;
+
+                lock (_meterItemsLock)
+                {
+                    foreach (KeyValuePair<string, clsMeterItem> mis in _meterItems.Where(mis => mis.Value.ItemType == clsMeterItem.MeterItemType.MODE_BUTTONS))
+                    {
+                        clsModeButtonBox mi = (clsModeButtonBox)mis.Value;
+
+                        mi.RadaeChanged(rx, enabled);
                     }
                 }
             }

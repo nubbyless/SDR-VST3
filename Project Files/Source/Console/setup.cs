@@ -26585,9 +26585,9 @@ namespace Thetis
                         if (nudBandButtons_columns.Maximum != 15) nudBandButtons_columns.Maximum = 15;
                         break;
                     case MeterType.MODE_BUTTONS:
-                        columns = igs.GetSetting<int>("buttonbox_columns", true, 1, 12, 12);
-                        if (nudBandButtons_columns.Value > 12) nudBandButtons_columns.Value = 12;
-                        if (nudBandButtons_columns.Maximum != 12) nudBandButtons_columns.Maximum = 12;
+                        columns = igs.GetSetting<int>("buttonbox_columns", true, 1, 13, 13);
+                        if (nudBandButtons_columns.Value > 13) nudBandButtons_columns.Value = 13;
+                        if (nudBandButtons_columns.Maximum != 13) nudBandButtons_columns.Maximum = 13;
                         break;
                     case MeterType.FILTER_BUTTONS:
                         max_buttons = m.RX == 1 ? 12 : 9; // rx2 only has 9 filter buttons
