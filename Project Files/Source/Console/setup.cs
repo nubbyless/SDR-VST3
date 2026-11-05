@@ -21377,7 +21377,7 @@ namespace Thetis
                     break;
                 case SetupTab.NB_Tab:
                     TabSetup.SelectedIndex = 3;
-                    TabDSP.SelectedIndex = 9; // select NB tab
+                    TabDSP.SelectedTab = tpDSPNB;
                     break;
                 case SetupTab.CW_Tab:
                     TabSetup.SelectedIndex = 3;
@@ -21397,19 +21397,19 @@ namespace Thetis
                     break;
                 case SetupTab.RADE_Tab:
                     TabSetup.SelectedIndex = 3;
-                    TabDSP.SelectedIndex = 12; // select DSP/RADE tab
+                    TabDSP.SelectedTab = tpDSPRADE;
                     break;
                 case SetupTab.MNF_Tab:
                     TabSetup.SelectedIndex = 3;
-                    TabDSP.SelectedIndex = 8; // select MNF tab
+                    TabDSP.SelectedTab = tpDSPMNF;
                     break;
                 case SetupTab.VOXDE_Tab:
                     TabSetup.SelectedIndex = 3;
-                    TabDSP.SelectedIndex = 10; // select VOX/DE tab
+                    TabDSP.SelectedTab = tpDSPVOXDE;
                     break;
                 case SetupTab.CFC_Tab:
                     TabSetup.SelectedIndex = 3;
-                    TabDSP.SelectedIndex = 11; // select CFC tab
+                    TabDSP.SelectedTab = tpDSPCFC;
                     break;
                 case SetupTab.VAC1_Tab:
                     TabSetup.SelectedIndex = 1; // vac1
