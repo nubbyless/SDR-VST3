@@ -5462,6 +5462,7 @@ namespace Thetis
             general_settings.Add(OtherButtonId.LOCK_B, _console.GetGeneralSetting(m.RX, OtherButtonId.LOCK_B));
 
             general_settings.Add(OtherButtonId.NF, _console.GetGeneralSetting(m.RX, OtherButtonId.NF));
+            general_settings.Add(OtherButtonId.FREEDV, _console.GetGeneralSetting(m.RX, OtherButtonId.FREEDV));
 
             m.GeneralSettings = new GeneralOtherButtonSettings() { _setting = OtherButtonId.INIT, _old_state = false, _new_state = false, _settings = general_settings };
             //

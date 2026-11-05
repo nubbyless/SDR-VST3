@@ -37619,6 +37619,7 @@ namespace Thetis
          * visibility ("Hide if RADE not enabled").  rx is 1 or 2. */
         public void NotifyRadaeEnabledChanged(int rx, bool enabled)
         {
+            try { SetGeneralSetting(rx, OtherButtonId.FREEDV, enabled); } catch { }
             try { RadaeEnabledChangedHandlers?.Invoke(rx, enabled); }
             catch { }
         }
@@ -52884,6 +52885,7 @@ namespace Thetis
                 case OtherButtonId.XIT: DoGeneralSettingAction(rx, OtherButtonId.XIT, !GetGeneralSetting(rx, OtherButtonId.XIT)); break;
                 case OtherButtonId.RIT0: DoGeneralSettingAction(rx, OtherButtonId.RIT0, true); break;
                 case OtherButtonId.XIT0: DoGeneralSettingAction(rx, OtherButtonId.XIT0, true); break;
+                case OtherButtonId.FREEDV: DoGeneralSettingAction(rx, OtherButtonId.FREEDV, !GetGeneralSetting(rx, OtherButtonId.FREEDV)); break;
 
                 case OtherButtonId.SQL: SetSqlMode(rx, SquelchState.LAST); break; // last is used to increment
                 case OtherButtonId.SQL_SQL: if (GetSqlMode(rx) == SquelchState.SQL) { SetSqlMode(rx, SquelchState.OFF); } else { SetSqlMode(rx, SquelchState.SQL); } break;
@@ -53025,6 +53027,9 @@ namespace Thetis
                     break;
                 case OtherButtonId.VAC2:
                     SetupForm.ShowSetupTab(Setup.SetupTab.VAC2_Tab);
+                    break;
+                case OtherButtonId.FREEDV:
+                    SetupForm.ShowSetupTab(Setup.SetupTab.RADE_Tab);
                     break;
                 case OtherButtonId.MNF:
                 case OtherButtonId.MNF_PLUS:
@@ -53463,6 +53468,7 @@ namespace Thetis
                 case OtherButtonId.FILL_SPECTRUM: return GetGeneralSetting(rx, OtherButtonId.FILL_SPECTRUM);
                 case OtherButtonId.RIT: return GetGeneralSetting(rx, OtherButtonId.RIT);
                 case OtherButtonId.XIT: return GetGeneralSetting(rx, OtherButtonId.XIT);
+                case OtherButtonId.FREEDV: return GetGeneralSetting(rx, OtherButtonId.FREEDV);
 
                 case OtherButtonId.SQL: return GetSqlMode(rx) != SquelchState.OFF;
                 case OtherButtonId.SQL_SQL: return GetSqlMode(rx) == SquelchState.SQL;
@@ -54081,6 +54087,8 @@ namespace Thetis
                     break;
                 case OtherButtonId.PAUSE:
                     return Display.PausedDisplay;
+                case OtherButtonId.FREEDV:
+                    return rx == 2 ? RadaeRx2Enabled : RadaeRx1Enabled;
                 case OtherButtonId.PEAK_BLOBS:
                     if (!IsSetupFormNull) return SetupForm.PeakBlobsEnabled;
                     break;
@@ -54189,6 +54197,7 @@ namespace Thetis
 
                 setATTGeneralSetting(n);
                 SetGeneralSetting(n, OtherButtonId.NF, GetGeneralSetting(n, OtherButtonId.NF));
+                SetGeneralSetting(n, OtherButtonId.FREEDV, GetGeneralSetting(n, OtherButtonId.FREEDV));
                 SetGeneralSetting(n, OtherButtonId.ACTITVE_PEAK, GetGeneralSetting(tmp_rx, OtherButtonId.ACTITVE_PEAK));
             }
 
@@ -54259,6 +54268,13 @@ namespace Thetis
                     return true;
                 case OtherButtonId.PAUSE:
                     Display.PausedDisplay = state;
+                    return true;
+                case OtherButtonId.FREEDV:
+                    if (!IsSetupFormNull)
+                    {
+                        if (rx == 2) SetupForm.RADAERX2 = state;
+                        else SetupForm.RADAE = state;
+                    }
                     return true;
                 case OtherButtonId.PEAK_BLOBS:
                     if (!IsSetupFormNull) SetupForm.PeakBlobsEnabled = state;
