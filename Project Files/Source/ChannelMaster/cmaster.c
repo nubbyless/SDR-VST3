@@ -372,6 +372,12 @@ static int vst_tx_chain_active (int tx)
 	if (GetWsjtTxActive () || GetFldigiTxActive ())
 		return 0;
 
+	// A running WDSP wave player (courtesy tone, file playback) is mixed
+	// into the TX mic buffer before this point; pass it dry so TX VST
+	// gates/processing cannot clip it.
+	if (ppip->rcvr[0].playwave_run || ppip->rcvr[1].playwave_run)
+		return 0;
+
 	if (_InterlockedAnd (&pcm->xmtr[tx].use_tci_audio, 1))				// TCI TX audio is the active source
 		return _InterlockedAnd (&pcm->apply_tci_tx_vst, 1);
 
