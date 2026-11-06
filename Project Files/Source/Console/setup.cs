@@ -2517,12 +2517,13 @@ namespace Thetis
             chkVAC1WillMute_CheckedChanged(this, e);
             chkVAC2WillMute_CheckedChanged(this, e);
 
-            // RADE (Setup -> DSP -> RADE) rehydrate.  The per-RX master
-            // switches fire FIRST so the children inherit the correct
-            // visibility/enabled state before their own handlers run.  When a
-            // master is off, its force-uncheck loop makes the subsequent
-            // rehydrate handlers see the dependents as already off, so the
-            // RADE block boots hidden/disabled until the user opts in.
+            // RADE (Setup -> DSP -> RADE) rehydrate.  The experimental master
+            // switches are always on -- the per-RX "enable" checkboxes are the
+            // real modem on/off controls -- so the whole RADE UI and the console
+            // FreeDV button stay visible at all times.  The redundant master
+            // checkboxes themselves are hidden.
+            if (chkRX1RadeControl != null) { chkRX1RadeControl.Visible = false; chkRX1RadeControl.Checked = true; }
+            if (chkRX2RadeControl != null) { chkRX2RadeControl.Visible = false; chkRX2RadeControl.Checked = true; }
             chkRX1RadeControl_CheckedChanged(this, e);
             chkRADAE_CheckedChanged(this, e);
             cmbRX1RADEVersion_SelectedIndexChanged(this, e);
