@@ -743,6 +743,7 @@ namespace Thetis
         private int m_disconnectNotified = 0;
 		private Thread m_clientListenerThread = null;
 		private bool m_markedForDeletion = false;
+		private int m_stopRequested = 0;
 		private bool m_bWebSocket = false;
 		private Thread m_VFODataThread = null;
         private Thread m_sendThread = null;
@@ -3016,19 +3017,27 @@ namespace Thetis
 		}
 		public void StopSocketListener()
 		{
+			if (Interlocked.Exchange(ref m_stopRequested, 1) != 0)
+				return;
+
 			TCPIPtciServer server = m_server;
-            notifyServerDisconnected(server);
+			TcpClient client;
+			NetworkStream stream;
 			lock (m_objStreamLock)
 			{
 				m_txUsesTCIAudio = false;
                 m_tciPttActive = false;
+				client = m_client;
+				stream = m_stream;
 			}
+
+            notifyServerDisconnected(server);
 			clearQueuedTxAudio();
             clearRxAudioStreamState();
             server?.ReleaseActiveTxAudioListener(this);
 			server?.RefreshTxAudioSourceState();
-            m_server?.RefreshStreamRunState();
-			if (m_client != null)
+            server?.RefreshStreamRunState();
+			if (client != null)
 			{
                 if (m_tmVFOtimer != null)
                 {
@@ -3058,7 +3067,7 @@ namespace Thetis
                     m_tmTxSensors = null;
                 }
 
-                if (m_stream != null)
+                if (stream != null)
                 {
 					sendStop();
 					
@@ -3066,13 +3075,15 @@ namespace Thetis
 
                     flushOutboundFrames(100);
 
-					m_stream.Close();
+					try { stream.Close(); }
+					catch { }
 					m_stream = null;
 				}
 
 				m_stopClient = true;
                 m_outboundFrameEvent.Set();
-				m_client.Close();
+				try { client.Close(); }
+				catch { }
 
                 if (m_sendThread != null)
                 {
@@ -7126,7 +7137,14 @@ namespace Thetis
 				socketListener.ClientConnectedHandlers -= ClientConnectedHandler;
 				socketListener.ClientDisconnectedHandlers -= ClientDisconnectedHandler;
 				socketListener.ClientErrorHandlers -= ClientErrorHandler;
-                socketListener.StopSocketListener();
+                try
+                {
+                    socketListener.StopSocketListener();
+                }
+                catch (Exception ex)
+                {
+                    Debug.Print("TCI StopSocketListener failed during shutdown: " + ex.Message);
+                }
 			}
 		}
 		private void ServerThreadStart()
@@ -7212,7 +7230,14 @@ namespace Thetis
                     socketListener.ClientConnectedHandlers -= ClientConnectedHandler;
                     socketListener.ClientDisconnectedHandlers -= ClientDisconnectedHandler;
                     socketListener.ClientErrorHandlers -= ClientErrorHandler;
-                    socketListener.StopSocketListener();
+                    try
+                    {
+                        socketListener.StopSocketListener();
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.Print("TCI StopSocketListener failed during purge: " + ex.Message);
+                    }
                 }
 
 				deleteList = null;
