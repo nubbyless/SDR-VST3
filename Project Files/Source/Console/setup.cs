@@ -26335,7 +26335,11 @@ namespace Thetis
                             break;
                     }
                 }
-                if (mt == MeterType.ANANMM || mt == MeterType.CROSS) igs.DarkMode = chkMeterItemDarkMode.Checked;
+                if (mt == MeterType.ANANMM || mt == MeterType.CROSS)
+                {
+                    igs.DarkMode = chkMeterItemDarkMode.Checked;
+                    igs.SetSetting<string>("custom_image", selectedCustomMeterImage());
+                }
             }
 
             m.ApplySettingsForMeterGroup(mt, igs, null, mtci.Order, true);
@@ -27210,9 +27214,81 @@ namespace Thetis
                 //
             }
 
+            bool bCustomSkinMeter = mt == MeterType.ANANMM || mt == MeterType.CROSS;
+            lblMMCustomSkin.Visible = bCustomSkinMeter;
+            comboMeterCustomSkin.Visible = bCustomSkinMeter;
+            btnMeterCustomSkinLoad.Visible = bCustomSkinMeter;
+            lblMMBackground.Visible = !bCustomSkinMeter;
+            clrbtnMeterItemHBackground.Visible = !bCustomSkinMeter;
+            if (bCustomSkinMeter)
+            {
+                radMeterItemSettings.Visible = false;
+                radMeterItemSettings_custom.Visible = false;
+                populateCustomMeterSkinCombo(mt, igs.GetSetting<string>("custom_image", false, "", "", ""));
+            }
+
             setupMMSettingsGroupBoxes(mt);
 
             _ignoreMeterItemChangeEvents = false;
+        }
+        private string selectedCustomMeterImage()
+        {
+            MeterManager.clsCustomMeterImage csi = comboMeterCustomSkin.SelectedItem as MeterManager.clsCustomMeterImage;
+            return csi != null ? csi.Key : "";
+        }
+        private void populateCustomMeterSkinCombo(MeterType mt, string selectedKey)
+        {
+            comboMeterCustomSkin.Items.Clear();
+            comboMeterCustomSkin.Items.Add(new MeterManager.clsCustomMeterImage("", "(Default skin)"));
+
+            int selectedIndex = 0;
+            List<MeterManager.clsCustomMeterImage> images = MeterManager.GetCustomMeterImages(mt);
+            foreach (MeterManager.clsCustomMeterImage image in images)
+            {
+                comboMeterCustomSkin.Items.Add(image);
+                if (!string.IsNullOrEmpty(selectedKey) && image.Key == selectedKey)
+                    selectedIndex = comboMeterCustomSkin.Items.Count - 1;
+            }
+
+            comboMeterCustomSkin.SelectedIndex = selectedIndex;
+        }
+        private void comboMeterCustomSkin_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (initializing || _ignoreMeterItemChangeEvents) return;
+
+            MeterType mt = meterItemGroupTypefromSelected();
+            if (mt != MeterType.ANANMM && mt != MeterType.CROSS) return;
+
+            updateMeterType();
+        }
+        private void btnMeterCustomSkinLoad_Click(object sender, EventArgs e)
+        {
+            if (initializing || _ignoreMeterItemChangeEvents) return;
+
+            MeterType mt = meterItemGroupTypefromSelected();
+            if (mt != MeterType.ANANMM && mt != MeterType.CROSS) return;
+
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Title = "Select meter skin image";
+                ofd.Filter = "Image files (*.png;*.jpg;*.jpeg;*.bmp)|*.png;*.jpg;*.jpeg;*.bmp|All files (*.*)|*.*";
+                ofd.Multiselect = false;
+
+                if (ofd.ShowDialog(this) != DialogResult.OK) return;
+
+                MeterManager.clsCustomMeterImage image = MeterManager.ImportCustomMeterImage(mt, ofd.FileName);
+                if (image == null)
+                {
+                    MessageBox.Show(this, "The image could not be loaded. Please select a PNG, JPG or BMP image.", "Meter skin", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                _ignoreMeterItemChangeEvents = true;
+                populateCustomMeterSkinCombo(mt, image.Key);
+                _ignoreMeterItemChangeEvents = false;
+
+                updateMeterType();
+            }
         }
         private void updateHistoryControls(bool showHistory, Color c, bool updateColor = false)
         {

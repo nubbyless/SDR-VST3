@@ -2756,6 +2756,8 @@ namespace Thetis
                     }
                 }
             }
+
+            loadCustomMeterImages();
         }
         private static void loadImage(string sFilePath, bool isSkinImage)
         {
@@ -2779,6 +2781,144 @@ namespace Thetis
                         if (image != null) image.Dispose();
                     }
                 }
+            }
+        }
+        private static readonly string[] _custom_meter_image_extensions = { ".png", ".jpg", ".jpeg", ".bmp" };
+
+        private static string CustomMeterImagesPath
+        {
+            get { return _openHPSDR_appdatapath + "\\CustomMeters"; }
+        }
+        private static string CustomMeterImagePrefix(MeterType mt)
+        {
+            switch (mt)
+            {
+                case MeterType.ANANMM:
+                    return "ananMM-custom-";
+                case MeterType.CROSS:
+                    return "cross-needle-custom-";
+            }
+            return "";
+        }
+        private static string SanitiseCustomMeterImageName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return "skin";
+
+            foreach (char c in Path.GetInvalidFileNameChars())
+                name = name.Replace(c, '_');
+
+            name = name.Trim();
+            if (name.Length < 1) name = "skin";
+            if (name.Length > 80) name = name.Substring(0, 80);
+
+            return name;
+        }
+        private static void loadCustomMeterImages()
+        {
+            string folder = CustomMeterImagesPath;
+            if (!Directory.Exists(folder)) return;
+
+            foreach (string file in Directory.GetFiles(folder))
+            {
+                string ext = Path.GetExtension(file).ToLowerInvariant();
+                if (Array.IndexOf(_custom_meter_image_extensions, ext) < 0) continue;
+
+                loadImage(file, true);
+            }
+        }
+        public static List<clsCustomMeterImage> GetCustomMeterImages(MeterType mt)
+        {
+            List<clsCustomMeterImage> images = new List<clsCustomMeterImage>();
+
+            string prefix = CustomMeterImagePrefix(mt);
+            string folder = CustomMeterImagesPath;
+            if (string.IsNullOrEmpty(prefix) || !Directory.Exists(folder)) return images;
+
+            foreach (string file in Directory.GetFiles(folder))
+            {
+                string ext = Path.GetExtension(file).ToLowerInvariant();
+                if (Array.IndexOf(_custom_meter_image_extensions, ext) < 0) continue;
+
+                string key = Path.GetFileNameWithoutExtension(file);
+                if (!key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) continue;
+
+                images.Add(new clsCustomMeterImage(key));
+            }
+
+            images.Sort((a, b) => string.Compare(a.DisplayName, b.DisplayName, StringComparison.OrdinalIgnoreCase));
+
+            return images;
+        }
+        public static clsCustomMeterImage ImportCustomMeterImage(MeterType mt, string sourceFile)
+        {
+            if (mt != MeterType.ANANMM && mt != MeterType.CROSS) return null;
+            if (string.IsNullOrWhiteSpace(sourceFile) || !File.Exists(sourceFile)) return null;
+
+            string ext = Path.GetExtension(sourceFile).ToLowerInvariant();
+            if (Array.IndexOf(_custom_meter_image_extensions, ext) < 0) return null;
+
+            string folder = CustomMeterImagesPath;
+            string prefix = CustomMeterImagePrefix(mt);
+
+            try
+            {
+                Directory.CreateDirectory(folder);
+            }
+            catch
+            {
+                return null;
+            }
+
+            string name = Path.GetFileNameWithoutExtension(sourceFile);
+            if (name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) name = name.Substring(prefix.Length);
+            name = SanitiseCustomMeterImageName(name);
+
+            string key = prefix + name;
+            string target = Path.Combine(folder, key + ext);
+            int n = 2;
+            while (File.Exists(target))
+            {
+                key = prefix + name + "-" + n.ToString();
+                target = Path.Combine(folder, key + ext);
+                n++;
+            }
+
+            try
+            {
+                File.Copy(sourceFile, target, false);
+            }
+            catch
+            {
+                return null;
+            }
+
+            loadImage(target, true);
+            if (!ContainsBitmap(key))
+            {
+                try { File.Delete(target); } catch { }
+                return null;
+            }
+
+            return new clsCustomMeterImage(key);
+        }
+        public class clsCustomMeterImage
+        {
+            public clsCustomMeterImage(string key)
+                : this(key, null)
+            {
+                int i = key.IndexOf("-custom-", StringComparison.OrdinalIgnoreCase);
+                DisplayName = i >= 0 ? key.Substring(i + 8) : key;
+            }
+            public clsCustomMeterImage(string key, string displayName)
+            {
+                Key = key;
+                DisplayName = displayName == null ? key : displayName;
+            }
+            public string Key { get; private set; }
+            public string DisplayName { get; private set; }
+            public override string ToString()
+            {
+                return DisplayName;
             }
         }
         private static void loadResouceImages()
@@ -16740,6 +16880,7 @@ namespace Thetis
         internal class clsImage : clsMeterItem
         {
             private string _name;
+            private string _defaultImageName;
             private PointF _clipTopLeft;
             private SizeF _clipSize;
             private bool _clipped;
@@ -16757,6 +16898,7 @@ namespace Thetis
                 _clipped = false;
                 _clipped_ellipse = false;
                 _darkMode = false;
+                _defaultImageName = "";
                 StoreSettings = false;
             }
             public string ImageName
@@ -16766,6 +16908,11 @@ namespace Thetis
                 {
                     _name = value;
                 }
+            }
+            public string DefaultImageName
+            {
+                get { return _defaultImageName; }
+                set { _defaultImageName = value; }
             }
             public PointF ClipTopLeft
             {
@@ -25300,6 +25447,7 @@ namespace Thetis
                 img.Size = ni.Size;
                 img.ZOrder = 1;
                 img.ImageName = "ananMM";
+                img.DefaultImageName = "ananMM";
                 addMeterItem(img);
 
                 img = new clsImage();
@@ -25505,6 +25653,7 @@ namespace Thetis
                 img.Size = ni.Size;
                 img.ZOrder = 1;
                 img.ImageName = "cross-needle";
+                img.DefaultImageName = "cross-needle";
                 addMeterItem(img);
 
                 clsImage img2 = new clsImage();
@@ -29270,6 +29419,7 @@ namespace Thetis
                                                 ni.Colour = igs.SubMarkerColour;
                                             }
                                         }
+                                        string customImage = igs.GetSetting<string>("custom_image", false, "", "", "");
                                         foreach (KeyValuePair<string, clsMeterItem> img in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.IMAGE))
                                         {
                                             clsImage image = img.Value as clsImage;
@@ -29278,6 +29428,14 @@ namespace Thetis
                                             image.FadeOnRx = igs.FadeOnRx;
                                             image.FadeOnTx = igs.FadeOnTx;
                                             if(image.Primary) image.DarkMode = igs.DarkMode;
+
+                                            if (!string.IsNullOrEmpty(image.DefaultImageName))
+                                            {
+                                                if (!string.IsNullOrEmpty(customImage) && ContainsBitmap(customImage))
+                                                    image.ImageName = customImage;
+                                                else
+                                                    image.ImageName = image.DefaultImageName;
+                                            }
                                         }
                                         foreach (KeyValuePair<string, clsMeterItem> sc in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.SOLID_COLOUR))
                                         {
@@ -30408,7 +30566,19 @@ namespace Thetis
 
                                             //igs.FadeOnRx = image.FadeOnRx;
                                             //igs.FadeOnTx = image.FadeOnTx;
-                                            if (image.Primary) igs.DarkMode = image.DarkMode;
+                                            if (image.Primary)
+                                            {
+                                                igs.DarkMode = image.DarkMode;
+
+                                                string prefix = CustomMeterImagePrefix(mt);
+                                                if (!string.IsNullOrEmpty(prefix) &&
+                                                    !string.IsNullOrEmpty(image.ImageName) &&
+                                                    !string.Equals(image.ImageName, image.DefaultImageName, StringComparison.OrdinalIgnoreCase) &&
+                                                    image.ImageName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                                                {
+                                                    igs.SetSetting<string>("custom_image", image.ImageName);
+                                                }
+                                            }
                                         }
                                         foreach (KeyValuePair<string, clsMeterItem> sc in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.NEEDLE_SCALE_PWR))
                                         {
