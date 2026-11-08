@@ -1199,7 +1199,7 @@ namespace Thetis
 				if (check_uri && !IsValidUri(uri))
 					return false;
 
-				Task.Run(() => System.Diagnostics.Process.Start(uri));
+				System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(uri) { UseShellExecute = true });
 
 				return true;
 			}

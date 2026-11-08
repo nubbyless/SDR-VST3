@@ -46,6 +46,9 @@ using Discord;
 using Discord.WebSocket;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
+using System.Text;
 using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -196,7 +199,8 @@ namespace Thetis
                         Delegate[] invocationList = MessageRemovedHandlers.GetInvocationList();
                         foreach (Delegate handler in invocationList)
                         {
-                            ((MessageRemoved)handler).BeginInvoke(message, null, null); //note: need to itterate through as a begin invoke cant spuple multicast delegates
+                            MessageRemoved h = (MessageRemoved)handler;
+                            invokeAsync(() => h(message));
                         }
                     }
                 }
@@ -320,7 +324,8 @@ namespace Thetis
                 Delegate[] invocationList = DisconnectedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
                 {
-                    ((Disconnected)handler).BeginInvoke(null, null); //note: need to itterate through as a begin invoke cant spuple multicast delegates
+                    Disconnected h = (Disconnected)handler;
+                    invokeAsync(() => h());
                 }
             }
         }
@@ -344,7 +349,7 @@ namespace Thetis
                 }
                 if (string.IsNullOrEmpty(token)) return;
 
-                token = Common.DeserializeFromBase64<string>(token);
+                token = deserializeBotToken(token);
                 await _discord_client.LoginAsync(TokenType.Bot, token);
                 await _discord_client.StartAsync();
                 Debug.Print("Bot connected");
@@ -352,6 +357,41 @@ namespace Thetis
             catch (Exception ex)
             {
                 Debug.Print($"Connection failed: {ex.Message}");
+            }
+        }
+
+        private static string deserializeBotToken(string base64String)
+        {
+            try
+            {
+                string token = Common.DeserializeFromBase64<string>(base64String);
+                if (!string.IsNullOrEmpty(token)) return token;
+            }
+            catch (Exception ex)
+            {
+                Debug.Print($"Discord token decode failed, trying legacy format: {ex.Message}");
+            }
+
+            return deserializeLegacyBinaryFormatterString(base64String);
+        }
+
+        private static string deserializeLegacyBinaryFormatterString(string base64String)
+        {
+            byte[] compressedArray = Convert.FromBase64String(base64String);
+            using (MemoryStream memoryStream = new MemoryStream(compressedArray))
+            using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+            using (MemoryStream decompressed = new MemoryStream())
+            {
+                gzipStream.CopyTo(decompressed);
+                decompressed.Position = 0;
+
+                using (BinaryReader reader = new BinaryReader(decompressed, Encoding.UTF8))
+                {
+                    reader.BaseStream.Position = 17;
+                    if (reader.ReadByte() != 0x06) throw new InvalidDataException("Invalid BinaryFormatter string payload.");
+                    reader.ReadInt32();
+                    return reader.ReadString();
+                }
             }
         }
 
@@ -370,7 +410,8 @@ namespace Thetis
                 Delegate[] invocationList = ReadyHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
                 {
-                    ((Ready)handler).BeginInvoke(null, null); //note: need to itterate through as a begin invoke cant spuple multicast delegates
+                    Ready h = (Ready)handler;
+                    invokeAsync(() => h());
                 }
             }
             Debug.Print("Bot ready with Discord.");
@@ -394,7 +435,8 @@ namespace Thetis
                 Delegate[] invocationList = ConnectedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
                 {
-                    ((Connected)handler).BeginInvoke(null, null); //note: need to itterate through as a begin invoke cant spuple multicast delegates
+                    Connected h = (Connected)handler;
+                    invokeAsync(() => h());
                 }
             }
             Debug.Print("Bot connected to Discord.");
@@ -410,7 +452,8 @@ namespace Thetis
                 Delegate[] invocationList = DisconnectedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
                 {
-                    ((Disconnected)handler).BeginInvoke(null, null); //note: need to itterate through as a begin invoke cant spuple multicast delegates
+                    Disconnected h = (Disconnected)handler;
+                    invokeAsync(() => h());
                 }
             }
             Debug.Print("Bot disconnected.");
@@ -534,7 +577,8 @@ namespace Thetis
                 Delegate[] invocationList = NewMessageArrivedHandlers.GetInvocationList();
                 foreach (Delegate handler in invocationList)
                 {
-                    ((NewMessageArrived)handler).BeginInvoke(message_info, null, null); //note: need to itterate through as a begin invoke cant spuple multicast delegates
+                    NewMessageArrived h = (NewMessageArrived)handler;
+                    invokeAsync(() => h(message_info));
                 }
             }
             Debug.Print($"{author}: {received_message}");
@@ -741,7 +785,8 @@ namespace Thetis
                             Delegate[] invocationList = MessageRemovedHandlers.GetInvocationList();
                             foreach (Delegate handler in invocationList)
                             {
-                                ((MessageRemoved)handler).BeginInvoke(removed_message, null, null); //note: need to itterate through as a begin invoke cant spuple multicast delegates
+                                MessageRemoved h = (MessageRemoved)handler;
+                                invokeAsync(() => h(removed_message));
                             }
                         }
                     }
@@ -844,6 +889,23 @@ namespace Thetis
             {
                 _include_time_stamp = value;
             }
+        }
+
+        private static void invokeAsync(Action action)
+        {
+            if (action == null) return;
+
+            ThreadPool.QueueUserWorkItem(_ =>
+            {
+                try
+                {
+                    action();
+                }
+                catch (Exception ex)
+                {
+                    Debug.Print("Discord handler error: " + ex.Message);
+                }
+            });
         }
     }
 }

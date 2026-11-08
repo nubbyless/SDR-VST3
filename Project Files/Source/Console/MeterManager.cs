@@ -14138,7 +14138,7 @@ namespace Thetis
                         }
                         break;
                     case 9:
-                        sendMsg("Is running Thetis v" + Common.GetVerNum(true, true));
+                        sendMsg("Is running SDR-VST3 v" + Common.GetVerNum(true, true));
                         break;
                     case 10:
                         sendMsg("Is starting a net on : " + formatNumber(tx_freq) + " MHz");
