@@ -50,6 +50,7 @@ namespace Thetis
         public bool AutoConnect { get; set; } = true;
         public bool ShowOnPanadapter { get; set; } = true;
         public int ColorArgb { get; set; } = unchecked((int)0xFFFFC800); // gold, opaque
+        public string Password { get; set; } = ""; // per-node, as clusters differ
     }
 
     public sealed class DxClusterSettings
@@ -112,6 +113,15 @@ namespace Thetis
         }
     }
 
+    public sealed class DxClusterRawLogEntry
+    {
+        public DateTime Timestamp { get; set; }
+        public string Host { get; set; } = "";
+        public int Port { get; set; }
+        public string Direction { get; set; } = "";
+        public string Text { get; set; } = "";
+    }
+
     public static class DxClusterManager
     {
         public const string SourcePrefix = "dxcluster:";
@@ -126,10 +136,14 @@ namespace Thetis
         public static event Action<DxClusterSpot> SpotReceived;
         public static event Action<DxClusterConnection> ConnectionStateChanged;
         public static event Action<DxClusterConnection, string> RawLineReceived;
+        public static event Action<DxClusterConnection, string> RawLineSent;
 
         private static readonly object _lock = new object();
+        private static readonly object _rawLogLock = new object();
         private static readonly Dictionary<string, DxClusterConnection> _connections = new Dictionary<string, DxClusterConnection>();
         private static readonly List<DxClusterSpot> _spots = new List<DxClusterSpot>();
+        private static readonly List<DxClusterRawLogEntry> _rawLog = new List<DxClusterRawLogEntry>();
+        private const int MaxRawLog = 5000;
         private static readonly Dictionary<string, DateTime> _recent = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
 
         private static readonly List<DxClusterSpot> _swlSpots = new List<DxClusterSpot>();
@@ -206,6 +220,7 @@ namespace Thetis
             };
 
             connection.LineReceived += onLineReceived;
+            connection.LineSent += onLineSent;
             connection.StateChanged += onStateChanged;
 
             lock (_lock)
@@ -227,6 +242,7 @@ namespace Thetis
             }
 
             connection.LineReceived -= onLineReceived;
+            connection.LineSent -= onLineSent;
             connection.StateChanged -= onStateChanged;
             connection.Dispose();
         }
@@ -258,7 +274,7 @@ namespace Thetis
                     NodeKey(c.Host, c.Port) == NodeKey(node.Host, node.Port));
                 if (existing != null) continue;
 
-                AddConnection(node.Host, node.Port, Settings.LoginCallsign, Settings.LoginPassword).Connect();
+                AddConnection(node.Host, node.Port, Settings.LoginCallsign, node.Password).Connect();
             }
         }
 
@@ -311,6 +327,26 @@ namespace Thetis
             Settings.LoginPassword = password;
 
             foreach (DxClusterConnection connection in Connections)
+            {
+                connection.LoginPassword = password;
+                connection.SendPassword(password);
+            }
+
+            SaveSettings();
+        }
+
+        // store a password for one node and push it to its live connection if still awaiting the prompt
+        public static void SetNodePassword(string host, int port, string password)
+        {
+            password = password ?? "";
+
+            DxClusterNodeSettings node = GetOrCreateNode(host, port);
+            node.Password = password;
+
+            string key = NodeKey(host, port);
+            DxClusterConnection connection = Connections.FirstOrDefault(c => NodeKey(c.Host, c.Port) == key);
+
+            if (connection != null)
             {
                 connection.LoginPassword = password;
                 connection.SendPassword(password);
@@ -759,17 +795,54 @@ namespace Thetis
 
         private static void onStateChanged(DxClusterConnection connection)
         {
+            string state = connection.State.ToString();
+            if (!string.IsNullOrEmpty(connection.LastError))
+                state += " (" + connection.LastError + ")";
+
+            recordRaw(connection, "STATE", state);
             ConnectionStateChanged?.Invoke(connection);
         }
 
         private static void onLineReceived(DxClusterConnection connection, string line)
         {
+            recordRaw(connection, "IN ", line);
             RawLineReceived?.Invoke(connection, line);
 
             if (!DxClusterParser.TryParse(line, connection.Host, out DxClusterSpot spot)) return;
 
             spot.NodeKey = NodeKey(connection.Host, connection.Port);
             addSpot(connection, spot);
+        }
+
+        private static void onLineSent(DxClusterConnection connection, string line)
+        {
+            recordRaw(connection, "OUT", line);
+            RawLineSent?.Invoke(connection, line);
+        }
+
+        private static void recordRaw(DxClusterConnection connection, string direction, string text)
+        {
+            DxClusterRawLogEntry entry = new DxClusterRawLogEntry
+            {
+                Timestamp = DateTime.Now,
+                Host = connection == null ? "" : connection.Host,
+                Port = connection == null ? 0 : connection.Port,
+                Direction = direction,
+                Text = text ?? "",
+            };
+
+            lock (_rawLogLock)
+            {
+                _rawLog.Add(entry);
+                if (_rawLog.Count > MaxRawLog)
+                    _rawLog.RemoveRange(0, _rawLog.Count - MaxRawLog);
+            }
+        }
+
+        // snapshot of the recent telnet traffic so a terminal opened later can show the login exchange
+        public static DxClusterRawLogEntry[] GetRawLog()
+        {
+            lock (_rawLogLock) return _rawLog.ToArray();
         }
 
         private static void addSpot(DxClusterConnection connection, DxClusterSpot spot)

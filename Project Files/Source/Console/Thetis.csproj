@@ -210,6 +210,9 @@
     <Compile Include="DXCluster\DxClusterServersForm.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="DXCluster\DxClusterTerminalForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Andromeda\displaysettingsform.cs">
       <SubType>Form</SubType>
     </Compile>

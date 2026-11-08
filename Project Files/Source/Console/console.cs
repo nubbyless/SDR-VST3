@@ -146,6 +146,7 @@ namespace Thetis
         public FilterForm filterRX2Form;
         public DiversityForm diversityForm;
         public DxClusterForm dxClusterForm;
+        public DxClusterTerminalForm dxClusterTerminalForm;
         // G8NJJ
         public SliderSettingsForm sliderForm;
         public ModeButtonsPopup modePopupForm;
@@ -28679,6 +28680,7 @@ namespace Thetis
             if (memoryForm != null) memoryForm.Hide();
             if (diversityForm != null) diversityForm.Hide();
             if (dxClusterForm != null) dxClusterForm.Hide();
+            if (dxClusterTerminalForm != null) dxClusterTerminalForm.Hide();
 
             if (psform != null) psform.Hide();
             if (m_frmNotchPopup != null) m_frmNotchPopup.Hide();
@@ -28741,6 +28743,7 @@ namespace Thetis
             DxClusterManager.DisconnectAll();
             DxClusterManager.SaveSettings();
             if (dxClusterForm != null) dxClusterForm.Close();
+            if (dxClusterTerminalForm != null) dxClusterTerminalForm.Close();
 
             if (psform != null) psform.Close();
             if (_frmReleaseNotes != null) _frmReleaseNotes.Close();
@@ -43998,6 +44001,28 @@ namespace Thetis
                 dxClusterForm.Show();
                 dxClusterForm.BringToFront();
                 dxClusterForm.Focus();
+            }
+        }
+
+        public void showDxClusterTerminalForm()
+        {
+            if (dxClusterTerminalForm == null || dxClusterTerminalForm.IsDisposed)
+                dxClusterTerminalForm = new DxClusterTerminalForm();
+
+            if (dxClusterTerminalForm.InvokeRequired)
+            {
+                dxClusterTerminalForm.Invoke(new MethodInvoker(() =>
+                {
+                    dxClusterTerminalForm.Show();
+                    dxClusterTerminalForm.BringToFront();
+                    dxClusterTerminalForm.Focus();
+                }));
+            }
+            else
+            {
+                dxClusterTerminalForm.Show();
+                dxClusterTerminalForm.BringToFront();
+                dxClusterTerminalForm.Focus();
             }
         }
 

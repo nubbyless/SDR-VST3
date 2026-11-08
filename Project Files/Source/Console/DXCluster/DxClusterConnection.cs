@@ -44,6 +44,7 @@ namespace Thetis
     public sealed class DxClusterConnection : IDisposable
     {
         public event Action<DxClusterConnection, string> LineReceived;
+        public event Action<DxClusterConnection, string> LineSent;
         public event Action<DxClusterConnection> StateChanged;
 
         public string Id { get; }
@@ -63,7 +64,6 @@ namespace Thetis
 
         private readonly object _sync = new object();
         private TcpClient _client;
-        private StreamReader _reader;
         private StreamWriter _writer;
         private Thread _thread;
         private volatile bool _running;
@@ -152,6 +152,7 @@ namespace Thetis
                 if (string.IsNullOrEmpty(text)) return;
 
                 _writer.WriteLine(text);
+                LineSent?.Invoke(this, text);
             }
             catch (Exception ex)
             {
@@ -170,7 +171,6 @@ namespace Thetis
                 _client = client;
                 NetworkStream ns = client.GetStream();
 
-                _reader = new StreamReader(ns, Encoding.Latin1, false, 4096);
                 _writer = new StreamWriter(ns, Encoding.Latin1) { AutoFlush = true, NewLine = "\r\n" };
 
                 setState(DxClusterConnectionState.Connected);
@@ -179,17 +179,37 @@ namespace Thetis
                 // supply it later via SendLogin (dx clusters usually stream no spots until then)
                 SendLogin(LoginCallsign);
 
-                string line;
-                while (_running && (line = _reader.ReadLine()) != null)
+                StringBuilder pending = new StringBuilder();
+                byte[] buffer = new byte[4096];
+                DateTime lastData = DateTime.UtcNow;
+
+                while (_running)
                 {
-                    if (isPasswordPrompt(line))
+                    if (!ns.DataAvailable)
                     {
-                        _passwordRequested = true;
-                        SendPassword(LoginPassword);
+                        // telnet prompts such as "login: " and "password: " have no line
+                        // terminator, so flush a partial line after a short idle period
+                        if (pending.Length > 0 && (DateTime.UtcNow - lastData).TotalMilliseconds >= 150)
+                        {
+                            string partial = pending.ToString();
+                            pending.Clear();
+                            processLine(partial.TrimEnd('\r', '\n'));
+                        }
+
+                        Thread.Sleep(20);
+                        continue;
                     }
 
-                    LineReceived?.Invoke(this, line);
+                    int count = ns.Read(buffer, 0, buffer.Length);
+                    if (count <= 0) break;
+
+                    lastData = DateTime.UtcNow;
+                    pending.Append(Encoding.Latin1.GetString(buffer, 0, count));
+                    processBuffer(pending);
                 }
+
+                if (pending.Length > 0)
+                    processLine(pending.ToString().TrimEnd('\r', '\n'));
             }
             catch (Exception ex)
             {
@@ -212,6 +232,48 @@ namespace Thetis
                 setState(DxClusterConnectionState.Disconnected);
         }
 
+        private void processBuffer(StringBuilder pending)
+        {
+            while (true)
+            {
+                string text = pending.ToString();
+
+                int lf = text.IndexOf('\n');
+                if (lf >= 0)
+                {
+                    string line = text.Substring(0, lf);
+                    if (line.EndsWith("\r", StringComparison.Ordinal)) line = line.Substring(0, line.Length - 1);
+                    pending.Remove(0, lf + 1);
+                    processLine(line);
+                    continue;
+                }
+
+                // a lone \r that is not the last character terminates a line; a trailing \r
+                // is held back in case the next read completes a \r\n pair
+                int cr = text.IndexOf('\r');
+                if (cr >= 0 && cr < text.Length - 1)
+                {
+                    string line = text.Substring(0, cr);
+                    pending.Remove(0, cr + 1);
+                    processLine(line);
+                    continue;
+                }
+
+                break;
+            }
+        }
+
+        private void processLine(string line)
+        {
+            LineReceived?.Invoke(this, line);
+
+            if (isPasswordPrompt(line))
+            {
+                _passwordRequested = true;
+                SendPassword(LoginPassword);
+            }
+        }
+
         private static bool isPasswordPrompt(string line)
         {
             string prompt = (line ?? "").Trim();
@@ -224,11 +286,9 @@ namespace Thetis
         private void cleanUp()
         {
             try { _client?.Close(); } catch { }
-            try { _reader?.Dispose(); } catch { }
             try { _writer?.Dispose(); } catch { }
 
             _client = null;
-            _reader = null;
             _writer = null;
         }
 

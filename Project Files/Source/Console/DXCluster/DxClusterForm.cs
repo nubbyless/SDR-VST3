@@ -66,6 +66,7 @@ namespace Thetis
         private ToolStripButton btnServers;
         private ToolStripButton btnShowOnPanadapter;
         private ToolStripButton btnSwl;
+        private ToolStripButton btnTerminal;
         private ToolStripButton btnClear;
         private ToolStripButton btnTheme;
 
@@ -198,6 +199,9 @@ namespace Thetis
             };
             btnSwl.CheckStateChanged += onToggleSwl;
 
+            btnTerminal = CreateButton("Terminal", onTerminal);
+            btnTerminal.ToolTipText = "Show raw telnet traffic (incoming and outgoing)";
+
             btnClear = CreateButton("Clear Spots", onClearSpots);
 
             btnTheme = new ToolStripButton
@@ -224,10 +228,11 @@ namespace Thetis
             toolStrip.Items.Add(btnClear);
             toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnSwl);
+            toolStrip.Items.Add(btnTerminal);
             toolStrip.Items.Add(btnTheme);
             toolStrip.Items.Add(lblTheme);
 
-            foreach (ToolStripItem item in new ToolStripItem[] { btnServers, btnDisconnectAll, btnShowOnPanadapter, btnClear, btnSwl, btnTheme })
+            foreach (ToolStripItem item in new ToolStripItem[] { btnServers, btnDisconnectAll, btnShowOnPanadapter, btnClear, btnSwl, btnTerminal, btnTheme })
                 item.Margin = new Padding(7, 2, 7, 2);
 
             UpdateThemeButton();
@@ -689,7 +694,7 @@ namespace Thetis
                 if (!known) entries.Add(new DxClusterServerEntry(node.Host, node.Host, node.Port));
             }
 
-            using (DxClusterServersForm dialog = new DxClusterServersForm(entries, callsign, DxClusterManager.Settings.LoginPassword))
+            using (DxClusterServersForm dialog = new DxClusterServersForm(entries, callsign))
             {
                 dialog.ShowDialog(this);
             }
@@ -726,7 +731,7 @@ namespace Thetis
             }
             else
             {
-                DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign, DxClusterManager.Settings.LoginPassword).Connect();
+                    DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign, node.Password).Connect();
             }
 
             RefreshConnections();
@@ -805,6 +810,11 @@ namespace Thetis
             _spotRowById.Clear();
             _spotFlagById.Clear();
             gridSpots.Rows.Clear();
+        }
+
+        private void onTerminal(object sender, EventArgs e)
+        {
+            _console.showDxClusterTerminalForm();
         }
 
         private void onFilterChanged(object sender, EventArgs e)
@@ -968,7 +978,7 @@ namespace Thetis
             {
                 DxClusterNodeSettings node = DxClusterManager.FindNodeByKey(key);
                 if (node != null)
-                    DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign, DxClusterManager.Settings.LoginPassword).Connect();
+                DxClusterManager.AddConnection(node.Host, node.Port, DxClusterManager.Settings.LoginCallsign, node.Password).Connect();
             }
 
             RefreshConnections();
