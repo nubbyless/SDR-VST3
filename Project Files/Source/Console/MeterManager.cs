@@ -6558,6 +6558,11 @@ namespace Thetis
             bool bRestoreOk = true;
             try
             {
+                // custom meter images must be in the bitmap cache before the
+                // restored group settings are applied, otherwise ApplySettingsForMeterGroup
+                // falls back to the default image because ContainsBitmap() is false
+                loadCustomMeterImages();
+
                 foreach (KeyValuePair<string, string> kvp in settings.Where(o => o.Key.StartsWith("meterContData_")))
                 {
                     ucMeter ucM = new ucMeter();
