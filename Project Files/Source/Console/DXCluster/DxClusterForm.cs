@@ -1429,7 +1429,7 @@ namespace Thetis
             TextPrimary = Color.FromArgb(0xD8, 0xD8, 0xD8),
             TextSecondary = Color.FromArgb(0x9A, 0x9A, 0x9A),
             SelectionBorder = Color.FromArgb(0x8A, 0x8A, 0x8A),
-            Gutter = Color.FromArgb(0x26, 0x26, 0x26),
+            Gutter = Color.FromArgb(0x33, 0x33, 0x33),
             IconHover = Color.FromArgb(0x60, 0x60, 0x60),
             AccentOn = Color.FromArgb(0x7E, 0xC8, 0xF0),
             Selection = Color.FromArgb(0x3D, 0x5A, 0x78),
