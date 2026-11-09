@@ -16,8 +16,6 @@ namespace Thetis
         private ToolStripButton btnAutoScroll;
         private ToolStripButton btnCopy;
         private ToolStripButton btnSave;
-        private ToolStripButton btnTheme;
-        private ToolStripLabel lblTheme;
         private RichTextBox txtLog;
         private StatusStrip status;
         private ToolStripStatusLabel lblStatus;
@@ -39,6 +37,8 @@ namespace Thetis
         {
             BuildUi();
 
+            DxClusterTheme.ThemeChanged += onThemeChanged;
+
             DxClusterManager.RawLineReceived += onRawReceived;
             DxClusterManager.RawLineSent += onRawSent;
             DxClusterManager.ConnectionStateChanged += onStateChanged;
@@ -59,6 +59,7 @@ namespace Thetis
         {
             if (disposing)
             {
+                DxClusterTheme.ThemeChanged -= onThemeChanged;
                 DxClusterManager.RawLineReceived -= onRawReceived;
                 DxClusterManager.RawLineSent -= onRawSent;
                 DxClusterManager.ConnectionStateChanged -= onStateChanged;
@@ -106,7 +107,6 @@ namespace Thetis
             {
                 try { Common.RestoreForm(this, "DxClusterTerminalForm", true); } catch { }
                 refreshNodes();
-                UpdateThemeButton();
                 updateStatus();
                 if (txtInput != null) txtInput.Focus();
             };
@@ -145,31 +145,14 @@ namespace Thetis
             btnCopy = CreateButton("Copy All", onCopy);
             btnSave = CreateButton("Save Log...", onSave);
 
-            btnTheme = new ToolStripButton
-            {
-                Alignment = ToolStripItemAlignment.Right,
-                DisplayStyle = ToolStripItemDisplayStyle.Text,
-                ForeColor = DxClusterTheme.TextPrimary,
-                ToolTipText = "Toggle light/dark theme",
-            };
-            btnTheme.Click += onThemeToggle;
-
-            lblTheme = new ToolStripLabel("Theme:")
-            {
-                Alignment = ToolStripItemAlignment.Right,
-                ForeColor = DxClusterTheme.TextSecondary,
-            };
-
             toolStrip.Items.Add(btnClear);
             toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnAutoScroll);
             toolStrip.Items.Add(new ToolStripSeparator());
             toolStrip.Items.Add(btnCopy);
             toolStrip.Items.Add(btnSave);
-            toolStrip.Items.Add(btnTheme);
-            toolStrip.Items.Add(lblTheme);
 
-            foreach (ToolStripItem item in new ToolStripItem[] { btnClear, btnAutoScroll, btnCopy, btnSave, btnTheme })
+            foreach (ToolStripItem item in new ToolStripItem[] { btnClear, btnAutoScroll, btnCopy, btnSave })
                 item.Margin = new Padding(7, 2, 7, 2);
         }
 
@@ -595,20 +578,11 @@ namespace Thetis
             }
         }
 
-        private void onThemeToggle(object sender, EventArgs e)
+        private void onThemeChanged()
         {
-            DxClusterTheme.SetDark(!DxClusterTheme.IsDark);
-            DxClusterManager.Settings.DarkTheme = DxClusterTheme.IsDark;
-            DxClusterManager.SaveSettings();
-
-            applyTheme();
-            UpdateThemeButton();
-        }
-
-        private void UpdateThemeButton()
-        {
-            if (btnTheme != null)
-                btnTheme.Text = DxClusterTheme.IsDark ? "Light" : "Dark";
+            if (IsDisposed) return;
+            if (InvokeRequired) BeginInvoke(new Action(applyTheme));
+            else applyTheme();
         }
 
         private void applyTheme()
@@ -629,7 +603,6 @@ namespace Thetis
             }
 
             if (lblStatus != null) lblStatus.ForeColor = DxClusterTheme.TextSecondary;
-            if (lblTheme != null) lblTheme.ForeColor = DxClusterTheme.TextSecondary;
 
             if (txtLog != null)
             {
@@ -657,7 +630,7 @@ namespace Thetis
                 btnSend.ForeColor = DxClusterTheme.TextPrimary;
             }
 
-            foreach (ToolStripItem item in new ToolStripItem[] { btnClear, btnAutoScroll, btnCopy, btnSave, btnTheme })
+            foreach (ToolStripItem item in new ToolStripItem[] { btnClear, btnAutoScroll, btnCopy, btnSave })
                 if (item != null) item.ForeColor = DxClusterTheme.TextPrimary;
         }
 

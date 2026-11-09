@@ -1476,7 +1476,15 @@ namespace Thetis
         private static bool _dark = true;
 
         public static bool IsDark { get { return _dark; } }
-        public static void SetDark(bool dark) { _dark = dark; }
+
+        public static event Action ThemeChanged;
+
+        public static void SetDark(bool dark)
+        {
+            if (_dark == dark) return;
+            _dark = dark;
+            ThemeChanged?.Invoke();
+        }
 
         private static Palette P { get { return _dark ? Dark : Light; } }
 
