@@ -1282,8 +1282,11 @@ namespace Thetis
             if (e.RowIndex < 0 || e.ColumnIndex != COL_SPOT_COUNTRY) return;
 
             Image flag = null;
-            if (gridSpots.Rows[e.RowIndex].Tag is long id)
-                _spotFlagById.TryGetValue(id, out flag);
+            object tag = gridSpots.Rows[e.RowIndex].Tag;
+            long id = -1;
+            if (tag is DxClusterSpot spot) id = spot.Id;
+            else if (tag is long rowId) id = rowId;
+            if (id >= 0) _spotFlagById.TryGetValue(id, out flag);
 
             if (flag == null) return; // no flag, let the grid draw the text normally
 
