@@ -615,7 +615,21 @@ namespace Thetis
             grid.AlternatingRowsDefaultCellStyle.SelectionBackColor = DxClusterTheme.Selection;
             grid.AlternatingRowsDefaultCellStyle.SelectionForeColor = DxClusterTheme.TextPrimary;
 
+            foreach (DataGridViewRow row in grid.Rows)
+                ApplyRowTheme(row);
+
             grid.Invalidate();
+        }
+
+        // set the row background explicitly so rows never fall back to the system
+        // alternating colour (light grey), which stands out badly in dark mode
+        private static void ApplyRowTheme(DataGridViewRow row)
+        {
+            if (row == null) return;
+            row.DefaultCellStyle.BackColor = DxClusterTheme.Inset;
+            row.DefaultCellStyle.ForeColor = DxClusterTheme.TextPrimary;
+            row.DefaultCellStyle.SelectionBackColor = DxClusterTheme.Selection;
+            row.DefaultCellStyle.SelectionForeColor = DxClusterTheme.TextPrimary;
         }
 
         private string defaultCallsign()
@@ -1055,6 +1069,7 @@ namespace Thetis
                     {
                         int index = gridConns.Rows.Add();
                         row = gridConns.Rows[index];
+                        ApplyRowTheme(row);
                         row.Tag = key;
                         _connRowByKey[key] = row;
                     }
@@ -1245,6 +1260,7 @@ namespace Thetis
         {
             DataGridViewRow row = new DataGridViewRow();
             row.CreateCells(gridSpots);
+            ApplyRowTheme(row);
             row.Tag = spot; // store spot directly for quick access on click
             row.Cells[COL_SPOT_TIME].Value = spot.UtcTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
             row.Cells[COL_SPOT_MHZ].Value = spot.FrequencyHz / 1000000.0;
@@ -1290,7 +1306,14 @@ namespace Thetis
 
             if (flag == null) return; // no flag, let the grid draw the text normally
 
-            e.PaintBackground(e.CellBounds, true);
+            DataGridViewCell cell = gridSpots.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            DataGridViewCellStyle inherited = cell.InheritedStyle;
+            bool selected = (e.State & DataGridViewElementStates.Selected) != 0;
+            Color back = selected ? inherited.SelectionBackColor : inherited.BackColor;
+            if (back.IsEmpty) back = gridSpots.BackgroundColor;
+            using (SolidBrush brush = new SolidBrush(back))
+                e.Graphics.FillRectangle(brush, e.CellBounds);
+            e.Paint(e.ClipBounds, DataGridViewPaintParts.Border);
 
             Rectangle bounds = e.CellBounds;
             int left = bounds.Left + 2;
@@ -1312,7 +1335,6 @@ namespace Thetis
             string text = Convert.ToString(e.Value);
             if (!string.IsNullOrEmpty(text))
             {
-                bool selected = (e.State & DataGridViewElementStates.Selected) != 0;
                 Color fore = selected ? e.CellStyle.SelectionForeColor : e.CellStyle.ForeColor;
 
                 Rectangle textRect = new Rectangle(left, bounds.Top, Math.Max(0, bounds.Right - left), bounds.Height);
@@ -1445,7 +1467,7 @@ namespace Thetis
             TextPrimary = Color.FromArgb(0x20, 0x20, 0x20),
             TextSecondary = Color.FromArgb(0x60, 0x60, 0x60),
             SelectionBorder = Color.FromArgb(0xB0, 0xB0, 0xB0),
-            Gutter = Color.FromArgb(0xF6, 0xF6, 0xF6),
+            Gutter = Color.FromArgb(0xFF, 0xFF, 0xFF),
             IconHover = Color.FromArgb(0xCD, 0xDD, 0xEE),
             AccentOn = Color.FromArgb(0x1E, 0x6F, 0xA8),
             Selection = Color.FromArgb(0xCC, 0xE4, 0xFF),
