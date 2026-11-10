@@ -127,6 +127,26 @@ void xsiphon (SIPHON a, int pos)
 			}
 			break;
 		case 1:
+			// keep the ring buffer current as well, so that suck/TXAGetSpecF1/TXAGetaSipF1
+			// return live data even when the siphon is driving Spectrum0 displays
+			if (a->insize >= a->sipsize)
+				memcpy (a->sipbuff, &(a->in[2 * (a->insize - a->sipsize)]), a->sipsize * sizeof (complex));
+			else
+			{
+				if (a->insize > (a->sipsize - a->idx))
+				{
+					first = a->sipsize - a->idx;
+					second = a->insize - first;
+				}
+				else
+				{
+					first = a->insize;
+					second = 0;
+				}
+				memcpy (a->sipbuff + 2 * a->idx, a->in, first * sizeof (complex));
+				memcpy (a->sipbuff, a->in + 2 * first, second * sizeof (complex));
+				if ((a->idx += a->insize) >= a->sipsize) a->idx -= a->sipsize;
+			}
 			Spectrum0 (1, a->disp, 0, 0, a->in);
 			for (i = 0; i < a->n_alloc_disps; i++)
 				Spectrum0 (a->alloc_run[i], a->alloc_disp[i], 0, 0, a->in);

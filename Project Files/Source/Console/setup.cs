@@ -123,6 +123,22 @@ namespace Thetis
         private NumericUpDownTS[] nudNR5_smooth_att;
         private NumericUpDownTS[] nudNR5_smooth_rel;
         private CheckBoxTS[] chkNR5_cmode;
+        // TX audio spectrum gadget settings, built programmatically in InitTxAudioSpecControls()
+        private GroupBoxTS grpTxAudioSpec;
+        private NumericUpDownTS nudTxAudioSpec_height;
+        private NumericUpDownTS nudTxAudioSpec_zoom;
+        private NumericUpDownTS nudTxAudioSpec_peak_hold;
+        private NumericUpDownTS nudTxAudioSpec_font_scale;
+        private CheckBoxTS chkTxAudioSpec_fill;
+        private CheckBoxTS chkTxAudioSpec_fade_rx;
+        private CheckBoxTS chkTxAudioSpec_fade_tx;
+        private ColorButton clrbtnTxAudioSpec_back;
+        private ColorButton clrbtnTxAudioSpec_line;
+        private ColorButton clrbtnTxAudioSpec_fill_colour;
+        private ColorButton clrbtnTxAudioSpec_text;
+        private ColorButton clrbtnTxAudioSpec_edges;
+        private ColorButton clrbtnTxAudioSpec_meterback;
+        private ColorButton clrbtnTxAudioSpec_extents;
 
         #endregion
 
@@ -136,6 +152,7 @@ namespace Thetis
             InitializeTciVstControls();
             InitPhaseRotatorControls(); // Yurij-eu2av - 2026-07-08: build Phase Rotator extras programmatically
             InitNnrControls(); // NR5 (NNR) tuning tab
+            InitTxAudioSpecControls(); // TX audio spectrum gadget settings
 
             _original_pnlP1_adcs_location = pnlP1_adcs.Location;
 
@@ -26264,6 +26281,26 @@ namespace Thetis
                 igs.SetSetting<bool>("filterdisplay_characteristic", chkFilter_characteristic.Checked);
                 igs.SetSetting<float>("filterdisplay_characteristic_low", (float)nudFilter_lower_characteristic.Value);
             }
+            else if (mt == MeterType.TX_AUDIO_SPEC)
+            {
+                if (grpTxAudioSpec != null)
+                {
+                    igs.FadeOnRx = chkTxAudioSpec_fade_rx.Checked;
+                    igs.FadeOnTx = chkTxAudioSpec_fade_tx.Checked;
+                    igs.Colour = Color.FromArgb(255, clrbtnTxAudioSpec_back.Color);
+                    igs.SetSetting<float>("txaudiospec_height_ratio", (float)nudTxAudioSpec_height.Value / 100f);
+                    igs.SetSetting<int>("txaudiospec_zoom_hz", (int)nudTxAudioSpec_zoom.Value);
+                    igs.SetSetting<int>("txaudiospec_peak_hold_ms", (int)nudTxAudioSpec_peak_hold.Value);
+                    igs.SetSetting<float>("txaudiospec_font_scale", (float)nudTxAudioSpec_font_scale.Value);
+                    igs.SetSetting<bool>("txaudiospec_fill_spec", chkTxAudioSpec_fill.Checked);
+                    igs.SetSetting<System.Drawing.Color>("txaudiospec_dataline_colour", clrbtnTxAudioSpec_line.Color);
+                    igs.SetSetting<System.Drawing.Color>("txaudiospec_datafill_colour", clrbtnTxAudioSpec_fill_colour.Color);
+                    igs.SetSetting<System.Drawing.Color>("txaudiospec_text_colour", clrbtnTxAudioSpec_text.Color);
+                    igs.SetSetting<System.Drawing.Color>("txaudiospec_edges_colour_tx", clrbtnTxAudioSpec_edges.Color);
+                    igs.SetSetting<System.Drawing.Color>("txaudiospec_meterback_colour", clrbtnTxAudioSpec_meterback.Color);
+                    igs.SetSetting<System.Drawing.Color>("txaudiospec_extents_colour", clrbtnTxAudioSpec_extents.Color);
+                }
+            }
             else
             {
                 //custom meter bar
@@ -27074,6 +27111,26 @@ namespace Thetis
                 chkFilter_characteristic.Checked = igs.GetSetting<bool>("filterdisplay_characteristic", false, false, false, false);
                 nudFilter_lower_characteristic.Value = (decimal)igs.GetSetting<float>("filterdisplay_characteristic_low", true, -300f, -50f, -250f);
             }
+            else if (mt == MeterType.TX_AUDIO_SPEC)
+            {
+                if (grpTxAudioSpec != null)
+                {
+                    chkTxAudioSpec_fade_rx.Checked = igs.FadeOnRx;
+                    chkTxAudioSpec_fade_tx.Checked = igs.FadeOnTx;
+                    clrbtnTxAudioSpec_back.Color = igs.Colour;
+                    nudTxAudioSpec_height.Value = (decimal)(igs.GetSetting<float>("txaudiospec_height_ratio", true, 0.15f, 1f, 0.6f) * 100f);
+                    nudTxAudioSpec_zoom.Value = igs.GetSetting<int>("txaudiospec_zoom_hz", true, 1000, 10000, 10000);
+                    nudTxAudioSpec_peak_hold.Value = igs.GetSetting<int>("txaudiospec_peak_hold_ms", true, 0, 10000, 3000);
+                    nudTxAudioSpec_font_scale.Value = (decimal)igs.GetSetting<float>("txaudiospec_font_scale", true, 0.01f, 4f, 1f);
+                    chkTxAudioSpec_fill.Checked = igs.GetSetting<bool>("txaudiospec_fill_spec", false, false, false, true);
+                    clrbtnTxAudioSpec_line.Color = igs.GetSetting<Color>("txaudiospec_dataline_colour", false, Color.Empty, Color.Empty, Color.LimeGreen);
+                    clrbtnTxAudioSpec_fill_colour.Color = igs.GetSetting<Color>("txaudiospec_datafill_colour", false, Color.Empty, Color.Empty, Color.LimeGreen);
+                    clrbtnTxAudioSpec_text.Color = igs.GetSetting<Color>("txaudiospec_text_colour", false, Color.Empty, Color.Empty, Color.White);
+                    clrbtnTxAudioSpec_edges.Color = igs.GetSetting<Color>("txaudiospec_edges_colour_tx", false, Color.Empty, Color.Empty, Color.Red);
+                    clrbtnTxAudioSpec_meterback.Color = igs.GetSetting<Color>("txaudiospec_meterback_colour", false, Color.Empty, Color.Empty, Color.Black);
+                    clrbtnTxAudioSpec_extents.Color = igs.GetSetting<Color>("txaudiospec_extents_colour", false, Color.Empty, Color.Empty, Color.Gray);
+                }
+            }
             else
             {
                 //custom meter bar
@@ -27561,6 +27618,7 @@ namespace Thetis
                 grpMeterItemFilterDisplay.Visible = false;
                 grpDialDisplay.Visible = false;
                 grpWaveRecordItem.Visible = false;
+                if (grpTxAudioSpec != null) grpTxAudioSpec.Visible = false;
             }
 
             switch (mt)
@@ -27586,6 +27644,15 @@ namespace Thetis
                     grpMeterItemFilterDisplay.Parent = grpMultiMeterHolder;
                     grpMeterItemFilterDisplay.Location = loc;
                     grpMeterItemFilterDisplay.Visible = true;
+                    break;
+                case MeterType.TX_AUDIO_SPEC:
+                    if (grpTxAudioSpec != null)
+                    {
+                        grpTxAudioSpec.Parent = grpMultiMeterHolder;
+                        grpTxAudioSpec.Location = loc;
+                        grpTxAudioSpec.Visible = true;
+                        grpTxAudioSpec.BringToFront();
+                    }
                     break;
                 case MeterType.TEXT_OVERLAY:
                     grpTextOverlay.Parent = grpMultiMeterHolder;
@@ -29480,6 +29547,141 @@ namespace Thetis
             parent.Controls.Add(nud);
 
             return nud;
+        }
+
+        private void InitTxAudioSpecControls()
+        {
+            if (grpMultiMeterHolder == null || grpMeterItemSettings == null) return;
+
+            grpTxAudioSpec = new GroupBoxTS();
+            grpTxAudioSpec.Location = grpMeterItemSettings.Location;
+            grpTxAudioSpec.Name = "grpTxAudioSpec";
+            grpTxAudioSpec.Size = grpMeterItemSettings.Size;
+            grpTxAudioSpec.TabIndex = grpMeterItemSettings.TabIndex;
+            grpTxAudioSpec.TabStop = false;
+            grpTxAudioSpec.Text = "TX Audio Spectrum";
+            grpTxAudioSpec.Parent = grpMultiMeterHolder;
+            grpTxAudioSpec.Visible = false;
+
+            int y = 20;
+            nudTxAudioSpec_height = AddTxAudioSpecNumeric("TxAudioSpec_height", "Height (%):", y,
+                15m, 100m, 60m, 0, 1m, "Vertical height of the gadget as a percentage of the meter area");
+            y += 26;
+            nudTxAudioSpec_zoom = AddTxAudioSpecNumeric("TxAudioSpec_zoom", "Zoom (Hz):", y,
+                1000m, 10000m, 10000m, 0, 100m, "Highest audio frequency shown on the right of the display");
+            y += 26;
+            nudTxAudioSpec_peak_hold = AddTxAudioSpecNumeric("TxAudioSpec_peak_hold", "Peak hold (ms):", y,
+                0m, 10000m, 3000m, 0, 100m, "How long the peak trace holds before it starts to fall");
+            y += 26;
+            nudTxAudioSpec_font_scale = AddTxAudioSpecNumeric("TxAudioSpec_font_scale", "Font scale:", y,
+                0.5m, 4m, 1m, 1, 0.1m, "Scale factor for the axis labels");
+            y += 28;
+
+            chkTxAudioSpec_fill = AddTxAudioSpecCheck("TxAudioSpec_fill", "Fill spectrum", y, true,
+                "Fill the area under the spectrum trace");
+            y += 24;
+            chkTxAudioSpec_fade_rx = AddTxAudioSpecCheck("TxAudioSpec_fade_rx", "Fade on RX", y, false,
+                "Fade the gadget out when receiving");
+            y += 24;
+            chkTxAudioSpec_fade_tx = AddTxAudioSpecCheck("TxAudioSpec_fade_tx", "Fade on TX", y, false,
+                "Fade the gadget out when transmitting");
+            y += 28;
+
+            clrbtnTxAudioSpec_back = AddTxAudioSpecColor("TxAudioSpec_back", "Background:", y,
+                Color.FromArgb(32, 32, 32), "Gadget background colour");
+            y += 24;
+            clrbtnTxAudioSpec_line = AddTxAudioSpecColor("TxAudioSpec_line", "Trace colour:", y,
+                Color.LimeGreen, "Spectrum trace colour");
+            y += 24;
+            clrbtnTxAudioSpec_fill_colour = AddTxAudioSpecColor("TxAudioSpec_fill_colour", "Fill colour:", y,
+                Color.LimeGreen, "Colour used to fill under the spectrum");
+            y += 24;
+            clrbtnTxAudioSpec_text = AddTxAudioSpecColor("TxAudioSpec_text", "Peak/text colour:", y,
+                Color.White, "Axis label and peak trace colour");
+            y += 24;
+            clrbtnTxAudioSpec_edges = AddTxAudioSpecColor("TxAudioSpec_edges", "Grid/edges colour:", y,
+                Color.Red, "Grid and frame edge colour");
+            y += 24;
+            clrbtnTxAudioSpec_meterback = AddTxAudioSpecColor("TxAudioSpec_meterback", "Meter back:", y,
+                Color.Black, "Colour of the meter background behind the trace");
+            y += 24;
+            clrbtnTxAudioSpec_extents = AddTxAudioSpecColor("TxAudioSpec_extents", "Extents colour:", y,
+                Color.Gray, "Colour of the axis extents");
+        }
+
+        private NumericUpDownTS AddTxAudioSpecNumeric(string name, string caption, int y,
+            decimal min, decimal max, decimal value, int decimals, decimal increment, string tip)
+        {
+            LabelTS lbl = new LabelTS();
+            lbl.AutoSize = true;
+            lbl.Image = null;
+            lbl.Location = new Point(12, y + 3);
+            lbl.Name = "lbl" + name;
+            lbl.Size = new Size(130, 13);
+            lbl.TabIndex = 0;
+            lbl.Text = caption;
+            grpTxAudioSpec.Controls.Add(lbl);
+
+            NumericUpDownTS nud = new NumericUpDownTS();
+            nud.DecimalPlaces = decimals;
+            nud.Increment = increment;
+            nud.Location = new Point(150, y);
+            nud.Maximum = max;
+            nud.Minimum = min;
+            nud.Name = "nud" + name;
+            nud.Size = new Size(75, 20);
+            nud.TabIndex = 1;
+            nud.TinyStep = false;
+            nud.Value = value;
+            toolTip1.SetToolTip(nud, tip);
+            nud.ValueChanged += new EventHandler((s, e) => updateMeterType());
+            grpTxAudioSpec.Controls.Add(nud);
+
+            return nud;
+        }
+
+        private CheckBoxTS AddTxAudioSpecCheck(string name, string text, int y, bool value, string tip)
+        {
+            CheckBoxTS chk = new CheckBoxTS();
+            chk.AutoSize = true;
+            chk.Image = null;
+            chk.Location = new Point(12, y);
+            chk.Name = "chk" + name;
+            chk.Size = new Size(200, 17);
+            chk.TabIndex = 1;
+            chk.Text = text;
+            chk.UseVisualStyleBackColor = true;
+            chk.Checked = value;
+            toolTip1.SetToolTip(chk, tip);
+            chk.CheckedChanged += new EventHandler((s, e) => updateMeterType());
+            grpTxAudioSpec.Controls.Add(chk);
+
+            return chk;
+        }
+
+        private ColorButton AddTxAudioSpecColor(string name, string caption, int y, Color value, string tip)
+        {
+            LabelTS lbl = new LabelTS();
+            lbl.AutoSize = true;
+            lbl.Image = null;
+            lbl.Location = new Point(12, y + 3);
+            lbl.Name = "lbl" + name;
+            lbl.Size = new Size(130, 13);
+            lbl.TabIndex = 0;
+            lbl.Text = caption;
+            grpTxAudioSpec.Controls.Add(lbl);
+
+            ColorButton btn = new ColorButton();
+            btn.Location = new Point(150, y);
+            btn.Name = "clrbtn" + name;
+            btn.Size = new Size(75, 23);
+            btn.TabIndex = 1;
+            btn.Color = value;
+            toolTip1.SetToolTip(btn, tip);
+            btn.Changed += new EventHandler((s, e) => updateMeterType());
+            grpTxAudioSpec.Controls.Add(btn);
+
+            return btn;
         }
 
         private void ResetNnrRx(int rx)

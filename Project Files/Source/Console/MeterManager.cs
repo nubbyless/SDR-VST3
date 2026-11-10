@@ -221,6 +221,7 @@ namespace Thetis
         ALC_GROUP,
         CFC,
         CFC_GAIN,
+        TX_AUDIO_SPEC,
         COMP,
         //--
         PWR,
@@ -2409,6 +2410,7 @@ namespace Thetis
                 case MeterType.LEVELER_GAIN: return 1;
                 case MeterType.CFC: return 1;
                 case MeterType.CFC_GAIN: return 1;
+                case MeterType.TX_AUDIO_SPEC: return 1;
                 case MeterType.SWR: return 1;
 
                 case MeterType.MAGIC_EYE: return 2;
@@ -2468,6 +2470,7 @@ namespace Thetis
                 case MeterType.LEVELER_GAIN: return "Leveler Gain";
                 case MeterType.CFC: return "CFC Compression";
                 case MeterType.CFC_GAIN: return "CFC Compression Gain";
+                case MeterType.TX_AUDIO_SPEC: return "TX Audio Spectrum";
                 case MeterType.MAGIC_EYE: return "Magic Eye";
                 case MeterType.ESTIMATED_PBSNR: return "Estimated PBSNR";
                 case MeterType.RADAE_SYNC: return "RADE Sync";
@@ -7186,6 +7189,7 @@ namespace Thetis
                 VOICE_RECORD_PLAY_BUTTONS,
                 TX_VST_PLUGINS,
                 RX_VST_PLUGINS,
+                TX_AUDIO_SPEC,
                 RADAE_CALL_TEXT
             }
 
@@ -19036,6 +19040,326 @@ namespace Thetis
                 //
             }
         }
+        internal class clsTxAudioSpecItem : clsMeterItem
+        {
+            public const int FFT_SIZE = 16384;
+            public const int FFT_BINS_HALF = FFT_SIZE / 2;
+            // WDSP opens the TXA channel with a 96000 Hz dsp_rate (ChannelMaster cmaster.c)
+            public const int TX_DSP_RATE = 96000;
+            public const float BIN_WIDTH_HZ = (float)TX_DSP_RATE / FFT_SIZE;
+            // TXAGetSpecF1 returns 10*log10(|X|^2) with a unity-sum window; the analyzer/panadapter
+            // convention (4/N^2 scale, zero at full-scale) is 10*log10(4) higher
+            public const float SPEC_DB_OFFSET = 6.0206f;
+            // practical per-side audio bandwidth; nobody transmits 20 kHz of audio
+            public const int DEFAULT_BANDWIDTH_HZ = 10000;
+            // one-sided audio-analyzer display starts here and runs up to ZoomHZ
+            public const float TX_SPEC_MIN_HZ = 50f;
+            // audio dB range: independent of the RF panadapter grid, which tops out
+            // around -15 dB and clips full-scale audio near 0 dB
+            public const float SPEC_GRID_MIN = -90f;
+            public const float SPEC_GRID_MAX = 6f;
+            // per-update ballistics: fast rise, slower fall for a stable analyzer trace
+            private const float SPEC_ATTACK = 0.65f;
+            private const float SPEC_RELEASE = 0.12f;
+
+            private clsMeter _owningmeter;
+            private clsItemGroup _ig;
+            private float[] _fft_data;
+            private float[] _spec_data;
+            private float[] _peak_data;
+            private float[] _peak_tmp;
+            private float[] _peak_render;
+            private int[] _peak_hold;
+            private readonly object _spec_data_lock = new object();
+            // peak/history trace: hold for ~3 s at 30 fps, then fall ~21 dB/s
+            public const int DEFAULT_PEAK_HOLD_MS = 3000;
+            private const int PEAK_HOLD_UPDATES = 90;
+            private const float PEAK_FALL_DB = 0.7f;
+            private int _peak_hold_ms;
+            private int _peak_hold_updates;
+
+            private int _zoom_hz;
+            private float _spec_min;
+            private float _spec_max;
+
+            private System.Drawing.Color _colour;
+            private System.Drawing.Color _dataline_colour;
+            private System.Drawing.Color _datafill_colour;
+            private System.Drawing.Color _text_colour;
+            private System.Drawing.Color _edges_colour_tx;
+            private System.Drawing.Color _meterback_colour;
+            private System.Drawing.Color _extents_colour;
+            private float _padding;
+            private float _font_scale;
+            private bool _fill_spec;
+
+            public clsTxAudioSpecItem(clsMeter owning_meter, clsItemGroup item_group)
+            {
+                _owningmeter = owning_meter;
+                _ig = item_group;
+
+                _fft_data = new float[FFT_SIZE];
+                _spec_data = new float[MiniSpec.PIXELS];
+                _peak_data = new float[MiniSpec.PIXELS];
+                _peak_tmp = new float[MiniSpec.PIXELS];
+                _peak_render = new float[MiniSpec.PIXELS];
+                _peak_hold = new int[MiniSpec.PIXELS];
+                for (int i = 0; i < _spec_data.Length; i++)
+                {
+                    _spec_data[i] = -200f;
+                    _peak_data[i] = -200f;
+                    _peak_tmp[i] = -200f;
+                    _peak_render[i] = -200f;
+                }
+
+                _zoom_hz = DEFAULT_BANDWIDTH_HZ;
+                _spec_min = -200f;
+                _spec_max = 200f;
+
+                _colour = System.Drawing.Color.FromArgb(32, 32, 32);
+                _dataline_colour = System.Drawing.Color.LimeGreen;
+                _datafill_colour = System.Drawing.Color.LimeGreen;
+                _text_colour = System.Drawing.Color.White;
+                _edges_colour_tx = System.Drawing.Color.Red;
+                _meterback_colour = System.Drawing.Color.Black;
+                _extents_colour = System.Drawing.Color.Gray;
+                _padding = 0.6f;
+                _font_scale = 1f;
+                _fill_spec = true;
+
+                ItemType = MeterItemType.TX_AUDIO_SPEC;
+                ReadingSource = Reading.NONE;
+                UpdateInterval = 1000 / MiniSpec.FRAME_RATE; // to ms
+
+                _peak_hold_ms = DEFAULT_PEAK_HOLD_MS;
+                _peak_hold_updates = PeakHoldUpdates(_peak_hold_ms);
+
+                Initialise();
+            }
+            private int PeakHoldUpdates(int ms)
+            {
+                return Math.Max(1, (int)Math.Round(ms / (double)Math.Max(1, UpdateInterval)));
+            }
+            public int PeakHoldMs
+            {
+                get { return _peak_hold_ms; }
+                set
+                {
+                    _peak_hold_ms = Math.Max(0, value);
+                    _peak_hold_updates = PeakHoldUpdates(_peak_hold_ms);
+                }
+            }
+            public override void Initialise()
+            {
+                _zoom_hz = DEFAULT_BANDWIDTH_HZ;
+                ResetPeaks();
+            }
+            private void ResetPeaks()
+            {
+                if (_peak_data == null || _peak_hold == null) return;
+                lock (_spec_data_lock)
+                {
+                    for (int i = 0; i < _peak_data.Length; i++)
+                    {
+                        _peak_data[i] = -200f;
+                        _peak_tmp[i] = -200f;
+                        _peak_render[i] = -200f;
+                        _peak_hold[i] = 0;
+                    }
+                }
+            }
+            private static int FreqToBin(float hz)
+            {
+                // specmode=1: out[i] frequency = (FFT_BINS_HALF - 1 - i) * BIN_WIDTH_HZ
+                return FFT_BINS_HALF - 1 - (int)Math.Round(hz / BIN_WIDTH_HZ);
+            }
+            public override void Update(int rx, ref List<Reading> readingsUsed, Dictionary<Reading, object> all_list_item_readings = null)
+            {
+                float[] fft = _fft_data;
+
+                unsafe
+                {
+                    fixed (float* ptr = &fft[0])
+                        WDSP.TXAGetSpecF1(WDSP.id(1, 0), ptr);
+                }
+
+                int pixels = _spec_data.Length;
+                float max_hz = Math.Max(TX_SPEC_MIN_HZ * 2f, _zoom_hz);
+
+                lock (_spec_data_lock)
+                {
+                    for (int p = 0; p < pixels; p++)
+                    {
+                        // pixel-centred frequency, used for sub-bin interpolation
+                        float t_mid = p / (float)(pixels - 1);
+                        float t_lo = (p - 0.5f) / (pixels - 1);
+                        float t_hi = (p + 0.5f) / (pixels - 1);
+                        if (t_lo < 0f) t_lo = 0f;
+                        if (t_hi > 1f) t_hi = 1f;
+                        float f_mid = DXRenderer.TxSpecLogFreq(t_mid, max_hz);
+                        float f_lo = DXRenderer.TxSpecLogFreq(t_lo, max_hz);
+                        float f_hi = DXRenderer.TxSpecLogFreq(t_hi, max_hz);
+
+                        float raw;
+                        if ((f_hi - f_lo) < BIN_WIDTH_HZ)
+                        {
+                            // narrower than one FFT bin at the low end: interpolate
+                            // instead of repeating the same bin, which caused stair-steps
+                            float vp = SampleSpecDb(fft, f_mid, false);
+                            float vn = SampleSpecDb(fft, f_mid, true);
+                            raw = Math.Max(vp, vn);
+                        }
+                        else
+                        {
+                            raw = MaxSpecDb(fft, f_lo, f_hi);
+                        }
+                        if (raw < -200f) raw = -200f;
+
+                        float prev = _spec_data[p];
+                        float k = (raw > prev) ? SPEC_ATTACK : SPEC_RELEASE;
+                        float cur = prev + ((raw - prev) * k);
+                        _spec_data[p] = cur;
+
+                        // peak/history trace: jump up immediately, hold, then fall
+                        if (cur >= _peak_data[p])
+                        {
+                            _peak_data[p] = cur;
+                            _peak_hold[p] = _peak_hold_updates;
+                        }
+                        else if (_peak_hold[p] > 0)
+                        {
+                            _peak_hold[p]--;
+                        }
+                        else
+                        {
+                            _peak_data[p] = Math.Max(cur, _peak_data[p] - PEAK_FALL_DB);
+                        }
+                    }
+
+                    // smooth the peak trace across bins so the falling history
+                    // does not look like a comb of vertical lines: a small max
+                    // filter fills one-pixel valleys, then a box filter softens it
+                    const int peak_smooth_radius = 2;
+                    const int peak_smooth_taps = (peak_smooth_radius * 2) + 1;
+                    for (int p = 0; p < pixels; p++)
+                    {
+                        float mx = -200f;
+                        for (int q = p - peak_smooth_radius; q <= p + peak_smooth_radius; q++)
+                        {
+                            int qi = q < 0 ? 0 : (q >= pixels ? pixels - 1 : q);
+                            if (_peak_data[qi] > mx) mx = _peak_data[qi];
+                        }
+                        _peak_tmp[p] = mx;
+                    }
+                    for (int p = 0; p < pixels; p++)
+                    {
+                        float sum = 0f;
+                        for (int q = p - peak_smooth_radius; q <= p + peak_smooth_radius; q++)
+                        {
+                            int qi = q < 0 ? 0 : (q >= pixels ? pixels - 1 : q);
+                            sum += _peak_tmp[qi];
+                        }
+                        _peak_render[p] = sum / peak_smooth_taps;
+                    }
+
+                    _spec_min = _spec_data.Min();
+                    _spec_max = _spec_data.Max();
+                }
+            }
+            private static float SampleSpecDb(float[] fft, float hz, bool negative)
+            {
+                // specmode=1 positive bins descend from FFT_BINS_HALF-1, negative bins ascend
+                float idx = (FFT_BINS_HALF - 1) + (negative ? 1f : -1f) * (hz / BIN_WIDTH_HZ);
+                if (idx < 0f) idx = 0f;
+                if (idx > FFT_SIZE - 1) idx = FFT_SIZE - 1;
+                int i0 = (int)Math.Floor(idx);
+                int i1 = (i0 < FFT_SIZE - 1) ? i0 + 1 : i0;
+                float frac = idx - i0;
+                float a = fft[i0] + SPEC_DB_OFFSET;
+                float b = fft[i1] + SPEC_DB_OFFSET;
+                return a + ((b - a) * frac);
+            }
+            private static float MaxSpecDb(float[] fft, float f0, float f1)
+            {
+                int ip0 = FreqToBin(f0);
+                int ip1 = FreqToBin(f1);
+                if (ip0 > ip1) { int t = ip0; ip0 = ip1; ip1 = t; }
+                if (ip0 < 0) ip0 = 0;
+                if (ip1 > FFT_BINS_HALF - 1) ip1 = FFT_BINS_HALF - 1;
+
+                int in0 = FreqToBin(-f0);
+                int in1 = FreqToBin(-f1);
+                if (in0 > in1) { int t = in0; in0 = in1; in1 = t; }
+                if (in0 < FFT_BINS_HALF) in0 = FFT_BINS_HALF;
+                if (in1 > FFT_SIZE - 1) in1 = FFT_SIZE - 1;
+
+                float v = -200f;
+                for (int i = ip0; i <= ip1; i++)
+                {
+                    float val = fft[i] + SPEC_DB_OFFSET;
+                    if (val > v) v = val;
+                }
+                for (int i = in0; i <= in1; i++)
+                {
+                    float val = fft[i] + SPEC_DB_OFFSET;
+                    if (val > v) v = val;
+                }
+                return v;
+            }
+            public object SpectrumDataLock
+            {
+                get
+                {
+                    lock (_spec_data_lock)
+                    {
+                        return _spec_data_lock;
+                    }
+                }
+            }
+            public float[] SpectrumData
+            {
+                get
+                {
+                    lock (_spec_data_lock)
+                    {
+                        return _spec_data;
+                    }
+                }
+            }
+            public float[] SpectrumPeakData
+            {
+                get
+                {
+                    lock (_spec_data_lock)
+                    {
+                        return _peak_render;
+                    }
+                }
+            }
+            public int ZoomHZ
+            {
+                get { return _zoom_hz; }
+                set
+                {
+                    int hz = Math.Max(500, value);
+                    if (hz != _zoom_hz)
+                    {
+                        _zoom_hz = hz;
+                        ResetPeaks();
+                    }
+                }
+            }
+            public System.Drawing.Color Colour { get { return _colour; } set { _colour = value; } }
+            public System.Drawing.Color DataLineColour { get { return _dataline_colour; } set { _dataline_colour = value; } }
+            public System.Drawing.Color DataFillColour { get { return _datafill_colour; } set { _datafill_colour = value; } }
+            public System.Drawing.Color TextColour { get { return _text_colour; } set { _text_colour = value; } }
+            public System.Drawing.Color EdgesColourTX { get { return _edges_colour_tx; } set { _edges_colour_tx = value; } }
+            public System.Drawing.Color MeterbackColour { get { return _meterback_colour; } set { _meterback_colour = value; } }
+            public System.Drawing.Color ExtentsColour { get { return _extents_colour; } set { _extents_colour = value; } }
+            public float Padding { get { return _padding; } set { _padding = value; } }
+            public float FontScale { get { return _font_scale; } set { _font_scale = value; } }
+            public bool FillSpectrum { get { return _fill_spec; } set { _fill_spec = value; } }
+        }
         internal class clsFilterItem : clsMeterItem
         {
             public enum FIWaterfallPalette
@@ -23517,6 +23841,7 @@ namespace Thetis
                     case MeterType.LEVELER_GAIN: ret = Reading.LVL_G.ToString(); break;
                     case MeterType.CFC: ret = variable_index == 0 ? Reading.CFC_AV.ToString() : Reading.CFC_PK.ToString(); break;
                     case MeterType.CFC_GAIN: ret = Reading.CFC_G.ToString(); break;
+                    case MeterType.TX_AUDIO_SPEC: ret = Reading.NONE.ToString(); break;
                     case MeterType.MAGIC_EYE: ret = Reading.SIGNAL_STRENGTH.ToString(); break;
                     case MeterType.ESTIMATED_PBSNR: ret = Reading.ESTIMATED_PBSNR.ToString(); break;
                     case MeterType.RADAE_SYNC: ret = Reading.RADAE_SYNC.ToString(); break;
@@ -23581,6 +23906,7 @@ namespace Thetis
                     case MeterType.LEVELER_GAIN: return 1;
                     case MeterType.CFC: return 2;
                     case MeterType.CFC_GAIN: return 1;
+                    case MeterType.TX_AUDIO_SPEC: return 0;
                     case MeterType.MAGIC_EYE: return 1;
                     case MeterType.ESTIMATED_PBSNR: return 1;
                     case MeterType.RADAE_SYNC: return 1;
@@ -23650,6 +23976,7 @@ namespace Thetis
                     case MeterType.LEVELER_GAIN: AddLevelerGainBar(nDelay, 0, out bBottom, restoreIg); break;
                     case MeterType.CFC: AddCFCBar(nDelay, 0, out bBottom, restoreIg); break;
                     case MeterType.CFC_GAIN: AddCFCGainBar(nDelay, 0, out bBottom, restoreIg); break;
+                    case MeterType.TX_AUDIO_SPEC: AddTxAudioSpec(nDelay, 0, out bBottom, 0.6f, restoreIg); break;
                     case MeterType.MAGIC_EYE: AddMagicEye(nDelay, 0, out bBottom, 0.2f, restoreIg); break;
                     case MeterType.ESTIMATED_PBSNR: AddPBSNRBar(nDelay, 0, out bBottom, restoreIg); break;
                     case MeterType.RADAE_SYNC: AddRadaeSyncBar(nDelay, 0, out bBottom, restoreIg); break;
@@ -27151,6 +27478,36 @@ namespace Thetis
 
                 return fi.ID;
             }
+            public string AddTxAudioSpec(int nMSupdate, float fTop, out float fBottom, float fSize, clsItemGroup restoreIg = null)
+            {
+                clsItemGroup ig = new clsItemGroup();
+                if (restoreIg != null) ig.ID = restoreIg.ID;
+                ig.ParentID = ID;
+
+                clsTxAudioSpecItem si = new clsTxAudioSpecItem(this, ig);
+                si.ParentID = ig.ID;
+
+                si.TopLeft = new PointF(_fPadX, fTop + _fPadY - (_fHeight * 0.75f));
+                si.Size = new SizeF(1f - _fPadX * 2f, fSize);
+                si.Padding = fSize;
+
+                si.ZOrder = 1;
+                addMeterItem(si);
+
+                fBottom = si.TopLeft.Y + si.Size.Height;
+
+                ig.TopLeft = si.TopLeft;
+                ig.Size = new SizeF(si.Size.Width, fBottom);
+                ig.MeterType = MeterType.TX_AUDIO_SPEC;
+                ig.Order = restoreIg == null ? numberOfMeterGroups() : restoreIg.Order;
+
+                clsFadeCover fc = getFadeCover(ig.ID);
+                if (fc != null) addMeterItem(fc);
+
+                addMeterItem(ig);
+
+                return si.ID;
+            }
             public string AddVFODisplay(int nMSupdate, float fTop, out float fBottom, clsItemGroup restoreIg = null)
             {
                 clsItemGroup ig = new clsItemGroup();
@@ -29085,6 +29442,57 @@ namespace Thetis
                                         }
                                     }
                                     break;
+                                case MeterType.TX_AUDIO_SPEC:
+                                    {
+                                        bRebuild = true;
+
+                                        float padding = 0f;
+
+                                        Dictionary<string, clsMeterItem> items = itemsFromID(ig.ID, false);
+                                        foreach (KeyValuePair<string, clsMeterItem> me in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.TX_AUDIO_SPEC))
+                                        {
+                                            clsTxAudioSpecItem si = me.Value as clsTxAudioSpecItem;
+                                            if (si == null) continue;
+
+                                            si.FadeOnRx = igs.FadeOnRx;
+                                            si.FadeOnTx = igs.FadeOnTx;
+                                            si.Colour = igs.Colour;
+                                            si.Padding = igs.GetSetting<float>("txaudiospec_height_ratio", true, 0.15f, 1f, 0.6f);
+                                            si.ZoomHZ = igs.GetSetting<int>("txaudiospec_zoom_hz", true, 1000, clsTxAudioSpecItem.DEFAULT_BANDWIDTH_HZ, clsTxAudioSpecItem.DEFAULT_BANDWIDTH_HZ);
+                                            si.PeakHoldMs = igs.GetSetting<int>("txaudiospec_peak_hold_ms", true, 0, 10000, clsTxAudioSpecItem.DEFAULT_PEAK_HOLD_MS);
+                                            si.FontScale = igs.GetSetting<float>("txaudiospec_font_scale", true, 0.01f, 4f, 1f);
+                                            si.FillSpectrum = igs.GetSetting<bool>("txaudiospec_fill_spec", false, false, false, true);
+                                            si.DataLineColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_dataline_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.LimeGreen);
+                                            si.DataFillColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_datafill_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.LimeGreen);
+                                            si.TextColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_text_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.White);
+                                            si.EdgesColourTX = igs.GetSetting<System.Drawing.Color>("txaudiospec_edges_colour_tx", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.Red);
+                                            si.MeterbackColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_meterback_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.Black);
+            si.ExtentsColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_extents_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.Gray);
+
+                                            si.TopLeft = new PointF(ig.TopLeft.X, _fPadY - (_fHeight * 0.75f));
+                                            si.Size = new SizeF(ig.Size.Width, si.Padding);
+
+                                            padding += si.Padding;
+                                        }
+                                        ig.Size = new SizeF(ig.Size.Width, padding + (_fPadY - (_fHeight * 0.75f)));
+
+                                        System.Drawing.RectangleF bounds = getBounds(ig.ID);
+                                        if (!bounds.IsEmpty)
+                                        {
+                                            foreach (KeyValuePair<string, clsMeterItem> fcs in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.FADE_COVER))
+                                            {
+                                                clsFadeCover fc = fcs.Value as clsFadeCover;
+                                                if (fc == null) continue;
+
+                                                fc.TopLeft = new PointF(ig.TopLeft.X, _fPadY - (_fHeight * 0.75f));
+                                                fc.Size = new SizeF(ig.Size.Width, padding);
+
+                                                fc.FadeOnRx = igs.FadeOnRx;
+                                                fc.FadeOnTx = igs.FadeOnTx;
+                                            }
+                                        }
+                                    }
+                                    break;
                                 case MeterType.FILTER_DISPLAY:
                                     {
                                         bRebuild = true; // alwayys cause a rebuild as we relocate the spacer each time
@@ -30310,6 +30718,37 @@ namespace Thetis
                                             igs.Colour = spacer.Colour1;
                                             igs.MarkerColour = spacer.Colour2;
                                             igs.SpacerPadding = spacer.Padding;
+                                        }
+                                        foreach (KeyValuePair<string, clsMeterItem> fcs in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.FADE_COVER))
+                                        {
+                                            clsFadeCover fc = fcs.Value as clsFadeCover;
+                                            if (fc == null) continue; // skip
+
+                                            igs.FadeOnRx = fc.FadeOnRx;
+                                            igs.FadeOnTx = fc.FadeOnTx;
+                                        }
+                                    }
+                                    break;
+                                case MeterType.TX_AUDIO_SPEC:
+                                    {
+                                        Dictionary<string, clsMeterItem> items = itemsFromID(ig.ID, false);
+                                        foreach (KeyValuePair<string, clsMeterItem> me in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.TX_AUDIO_SPEC))
+                                        {
+                                            clsTxAudioSpecItem si = me.Value as clsTxAudioSpecItem;
+                                            if (si == null) continue;
+
+                                            igs.Colour = si.Colour;
+                                            igs.SetSetting<float>("txaudiospec_height_ratio", (float)si.Padding);
+                                            igs.SetSetting<int>("txaudiospec_zoom_hz", si.ZoomHZ);
+                                            igs.SetSetting<int>("txaudiospec_peak_hold_ms", si.PeakHoldMs);
+                                            igs.SetSetting<float>("txaudiospec_font_scale", si.FontScale);
+                                            igs.SetSetting<bool>("txaudiospec_fill_spec", si.FillSpectrum);
+                                            igs.SetSetting<System.Drawing.Color>("txaudiospec_dataline_colour", si.DataLineColour);
+                                            igs.SetSetting<System.Drawing.Color>("txaudiospec_datafill_colour", si.DataFillColour);
+                                            igs.SetSetting<System.Drawing.Color>("txaudiospec_text_colour", si.TextColour);
+                                            igs.SetSetting<System.Drawing.Color>("txaudiospec_edges_colour_tx", si.EdgesColourTX);
+                                            igs.SetSetting<System.Drawing.Color>("txaudiospec_meterback_colour", si.MeterbackColour);
+            igs.SetSetting<System.Drawing.Color>("txaudiospec_extents_colour", si.ExtentsColour);
                                         }
                                         foreach (KeyValuePair<string, clsMeterItem> fcs in items.Where(o => o.Value.ItemType == clsMeterItem.MeterItemType.FADE_COVER))
                                         {
@@ -34541,6 +34980,9 @@ namespace Thetis
                                     case clsMeterItem.MeterItemType.FILTER_DISPLAY:
                                         renderFilterDisplay(rect, mi, m);
                                         break;
+                                    case clsMeterItem.MeterItemType.TX_AUDIO_SPEC:
+                                        renderTxAudioSpec(rect, mi, m);
+                                        break;
                                     case clsMeterItem.MeterItemType.DIAL_DISPLAY:
                                         renderDialDisplay(rect, mi, m);
                                         break;
@@ -37042,6 +37484,234 @@ namespace Thetis
                 //plotText(dial.SmoothedSpeed.ToString("f0"), 0, 0 + 30, rect.Width, 36f, System.Drawing.Color.White, 255, "Trebuchet MS", FontStyle.Regular);
                 //plotText(dial.DegreesTotal.ToString("f0"), 0, 0 + 60, rect.Width, 36f, System.Drawing.Color.White, 255, "Trebuchet MS", FontStyle.Regular);
                 //plotText($"{mouse_x.ToString("f2")},{mouse_y.ToString("f2")},{distance_from_centre.ToString("f2")}", 0, x + h / 2f, rect.Width, 36f, System.Drawing.Color.White, 255, "Trebuchet MS", FontStyle.Regular);
+            }
+            private void renderTxAudioSpec(Rect rect, clsMeterItem mi, clsMeter m)
+            {
+                clsTxAudioSpecItem spec = (clsTxAudioSpecItem)mi;
+
+                float x = (mi.DisplayTopLeft.X / m.XRatio) * rect.Width;
+                float y = (mi.DisplayTopLeft.Y / m.YRatio) * rect.Height;
+                float w = rect.Width * (mi.Size.Width / m.XRatio);
+                float h = rect.Height * (mi.Size.Height / m.YRatio);
+
+                System.Drawing.Color back_colour = spec.Colour;
+                System.Drawing.Color line_colour = spec.DataLineColour;
+                System.Drawing.Color fill_colour = spec.DataFillColour;
+                System.Drawing.Color edge_colour = spec.EdgesColourTX;
+                System.Drawing.Color meterback_colour = spec.MeterbackColour;
+                System.Drawing.Color extents_colour = spec.ExtentsColour;
+
+                _renderTarget.FillRectangle(new Rect(x, y, w, h), getDXBrushForColour(back_colour, mi.FadeValue));
+
+                float font_scale = spec.FontScale;
+                float font_size_scaled = 18f * font_scale * 0.7f;
+                float font_size_em = (font_size_scaled / 16f) * (rect.Width / 52f);
+                float line_width = Math.Max(2f, w * 0.001f);
+
+                float grid_min = clsTxAudioSpecItem.SPEC_GRID_MIN;
+                float grid_max = clsTxAudioSpecItem.SPEC_GRID_MAX;
+                float grid_range = grid_max - grid_min;
+
+                float max_hz = Math.Max(clsTxAudioSpecItem.TX_SPEC_MIN_HZ * 2f, spec.ZoomHZ);
+                string low_extent_text = FormatHz(clsTxAudioSpecItem.TX_SPEC_MIN_HZ);
+                string high_extent_text = FormatHz(max_hz);
+                SizeF tsl = measureString(low_extent_text, "Trebuchet MS", FontStyle.Regular, font_size_em, true);
+                SizeF tsh = measureString(high_extent_text, "Trebuchet MS", FontStyle.Regular, font_size_em, true);
+                SizeF tsdb = measureString(grid_min.ToString("0"), "Trebuchet MS", FontStyle.Regular, font_size_em, true);
+                float max_w = Math.Max(Math.Max(tsl.Width, tsh.Width), tsdb.Width);
+
+                float extent_l = x + max_w + 8f;
+                float extent_h = x + w - 4f;
+                float width_between = Math.Max(1f, extent_h - extent_l);
+
+                float label_row_height = Math.Max(tsl.Height, tsh.Height);
+                float label_row_top0 = y + h - (2f * label_row_height);
+                float label_row_top1 = y + h - label_row_height;
+                float top_pos = y + tsl.Height;
+                float bot_pos = label_row_top0;
+                float spectrum_height = Math.Max(1f, bot_pos - top_pos);
+                float dbmToPixel = spectrum_height / grid_range;
+
+                Rect clip_rect = new Rect(extent_l, top_pos, width_between, spectrum_height);
+                _renderTarget.PushAxisAlignedClip(clip_rect, AntialiasMode.Aliased);
+                _renderTarget.FillRectangle(clip_rect, getDXBrushForColour(meterback_colour));
+
+                AntialiasMode old_mode = _renderTarget.AntialiasMode;
+                _renderTarget.AntialiasMode = AntialiasMode.Aliased;
+
+                // frequency / level graticule
+                ID2D1Brush grid_brush = getDXBrushForColour(extents_colour, 56);
+                float db_step = NiceStep(grid_range / 6f);
+                for (float db = (float)(Math.Ceiling(grid_min / db_step) * db_step); db <= grid_max + 0.001f; db += db_step)
+                {
+                    float yg = top_pos + ((grid_max - db) * dbmToPixel);
+                    _renderTarget.DrawLine(new Vector2(extent_l, yg), new Vector2(extent_h, yg), grid_brush, 1f);
+                }
+                for (int i = 0; i < TX_SPEC_TICK_HZ.Length; i++)
+                {
+                    float f = TX_SPEC_TICK_HZ[i];
+                    if (f < clsTxAudioSpecItem.TX_SPEC_MIN_HZ * 0.999f || f > max_hz * 1.001f) continue;
+                    float gx = TxSpecFreqToX(f, extent_l, width_between, max_hz);
+                    _renderTarget.DrawLine(new Vector2(gx, top_pos), new Vector2(gx, bot_pos), grid_brush, 1f);
+                }
+
+                ID2D1Brush edge_brush = getDXBrushForColour(edge_colour);
+
+                // TX filter edges, folded onto the one-sided display
+                float low = Math.Abs((float)m.TXFilterLow);
+                float high = Math.Abs((float)m.TXFilterHigh);
+                if (low > high) { float t = low; low = high; high = t; }
+                float edge_lo = Math.Max(clsTxAudioSpecItem.TX_SPEC_MIN_HZ, Math.Min(max_hz, low));
+                float edge_hi = Math.Max(clsTxAudioSpecItem.TX_SPEC_MIN_HZ, Math.Min(max_hz, high));
+                float low_x = TxSpecFreqToX(edge_lo, extent_l, width_between, max_hz);
+                float high_x = TxSpecFreqToX(edge_hi, extent_l, width_between, max_hz);
+                _renderTarget.DrawLine(new Vector2(low_x, top_pos), new Vector2(low_x, bot_pos), edge_brush, line_width);
+                if (Math.Abs(high_x - low_x) > 0.5f)
+                    _renderTarget.DrawLine(new Vector2(high_x, top_pos), new Vector2(high_x, bot_pos), edge_brush, line_width);
+
+                _renderTarget.AntialiasMode = AntialiasMode.PerPrimitive;
+
+                lock (spec.SpectrumDataLock)
+                {
+                    float[] data = spec.SpectrumData;
+                    int tot = data.Length;
+
+                    if (tot > 1)
+                    {
+                        float x_step = width_between / (tot - 1);
+
+                        ID2D1Brush line_brush = getDXBrushForColour(line_colour);
+                        ID2D1Brush fill_brush = getDXBrushForColour(fill_colour);
+
+                        Vector2 fill_bot = new Vector2(0, 0);
+                        Vector2 old_pos = new Vector2(extent_l, top_pos);
+
+                        for (int px = 0; px < tot; px++)
+                        {
+                            float py = (grid_max - data[px]) * dbmToPixel;
+                            Vector2 new_pos = new Vector2(extent_l + (px * x_step), top_pos + py);
+
+                            if (px == 0)
+                            {
+                                old_pos = new_pos;
+                                continue;
+                            }
+
+                            if (spec.FillSpectrum)
+                            {
+                                fill_bot.X = new_pos.X;
+                                fill_bot.Y = bot_pos;
+                                _renderTarget.DrawLine(fill_bot, new_pos, fill_brush, x_step);
+                            }
+
+                            _renderTarget.DrawLine(old_pos, new_pos, line_brush, line_width);
+                            old_pos = new_pos;
+                        }
+
+                        // peak/history trace
+                        float[] peaks = spec.SpectrumPeakData;
+                        ID2D1Brush peak_brush = getDXBrushForColour(spec.TextColour, 200);
+                        float peak_width = Math.Max(1f, line_width * 0.75f);
+                        Vector2 old_peak = new Vector2(extent_l, bot_pos);
+
+                        for (int px = 0; px < tot; px++)
+                        {
+                            float py = (grid_max - peaks[px]) * dbmToPixel;
+                            Vector2 new_peak = new Vector2(extent_l + (px * x_step), top_pos + py);
+
+                            if (px > 0)
+                                _renderTarget.DrawLine(old_peak, new_peak, peak_brush, peak_width);
+
+                            old_peak = new_peak;
+                        }
+                    }
+                }
+
+                _renderTarget.AntialiasMode = old_mode;
+                _renderTarget.PopAxisAlignedClip();
+
+                // level labels down the left margin
+                for (float db = (float)(Math.Ceiling(grid_min / db_step) * db_step); db <= grid_max + 0.001f; db += db_step)
+                {
+                    if (db <= grid_min + 0.001f || db >= grid_max - 0.001f) continue;
+                    float yg = top_pos + ((grid_max - db) * dbmToPixel);
+                    plotText(db.ToString("0"), extent_l - 3f, yg, rect.Width, font_size_scaled, extents_colour, mi.FadeValue, "Trebuchet MS", FontStyle.Regular, true, true);
+                }
+
+                // frequency tick labels, staggered onto two rows so every tick can be shown
+                float[] last_edge_x = new float[2] { float.NegativeInfinity, float.NegativeInfinity };
+                for (int tick_index = 0; tick_index < TX_SPEC_TICK_HZ.Length; tick_index++)
+                {
+                    float f = TX_SPEC_TICK_HZ[tick_index];
+                    if (f < clsTxAudioSpecItem.TX_SPEC_MIN_HZ * 0.999f || f > max_hz * 1.001f) continue;
+                    int row = (tick_index % 2 == 0) ? 1 : 0;
+                    float row_y = (row == 0) ? label_row_top0 : label_row_top1;
+                    string hz_label = FormatHz(f);
+                    SizeF sz = measureString(hz_label, "Trebuchet MS", FontStyle.Regular, font_size_em, true);
+                    float xf = TxSpecFreqToX(f, extent_l, width_between, max_hz);
+                    bool right = false;
+                    bool centre = true;
+                    float tx = xf;
+                    if (xf - (sz.Width * 0.5f) < extent_l)
+                    {
+                        centre = false;
+                        tx = extent_l;
+                    }
+                    else if (xf + (sz.Width * 0.5f) > extent_h)
+                    {
+                        centre = false;
+                        right = true;
+                        tx = extent_h;
+                    }
+                    float left_edge = right ? (tx - sz.Width) : tx;
+                    float right_edge = left_edge + sz.Width;
+                    if (left_edge < (last_edge_x[row] + 4f)) continue;
+                    plotText(hz_label, tx, row_y, rect.Width, font_size_scaled, extents_colour, mi.FadeValue, "Trebuchet MS", FontStyle.Regular, right, centre);
+                    last_edge_x[row] = right_edge;
+                }
+            }
+            // audio-analyzer style tick set: dense at the low end, sparse out past 6 kHz
+            private static readonly float[] TX_SPEC_TICK_HZ = { 50f, 100f, 150f, 200f, 300f, 500f, 700f, 1000f, 1500f, 2000f, 3000f, 4000f, 5000f, 6000f, 8000f, 10000f };
+
+            public static float TxSpecLogFreq(float t, float max_hz)
+            {
+                float f_min = clsTxAudioSpecItem.TX_SPEC_MIN_HZ;
+                if (max_hz <= f_min) return f_min;
+                if (t <= 0f) return f_min;
+                if (t >= 1f) return max_hz;
+                return f_min * (float)Math.Pow(10.0, Math.Log10(max_hz / f_min) * t);
+            }
+
+            private static float TxSpecFreqToX(float hz, float extent_l, float width_between, float max_hz)
+            {
+                float f_min = clsTxAudioSpecItem.TX_SPEC_MIN_HZ;
+                if (hz <= f_min) return extent_l;
+                if (max_hz <= f_min || width_between <= 0f) return extent_l;
+                if (hz >= max_hz) return extent_l + width_between;
+                return extent_l + (width_between * (float)(Math.Log10(hz / f_min) / Math.Log10(max_hz / f_min)));
+            }
+
+            private static float NiceStep(float target)
+            {
+                if (target <= 0f || float.IsNaN(target) || float.IsInfinity(target)) return 1f;
+                float magnitude = (float)Math.Pow(10, Math.Floor(Math.Log10(target)));
+                float normalized = target / magnitude;
+                float nice;
+                if (normalized <= 1f) nice = 1f;
+                else if (normalized <= 2f) nice = 2f;
+                else if (normalized <= 5f) nice = 5f;
+                else nice = 10f;
+                return nice * magnitude;
+            }
+            private static string FormatHz(float hz)
+            {
+                if (hz >= 1000f)
+                {
+                    float k = hz / 1000f;
+                    if (Math.Abs(k - Math.Round(k)) < 0.01f) return Math.Round(k).ToString("0") + "k";
+                    return k.ToString("0.#") + "k";
+                }
+                return hz.ToString("0");
             }
             private void renderFilterDisplay(Rect rect, clsMeterItem mi, clsMeter m)
             {

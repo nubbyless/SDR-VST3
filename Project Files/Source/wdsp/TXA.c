@@ -569,13 +569,13 @@ void xtxa (int channel)
 	xbandpass (txa[channel].bp2.p, 0);				// aux bandpass (runs if CESSB)
 	xmeter (txa[channel].compmeter.p);				// COMP meter
 	xwcpagc (txa[channel].alc.p);					// ALC
+	xsiphon (txa[channel].sip1.p, 0);				// siphon audio data for display (pre-modulator)
 	xammod (txa[channel].ammod.p);					// AM Modulator
 	xemphp (txa[channel].preemph.p, 1);				// FM pre-emphasis (second option)
 	xfmmod (txa[channel].fmmod.p);					// FM Modulator
 	xgen (txa[channel].gen1.p);						// output signal generator (TUN and Two-tone)
 	xuslew (txa[channel].uslew.p);					// up-slew for AM, FM, and gens
 	xmeter (txa[channel].alcmeter.p);				// ALC Meter
-	xsiphon (txa[channel].sip1.p, 0);				// siphon data for display
 	xiqc (txa[channel].iqc.p);						// PureSignal correction
 	xcfir(txa[channel].cfir.p);						// compensating FIR filter (used Protocol_2 only)
 	//xsnoop(channel);
