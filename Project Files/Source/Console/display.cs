@@ -3498,7 +3498,7 @@ namespace Thetis
             get { return m_bForceCPURendering; }
             set { m_bForceCPURendering = value; }
         }
-        private static bool m_bSpectrumGlow = true;
+        private static bool m_bSpectrumGlow = false;
         public static bool SpectrumGlow
         {
             get { return m_bSpectrumGlow; }

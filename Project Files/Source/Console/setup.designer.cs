@@ -33878,8 +33878,8 @@
             // chkSpectrumGlow
             // 
             this.chkSpectrumGlow.AutoSize = true;
-            this.chkSpectrumGlow.Checked = true;
-            this.chkSpectrumGlow.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkSpectrumGlow.Checked = false;
+            this.chkSpectrumGlow.CheckState = System.Windows.Forms.CheckState.Unchecked;
             this.chkSpectrumGlow.Image = null;
             this.chkSpectrumGlow.Location = new System.Drawing.Point(9, 240);
             this.chkSpectrumGlow.Name = "chkSpectrumGlow";
