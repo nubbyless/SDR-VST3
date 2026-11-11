@@ -4450,6 +4450,12 @@ namespace Thetis
                 {
                     clsMeter m = ms.Value;
 
+                    if (_console != null)
+                    {
+                        // keep the raw audio-domain cuts for the TX audio analyzer
+                        m.TXAudioFilterLow = _console.TXFilterLow;
+                        m.TXAudioFilterHigh = _console.TXFilterHigh;
+                    }
                     m.TXFilterLow = low;
                     m.TXFilterHigh = high;
 
@@ -5453,6 +5459,8 @@ namespace Thetis
 
             int low = _console.TXFilterLow;
             int high = _console.TXFilterHigh;
+            m.TXAudioFilterLow = low;
+            m.TXAudioFilterHigh = high;
             _console.UpdateTXLowHighFilterForMode(_console.RX2Enabled && _console.VFOBTX ? _console.RX2DSPMode : _console.RX1DSPMode, ref low, ref high);
             m.TXFilterLow = low;
             m.TXFilterHigh = high;
@@ -19061,6 +19069,8 @@ namespace Thetis
             // per-update ballistics: fast rise, slower fall for a stable analyzer trace
             private const float SPEC_ATTACK = 0.65f;
             private const float SPEC_RELEASE = 0.12f;
+            // fill under the trace: opacity percent, 100 = fully solid
+            public const int DEFAULT_FILL_OPACITY = 30;
 
             private clsMeter _owningmeter;
             private clsItemGroup _ig;
@@ -19092,6 +19102,7 @@ namespace Thetis
             private float _padding;
             private float _font_scale;
             private bool _fill_spec;
+            private int _fill_opacity;
 
             public clsTxAudioSpecItem(clsMeter owning_meter, clsItemGroup item_group)
             {
@@ -19126,6 +19137,7 @@ namespace Thetis
                 _padding = 0.6f;
                 _font_scale = 1f;
                 _fill_spec = true;
+                _fill_opacity = DEFAULT_FILL_OPACITY;
 
                 ItemType = MeterItemType.TX_AUDIO_SPEC;
                 ReadingSource = Reading.NONE;
@@ -19359,6 +19371,7 @@ namespace Thetis
             public float Padding { get { return _padding; } set { _padding = value; } }
             public float FontScale { get { return _font_scale; } set { _font_scale = value; } }
             public bool FillSpectrum { get { return _fill_spec; } set { _fill_spec = value; } }
+            public int FillOpacity { get { return _fill_opacity; } set { _fill_opacity = Math.Max(0, Math.Min(100, value)); } }
         }
         internal class clsFilterItem : clsMeterItem
         {
@@ -23627,6 +23640,8 @@ namespace Thetis
             private string _filterVfoBname;
             private int _tx_filter_low;
             private int _tx_filter_high;
+            private int _tx_audio_filter_low;
+            private int _tx_audio_filter_high;
             private string _pa_profile;
             private string _tx_profile;
             private int _filter_vfoa_low;
@@ -29462,6 +29477,7 @@ namespace Thetis
                                             si.PeakHoldMs = igs.GetSetting<int>("txaudiospec_peak_hold_ms", true, 0, 10000, clsTxAudioSpecItem.DEFAULT_PEAK_HOLD_MS);
                                             si.FontScale = igs.GetSetting<float>("txaudiospec_font_scale", true, 0.01f, 4f, 1f);
                                             si.FillSpectrum = igs.GetSetting<bool>("txaudiospec_fill_spec", false, false, false, true);
+                                            si.FillOpacity = igs.GetSetting<int>("txaudiospec_fill_opacity", true, 0, 100, clsTxAudioSpecItem.DEFAULT_FILL_OPACITY);
                                             si.DataLineColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_dataline_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.LimeGreen);
                                             si.DataFillColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_datafill_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.LimeGreen);
                                             si.TextColour = igs.GetSetting<System.Drawing.Color>("txaudiospec_text_colour", false, System.Drawing.Color.Empty, System.Drawing.Color.Empty, System.Drawing.Color.White);
@@ -30743,6 +30759,7 @@ namespace Thetis
                                             igs.SetSetting<int>("txaudiospec_peak_hold_ms", si.PeakHoldMs);
                                             igs.SetSetting<float>("txaudiospec_font_scale", si.FontScale);
                                             igs.SetSetting<bool>("txaudiospec_fill_spec", si.FillSpectrum);
+                                            igs.SetSetting<int>("txaudiospec_fill_opacity", si.FillOpacity);
                                             igs.SetSetting<System.Drawing.Color>("txaudiospec_dataline_colour", si.DataLineColour);
                                             igs.SetSetting<System.Drawing.Color>("txaudiospec_datafill_colour", si.DataFillColour);
                                             igs.SetSetting<System.Drawing.Color>("txaudiospec_text_colour", si.TextColour);
@@ -32022,6 +32039,17 @@ namespace Thetis
             {
                 get { return _tx_filter_high; }
                 set { _tx_filter_high = value; }
+            }
+            // raw audio-domain TX filter cuts, before mode mapping (for the TX audio analyzer)
+            public int TXAudioFilterLow
+            {
+                get { return _tx_audio_filter_low; }
+                set { _tx_audio_filter_low = value; }
+            }
+            public int TXAudioFilterHigh
+            {
+                get { return _tx_audio_filter_high; }
+                set { _tx_audio_filter_high = value; }
             }
             public string PAProfile
             {
@@ -37521,7 +37549,7 @@ namespace Thetis
                 float max_w = Math.Max(Math.Max(tsl.Width, tsh.Width), tsdb.Width);
 
                 float extent_l = x + max_w + 8f;
-                float extent_h = x + w - 4f;
+                float extent_h = x + w - (max_w + 8f); // match the left scale margin for visual symmetry
                 float width_between = Math.Max(1f, extent_h - extent_l);
 
                 float label_row_height = Math.Max(tsl.Height, tsh.Height);
@@ -37547,6 +37575,13 @@ namespace Thetis
                     float yg = top_pos + ((grid_max - db) * dbmToPixel);
                     _renderTarget.DrawLine(new Vector2(extent_l, yg), new Vector2(extent_h, yg), grid_brush, 1f);
                 }
+                // half-point lines between the main level grid lines
+                ID2D1Brush half_grid_brush = getDXBrushForColour(extents_colour, 28);
+                for (float db = (float)(Math.Ceiling(grid_min / db_step) * db_step) + (db_step * 0.5f); db < grid_max - 0.001f; db += db_step)
+                {
+                    float yg = top_pos + ((grid_max - db) * dbmToPixel);
+                    _renderTarget.DrawLine(new Vector2(extent_l, yg), new Vector2(extent_h, yg), half_grid_brush, 1f);
+                }
                 for (int i = 0; i < TX_SPEC_TICK_HZ.Length; i++)
                 {
                     float f = TX_SPEC_TICK_HZ[i];
@@ -37558,8 +37593,21 @@ namespace Thetis
                 ID2D1Brush edge_brush = getDXBrushForColour(edge_colour);
 
                 // TX filter edges, folded onto the one-sided display
-                float low = Math.Abs((float)m.TXFilterLow);
-                float high = Math.Abs((float)m.TXFilterHigh);
+                DSPMode tx_mode = (m.RX2Enabled && m.TXVFOb) ? m.ModeVfoB : m.ModeVfoA;
+                bool double_sideband = tx_mode == DSPMode.AM || tx_mode == DSPMode.SAM || tx_mode == DSPMode.DSB;
+                float low;
+                float high;
+                if (double_sideband)
+                {
+                    // AM-family modes map the meter values to +/-high cut; use the raw audio cuts instead
+                    low = Math.Abs((float)m.TXAudioFilterLow);
+                    high = Math.Abs((float)m.TXAudioFilterHigh);
+                }
+                else
+                {
+                    low = Math.Abs((float)m.TXFilterLow);
+                    high = Math.Abs((float)m.TXFilterHigh);
+                }
                 if (low > high) { float t = low; low = high; high = t; }
                 float edge_lo = Math.Max(clsTxAudioSpecItem.TX_SPEC_MIN_HZ, Math.Min(max_hz, low));
                 float edge_hi = Math.Max(clsTxAudioSpecItem.TX_SPEC_MIN_HZ, Math.Min(max_hz, high));
@@ -37581,7 +37629,8 @@ namespace Thetis
                         float x_step = width_between / (tot - 1);
 
                         ID2D1Brush line_brush = getDXBrushForColour(line_colour);
-                        ID2D1Brush fill_brush = getDXBrushForColour(fill_colour);
+                        int fill_alpha = Math.Max(0, Math.Min(255, (int)Math.Round(spec.FillOpacity * 2.55f)));
+                        ID2D1Brush fill_brush = getDXBrushForColour(fill_colour, fill_alpha);
 
                         Vector2 fill_bot = new Vector2(0, 0);
                         Vector2 old_pos = new Vector2(extent_l, top_pos);
@@ -37630,12 +37679,29 @@ namespace Thetis
                 _renderTarget.AntialiasMode = old_mode;
                 _renderTarget.PopAxisAlignedClip();
 
-                // level labels down the left margin
+                // "TX filter" marker beside the high (right) filter edge line
+                SizeF tsfilter = measureString("TX filter", "Trebuchet MS", FontStyle.Regular, font_size_em, true);
+                bool filter_label_right = false;
+                float filter_label_x = high_x + 4f;
+                if (filter_label_x + tsfilter.Width > extent_h)
+                {
+                    filter_label_right = true;
+                    filter_label_x = high_x - 4f;
+                }
+                plotText("TX filter", filter_label_x, top_pos + 2f, rect.Width, font_size_scaled, edge_colour, mi.FadeValue, "Trebuchet MS", FontStyle.Regular, filter_label_right, false);
+                // bandwidth readout under the marker, e.g. USB 3.5k / AM 8k; AM-family doubles it (one passband per sideband)
+                float filter_bw = high - low;
+                if (double_sideband) filter_bw *= 2f;
+                string bw_text = tx_mode.ToString() + " " + FormatHz(filter_bw);
+                plotText(bw_text, filter_label_x, top_pos + 3f + tsfilter.Height, rect.Width, font_size_scaled, edge_colour, mi.FadeValue, "Trebuchet MS", FontStyle.Regular, filter_label_right, false);
+
+                // level labels down both margins
                 for (float db = (float)(Math.Ceiling(grid_min / db_step) * db_step); db <= grid_max + 0.001f; db += db_step)
                 {
                     if (db <= grid_min + 0.001f || db >= grid_max - 0.001f) continue;
                     float yg = top_pos + ((grid_max - db) * dbmToPixel);
                     plotText(db.ToString("0"), extent_l - 3f, yg, rect.Width, font_size_scaled, extents_colour, mi.FadeValue, "Trebuchet MS", FontStyle.Regular, true, true);
+                    plotText(db.ToString("0"), extent_h + 3f, yg, rect.Width, font_size_scaled, extents_colour, mi.FadeValue, "Trebuchet MS", FontStyle.Regular, false, true);
                 }
 
                 // frequency tick labels, staggered onto two rows so every tick can be shown

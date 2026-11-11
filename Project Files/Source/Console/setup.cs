@@ -135,6 +135,7 @@ namespace Thetis
         private ColorButton clrbtnTxAudioSpec_back;
         private ColorButton clrbtnTxAudioSpec_line;
         private ColorButton clrbtnTxAudioSpec_fill_colour;
+        private TrackBarTS trackTxAudioSpec_fill_opacity;
         private ColorButton clrbtnTxAudioSpec_text;
         private ColorButton clrbtnTxAudioSpec_edges;
         private ColorButton clrbtnTxAudioSpec_meterback;
@@ -26293,6 +26294,7 @@ namespace Thetis
                     igs.SetSetting<int>("txaudiospec_peak_hold_ms", (int)nudTxAudioSpec_peak_hold.Value);
                     igs.SetSetting<float>("txaudiospec_font_scale", (float)nudTxAudioSpec_font_scale.Value);
                     igs.SetSetting<bool>("txaudiospec_fill_spec", chkTxAudioSpec_fill.Checked);
+                    igs.SetSetting<int>("txaudiospec_fill_opacity", (int)trackTxAudioSpec_fill_opacity.Value);
                     igs.SetSetting<System.Drawing.Color>("txaudiospec_dataline_colour", clrbtnTxAudioSpec_line.Color);
                     igs.SetSetting<System.Drawing.Color>("txaudiospec_datafill_colour", clrbtnTxAudioSpec_fill_colour.Color);
                     igs.SetSetting<System.Drawing.Color>("txaudiospec_text_colour", clrbtnTxAudioSpec_text.Color);
@@ -27123,6 +27125,7 @@ namespace Thetis
                     nudTxAudioSpec_peak_hold.Value = igs.GetSetting<int>("txaudiospec_peak_hold_ms", true, 0, 10000, 3000);
                     nudTxAudioSpec_font_scale.Value = (decimal)igs.GetSetting<float>("txaudiospec_font_scale", true, 0.01f, 4f, 1f);
                     chkTxAudioSpec_fill.Checked = igs.GetSetting<bool>("txaudiospec_fill_spec", false, false, false, true);
+                    trackTxAudioSpec_fill_opacity.Value = igs.GetSetting<int>("txaudiospec_fill_opacity", true, 0, 100, MeterManager.clsTxAudioSpecItem.DEFAULT_FILL_OPACITY);
                     clrbtnTxAudioSpec_line.Color = igs.GetSetting<Color>("txaudiospec_dataline_colour", false, Color.Empty, Color.Empty, Color.LimeGreen);
                     clrbtnTxAudioSpec_fill_colour.Color = igs.GetSetting<Color>("txaudiospec_datafill_colour", false, Color.Empty, Color.Empty, Color.LimeGreen);
                     clrbtnTxAudioSpec_text.Color = igs.GetSetting<Color>("txaudiospec_text_colour", false, Color.Empty, Color.Empty, Color.White);
@@ -29588,25 +29591,45 @@ namespace Thetis
             y += 28;
 
             clrbtnTxAudioSpec_back = AddTxAudioSpecColor("TxAudioSpec_back", "Background:", y,
-                Color.FromArgb(32, 32, 32), "Gadget background colour");
+                Color.FromArgb(32, 32, 32), "Gadget background color");
             y += 24;
-            clrbtnTxAudioSpec_line = AddTxAudioSpecColor("TxAudioSpec_line", "Trace colour:", y,
-                Color.LimeGreen, "Spectrum trace colour");
+            clrbtnTxAudioSpec_line = AddTxAudioSpecColor("TxAudioSpec_line", "Trace color:", y,
+                Color.LimeGreen, "Spectrum trace color");
             y += 24;
-            clrbtnTxAudioSpec_fill_colour = AddTxAudioSpecColor("TxAudioSpec_fill_colour", "Fill colour:", y,
-                Color.LimeGreen, "Colour used to fill under the spectrum");
+            clrbtnTxAudioSpec_fill_colour = AddTxAudioSpecColor("TxAudioSpec_fill_colour", "Fill color:", y,
+                Color.LimeGreen, "Color used to fill under the spectrum");
+            trackTxAudioSpec_fill_opacity = new TrackBarTS();
+            trackTxAudioSpec_fill_opacity.AutoSize = false;
+            trackTxAudioSpec_fill_opacity.Height = 21;
+            trackTxAudioSpec_fill_opacity.LargeChange = 10;
+            trackTxAudioSpec_fill_opacity.Location = new Point(229, y + 1);
+            trackTxAudioSpec_fill_opacity.Maximum = 100;
+            trackTxAudioSpec_fill_opacity.Minimum = 0;
+            trackTxAudioSpec_fill_opacity.Name = "trackTxAudioSpec_fill_opacity";
+            trackTxAudioSpec_fill_opacity.Size = new Size(88, 21);
+            trackTxAudioSpec_fill_opacity.SmallChange = 5;
+            trackTxAudioSpec_fill_opacity.TabIndex = 2;
+            trackTxAudioSpec_fill_opacity.TickFrequency = 25;
+            trackTxAudioSpec_fill_opacity.Value = MeterManager.clsTxAudioSpecItem.DEFAULT_FILL_OPACITY;
+            toolTip1.SetToolTip(trackTxAudioSpec_fill_opacity, "Fill transparency: " + MeterManager.clsTxAudioSpecItem.DEFAULT_FILL_OPACITY + "% (100 = solid, 0 = invisible)");
+            trackTxAudioSpec_fill_opacity.ValueChanged += new EventHandler((s, e) =>
+            {
+                toolTip1.SetToolTip(trackTxAudioSpec_fill_opacity, "Fill transparency: " + trackTxAudioSpec_fill_opacity.Value + "%");
+                updateMeterType();
+            });
+            grpTxAudioSpec.Controls.Add(trackTxAudioSpec_fill_opacity);
             y += 24;
-            clrbtnTxAudioSpec_text = AddTxAudioSpecColor("TxAudioSpec_text", "Peak/text colour:", y,
-                Color.White, "Axis label and peak trace colour");
+            clrbtnTxAudioSpec_text = AddTxAudioSpecColor("TxAudioSpec_text", "Peak/text color:", y,
+                Color.White, "Axis label and peak trace color");
             y += 24;
-            clrbtnTxAudioSpec_edges = AddTxAudioSpecColor("TxAudioSpec_edges", "Grid/edges colour:", y,
-                Color.Red, "Grid and frame edge colour");
+            clrbtnTxAudioSpec_edges = AddTxAudioSpecColor("TxAudioSpec_edges", "TX filter color:", y,
+                Color.Red, "TX filter edge line color");
             y += 24;
             clrbtnTxAudioSpec_meterback = AddTxAudioSpecColor("TxAudioSpec_meterback", "Meter back:", y,
-                Color.Black, "Colour of the meter background behind the trace");
+                Color.Black, "Color of the meter background behind the trace");
             y += 24;
-            clrbtnTxAudioSpec_extents = AddTxAudioSpecColor("TxAudioSpec_extents", "Extents colour:", y,
-                Color.Gray, "Colour of the axis extents");
+            clrbtnTxAudioSpec_extents = AddTxAudioSpecColor("TxAudioSpec_extents", "Extents color:", y,
+                Color.Gray, "Color of the axis extents");
         }
 
         private NumericUpDownTS AddTxAudioSpecNumeric(string name, string caption, int y,
