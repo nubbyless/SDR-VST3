@@ -41,6 +41,8 @@
             this.btnPSAmpView = new System.Windows.Forms.ButtonTS();
             this.btnPSTwoToneGen = new System.Windows.Forms.ButtonTS();
             this.btnPSNoiseGen = new System.Windows.Forms.ButtonTS();
+            this.comboPSCalStimulus = new System.Windows.Forms.ComboBoxTS();
+            this.lblPSCalStimulus = new System.Windows.Forms.LabelTS();
             this.labelTS8 = new System.Windows.Forms.LabelTS();
             this.lblPSInfoFB = new System.Windows.Forms.LabelTS();
             this.lblPSInfoCO = new System.Windows.Forms.LabelTS();
@@ -95,7 +97,7 @@
             this.chkPSOnTop.AutoSize = true;
             this.chkPSOnTop.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.chkPSOnTop.Image = null;
-            this.chkPSOnTop.Location = new System.Drawing.Point(450, 276);
+            this.chkPSOnTop.Location = new System.Drawing.Point(450, 302);
             this.chkPSOnTop.Name = "chkPSOnTop";
             this.chkPSOnTop.Size = new System.Drawing.Size(98, 17);
             this.chkPSOnTop.TabIndex = 48;
@@ -134,7 +136,7 @@
             // 
             // udPSTargetFeedback
             // 
-            this.udPSTargetFeedback.Location = new System.Drawing.Point(490, 131);
+            this.udPSTargetFeedback.Location = new System.Drawing.Point(490, 157);
             this.udPSTargetFeedback.Maximum = new decimal(new int[] {
             256,
             0,
@@ -161,7 +163,7 @@
             this.lblPSTargetFeedback.AutoSize = true;
             this.lblPSTargetFeedback.ForeColor = System.Drawing.Color.White;
             this.lblPSTargetFeedback.Image = null;
-            this.lblPSTargetFeedback.Location = new System.Drawing.Point(434, 133);
+            this.lblPSTargetFeedback.Location = new System.Drawing.Point(434, 159);
             this.lblPSTargetFeedback.Name = "lblPSTargetFeedback";
             this.lblPSTargetFeedback.Size = new System.Drawing.Size(54, 13);
             this.lblPSTargetFeedback.TabIndex = 74;
@@ -172,7 +174,7 @@
             this.lblPSDeadlock.AutoSize = true;
             this.lblPSDeadlock.ForeColor = System.Drawing.Color.White;
             this.lblPSDeadlock.Image = null;
-            this.lblPSDeadlock.Location = new System.Drawing.Point(434, 158);
+            this.lblPSDeadlock.Location = new System.Drawing.Point(434, 184);
             this.lblPSDeadlock.Name = "lblPSDeadlock";
             this.lblPSDeadlock.Size = new System.Drawing.Size(69, 13);
             this.lblPSDeadlock.TabIndex = 76;
@@ -187,7 +189,7 @@
             "Strict",
             "Medium",
             "Relaxed"});
-            this.comboPSDeadlock.Location = new System.Drawing.Point(520, 154);
+            this.comboPSDeadlock.Location = new System.Drawing.Point(520, 180);
             this.comboPSDeadlock.Name = "comboPSDeadlock";
             this.comboPSDeadlock.Size = new System.Drawing.Size(100, 21);
             this.comboPSDeadlock.TabIndex = 75;
@@ -203,7 +205,7 @@
             this.chkPSAutoAttenuate.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkPSAutoAttenuate.ForeColor = System.Drawing.SystemColors.HighlightText;
             this.chkPSAutoAttenuate.Image = null;
-            this.chkPSAutoAttenuate.Location = new System.Drawing.Point(208, 61);
+            this.chkPSAutoAttenuate.Location = new System.Drawing.Point(208, 87);
             this.chkPSAutoAttenuate.Name = "chkPSAutoAttenuate";
             this.chkPSAutoAttenuate.Size = new System.Drawing.Size(97, 17);
             this.chkPSAutoAttenuate.TabIndex = 41;
@@ -258,13 +260,41 @@
                 "The WDSP guide recommends noise for the PureSignal calibration, its randomly varying envelope is much closer to a speech signal than a two tone is.");
             this.btnPSNoiseGen.UseVisualStyleBackColor = false;
             this.btnPSNoiseGen.Click += new System.EventHandler(this.btnPSNoiseGen_Click);
+            //
+            // comboPSCalStimulus
+            //
+            this.comboPSCalStimulus.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.comboPSCalStimulus.ForeColor = System.Drawing.Color.Black;
+            this.comboPSCalStimulus.FormattingEnabled = true;
+            this.comboPSCalStimulus.Items.AddRange(new object[] {
+            "Two-Tone",
+            "Noise"});
+            this.comboPSCalStimulus.Location = new System.Drawing.Point(91, 36);
+            this.comboPSCalStimulus.Name = "comboPSCalStimulus";
+            this.comboPSCalStimulus.Size = new System.Drawing.Size(74, 21);
+            this.comboPSCalStimulus.TabIndex = 53;
+            this.comboPSCalStimulus.SelectedIndex = 0;
+            this.toolTip1.SetToolTip(this.comboPSCalStimulus, "The stimulus the \"Single Cal\" uses." + "\r\n" +
+                "Two-Tone (the default) is the classic stimulus.  Noise is the better stimulus for the calibration: the calibration axis is the TX envelope, so the randomly varying envelope of the noise gives it a sweep of drive levels, while the two tone has a nearly constant envelope." + "\r\n" +
+                "If the stimulus is not running it is started for the Single Cal and stopped again afterwards.");
+            //
+            // lblPSCalStimulus
+            //
+            this.lblPSCalStimulus.AutoSize = true;
+            this.lblPSCalStimulus.ForeColor = System.Drawing.Color.White;
+            this.lblPSCalStimulus.Image = null;
+            this.lblPSCalStimulus.Location = new System.Drawing.Point(172, 41);
+            this.lblPSCalStimulus.Name = "lblPSCalStimulus";
+            this.lblPSCalStimulus.Size = new System.Drawing.Size(167, 13);
+            this.lblPSCalStimulus.TabIndex = 54;
+            this.lblPSCalStimulus.Text = "Cal Stimulus (Noise Recommended)";
             // 
             // labelTS8
             // 
             this.labelTS8.AutoSize = true;
             this.labelTS8.ForeColor = System.Drawing.Color.White;
             this.labelTS8.Image = null;
-            this.labelTS8.Location = new System.Drawing.Point(32, 40);
+            this.labelTS8.Location = new System.Drawing.Point(32, 66);
             this.labelTS8.Name = "labelTS8";
             this.labelTS8.Size = new System.Drawing.Size(84, 13);
             this.labelTS8.TabIndex = 10;
@@ -277,7 +307,7 @@
             this.lblPSInfoFB.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.lblPSInfoFB.ForeColor = System.Drawing.Color.Black;
             this.lblPSInfoFB.Image = null;
-            this.lblPSInfoFB.Location = new System.Drawing.Point(14, 41);
+            this.lblPSInfoFB.Location = new System.Drawing.Point(14, 67);
             this.lblPSInfoFB.Name = "lblPSInfoFB";
             this.lblPSInfoFB.Size = new System.Drawing.Size(12, 12);
             this.lblPSInfoFB.TabIndex = 11;
@@ -289,7 +319,7 @@
             this.lblPSInfoCO.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
             this.lblPSInfoCO.ForeColor = System.Drawing.Color.Black;
             this.lblPSInfoCO.Image = null;
-            this.lblPSInfoCO.Location = new System.Drawing.Point(168, 41);
+            this.lblPSInfoCO.Location = new System.Drawing.Point(168, 67);
             this.lblPSInfoCO.Name = "lblPSInfoCO";
             this.lblPSInfoCO.Size = new System.Drawing.Size(12, 12);
             this.lblPSInfoCO.TabIndex = 13;
@@ -300,7 +330,7 @@
             this.labelTS9.AutoSize = true;
             this.labelTS9.ForeColor = System.Drawing.Color.White;
             this.labelTS9.Image = null;
-            this.labelTS9.Location = new System.Drawing.Point(186, 40);
+            this.labelTS9.Location = new System.Drawing.Point(186, 66);
             this.labelTS9.Name = "labelTS9";
             this.labelTS9.Size = new System.Drawing.Size(55, 13);
             this.labelTS9.TabIndex = 12;
@@ -312,7 +342,7 @@
             this.labelTS4.AutoSize = true;
             this.labelTS4.ForeColor = System.Drawing.Color.White;
             this.labelTS4.Image = null;
-            this.labelTS4.Location = new System.Drawing.Point(11, 63);
+            this.labelTS4.Location = new System.Drawing.Point(11, 89);
             this.labelTS4.Name = "labelTS4";
             this.labelTS4.Size = new System.Drawing.Size(82, 13);
             this.labelTS4.TabIndex = 30;
@@ -326,7 +356,7 @@
             0,
             0,
             65536});
-            this.udPSMoxDelay.Location = new System.Drawing.Point(99, 61);
+            this.udPSMoxDelay.Location = new System.Drawing.Point(99, 87);
             this.udPSMoxDelay.Maximum = new decimal(new int[] {
             10,
             0,
@@ -354,7 +384,7 @@
             this.labelTS2.AutoSize = true;
             this.labelTS2.ForeColor = System.Drawing.Color.White;
             this.labelTS2.Image = null;
-            this.labelTS2.Location = new System.Drawing.Point(11, 117);
+            this.labelTS2.Location = new System.Drawing.Point(11, 143);
             this.labelTS2.Name = "labelTS2";
             this.labelTS2.Size = new System.Drawing.Size(80, 13);
             this.labelTS2.TabIndex = 26;
@@ -367,7 +397,7 @@
             0,
             0,
             0});
-            this.udPSPhnum.Location = new System.Drawing.Point(99, 115);
+            this.udPSPhnum.Location = new System.Drawing.Point(99, 141);
             this.udPSPhnum.Maximum = new decimal(new int[] {
             25000000,
             0,
@@ -417,7 +447,7 @@
             this.grpPSInfo.Controls.Add(this.labelTS142);
             this.grpPSInfo.Controls.Add(this.labelTS141);
             this.grpPSInfo.ForeColor = System.Drawing.Color.White;
-            this.grpPSInfo.Location = new System.Drawing.Point(14, 145);
+            this.grpPSInfo.Location = new System.Drawing.Point(14, 171);
             this.grpPSInfo.Name = "grpPSInfo";
             this.grpPSInfo.Size = new System.Drawing.Size(358, 148);
             this.grpPSInfo.TabIndex = 21;
@@ -429,7 +459,7 @@
             this.btnDefaultPeaks.BackColor = System.Drawing.Color.White;
             this.btnDefaultPeaks.ForeColor = System.Drawing.Color.Black;
             this.btnDefaultPeaks.Image = null;
-            this.btnDefaultPeaks.Location = new System.Drawing.Point(277, 117);
+            this.btnDefaultPeaks.Location = new System.Drawing.Point(277, 143);
             this.btnDefaultPeaks.Name = "btnDefaultPeaks";
             this.btnDefaultPeaks.Selectable = true;
             this.btnDefaultPeaks.Size = new System.Drawing.Size(67, 23);
@@ -446,7 +476,7 @@
             this.checkLoopback.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.checkLoopback.ForeColor = System.Drawing.SystemColors.HighlightText;
             this.checkLoopback.Image = null;
-            this.checkLoopback.Location = new System.Drawing.Point(9, 121);
+            this.checkLoopback.Location = new System.Drawing.Point(9, 147);
             this.checkLoopback.Name = "checkLoopback";
             this.checkLoopback.Size = new System.Drawing.Size(188, 17);
             this.checkLoopback.TabIndex = 40;
@@ -735,7 +765,8 @@
             this.btnPSCalibrate.Size = new System.Drawing.Size(74, 20);
             this.btnPSCalibrate.TabIndex = 19;
             this.btnPSCalibrate.Text = "Single Cal";
-            this.toolTip1.SetToolTip(this.btnPSCalibrate, "Perform a singal calibration. This will happen up to 5 times in a row");
+            this.toolTip1.SetToolTip(this.btnPSCalibrate, "Perform a single calibration. This will happen up to 5 times in a row." + "\r\n" +
+                "The stimulus used is the one selected in the \"Cal Stimulus\" combo below the button.");
             this.btnPSCalibrate.UseVisualStyleBackColor = false;
             this.btnPSCalibrate.Click += new System.EventHandler(this.btnPSCalibrate_Click);
             // 
@@ -744,7 +775,7 @@
             this.labelTS140.AutoSize = true;
             this.labelTS140.ForeColor = System.Drawing.Color.White;
             this.labelTS140.Image = null;
-            this.labelTS140.Location = new System.Drawing.Point(11, 90);
+            this.labelTS140.Location = new System.Drawing.Point(11, 116);
             this.labelTS140.Name = "labelTS140";
             this.labelTS140.Size = new System.Drawing.Size(78, 13);
             this.labelTS140.TabIndex = 17;
@@ -758,7 +789,7 @@
             0,
             0,
             65536});
-            this.udPSCalWait.Location = new System.Drawing.Point(99, 88);
+            this.udPSCalWait.Location = new System.Drawing.Point(99, 114);
             this.udPSCalWait.Maximum = new decimal(new int[] {
             100,
             0,
@@ -787,7 +818,7 @@
             this.chkQuickAttenuate.AutoSize = true;
             this.chkQuickAttenuate.ForeColor = System.Drawing.SystemColors.HighlightText;
             this.chkQuickAttenuate.Image = null;
-            this.chkQuickAttenuate.Location = new System.Drawing.Point(208, 108);
+            this.chkQuickAttenuate.Location = new System.Drawing.Point(208, 134);
             this.chkQuickAttenuate.Name = "chkQuickAttenuate";
             this.chkQuickAttenuate.Size = new System.Drawing.Size(154, 17);
             this.chkQuickAttenuate.TabIndex = 49;
@@ -799,7 +830,7 @@
             // pbWarningSetPk
             // 
             this.pbWarningSetPk.Image = ((System.Drawing.Image)(resources.GetObject("pbWarningSetPk.Image")));
-            this.pbWarningSetPk.Location = new System.Drawing.Point(323, 35);
+            this.pbWarningSetPk.Location = new System.Drawing.Point(323, 61);
             this.pbWarningSetPk.Name = "pbWarningSetPk";
             this.pbWarningSetPk.Size = new System.Drawing.Size(20, 20);
             this.pbWarningSetPk.TabIndex = 51;
@@ -812,7 +843,7 @@
             this.chkShow2ToneMeasurements.AutoSize = true;
             this.chkShow2ToneMeasurements.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.chkShow2ToneMeasurements.Image = null;
-            this.chkShow2ToneMeasurements.Location = new System.Drawing.Point(389, 38);
+            this.chkShow2ToneMeasurements.Location = new System.Drawing.Point(389, 64);
             this.chkShow2ToneMeasurements.Name = "chkShow2ToneMeasurements";
             this.chkShow2ToneMeasurements.Size = new System.Drawing.Size(158, 17);
             this.chkShow2ToneMeasurements.TabIndex = 52;
@@ -840,6 +871,8 @@
             this.Controls.Add(this.btnPSAmpView);
             this.Controls.Add(this.btnPSTwoToneGen);
             this.Controls.Add(this.btnPSNoiseGen);
+            this.Controls.Add(this.comboPSCalStimulus);
+            this.Controls.Add(this.lblPSCalStimulus);
             this.Controls.Add(this.labelTS8);
             this.Controls.Add(this.lblPSInfoFB);
             this.Controls.Add(this.lblPSInfoCO);
@@ -856,7 +889,7 @@
             this.ForeColor = System.Drawing.SystemColors.ControlText;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Name = "PSForm";
-            this.Text = "PureSignal 2.0";
+            this.Text = "PureSignal 3.0";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.PSForm_Closing);
             this.Load += new System.EventHandler(this.PSForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.udPSMoxDelay)).EndInit();
@@ -899,6 +932,8 @@
         private System.Windows.Forms.LabelTS labelTS9;
         private System.Windows.Forms.ButtonTS btnPSTwoToneGen;
         private System.Windows.Forms.ButtonTS btnPSNoiseGen;
+        private System.Windows.Forms.ComboBoxTS comboPSCalStimulus;
+        private System.Windows.Forms.LabelTS lblPSCalStimulus;
         private System.Windows.Forms.LabelTS lblPSfb2;
         private System.Windows.Forms.LabelTS labelTS1;
         private System.Windows.Forms.LabelTS labelTS5;

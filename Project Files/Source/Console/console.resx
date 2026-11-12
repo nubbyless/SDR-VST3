@@ -2257,7 +2257,7 @@
     <value>MiddleCenter</value>
   </data>
   <data name="chkFWCATUBypass.ToolTip" xml:space="preserve">
-    <value>Activates PureSignal 2.0 Auto-Calibrate Mode</value>
+    <value>Activates PureSignal 3.0 Auto-Calibrate Mode</value>
   </data>
   <data name="&gt;&gt;chkFWCATUBypass.Name" xml:space="preserve">
     <value>chkFWCATUBypass</value>

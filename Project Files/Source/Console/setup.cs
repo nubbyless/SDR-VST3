@@ -11575,7 +11575,15 @@ namespace Thetis
             {
                 ttgenrun = value;
                 if (ttgenrun && !chkTestIMD.Checked) chkTestIMD.Checked = true;
-                if (!ttgenrun && chkTestIMD.Checked && console.MOX) chkTestIMD.Checked = false;
+                if (!ttgenrun && chkTestIMD.Checked)
+                {
+                    // The generator has to be switched off and the mic gain and the leveler
+                    // restored even when MOX is already off (radio disconnected, PTT released).
+                    // Otherwise the noise keeps running and the mic gain stays at 1.0.  The mic
+                    // gain is a persisted radio property, so it would be written to the database.
+                    stopTestStimulus();
+                    chkTestIMD.Checked = false; // this runs the full stop path
+                }
             }
         }
 
@@ -11592,6 +11600,49 @@ namespace Thetis
             TTgenrun = true;
         }
 
+        // Switch the TX generators off and restore the TX levelling.  This has to happen even
+        // when the test is stopped with MOX already off.
+        private void stopTestStimulus()
+        {
+            console.radio.GetDSPTX(0).TXPostGenRun = 0;
+            console.radio.GetDSPTX(0).TXPreGenRun = 0;
+            setNoiseTestLeveling(false);            // restore the mic gain and the leveler
+        }
+
+        // Make sure the TX test is running with the requested stimulus.  The PureSignal form's
+        // "Single Cal" uses this, the user chooses the stimulus there.
+        public void EnsureTestStimulus(bool noise)
+        {
+            if (chkTestIMD.Checked)
+            {
+                // it is already the right one
+                if (chkTestIMDNoise.Checked == noise) return;
+
+                // The other stimulus is running: swap the generator over.  The test itself
+                // (MOX, power, drive) keeps running, only the excitation changes.
+                chkTestIMDNoise.Checked = noise;
+                applyTestStimulusGenerator(noise);
+                console.psform.TTgenON = true;                    // refresh the button highlight
+                // the IMD peak readout is meaningless for a noise stimulus, there are no discrete peaks
+                Display.TestIMDNoise = chkTestIMD.Checked && chkTestIMDNoise.Checked;
+                return;
+            }
+
+            chkTestIMDNoise.Checked = noise;
+            TTgenrun = true;
+        }
+
+        // Re-apply the test stimulus to the TX chain.  Used when the DSP is re-initialised
+        // (e.g. on connect) while the test is running.
+        // WDSP's own default two tone (900/1700Hz, wdsp/gen.c) must never be used here: its
+        // 800Hz spacing is an exact 1/120 of the 96kHz TX processing rate, so the PureSignal
+        // calibration then only sees a few repeated levels (WDSP guide 2.11, Appendix D 13.3).
+        public void RestartTestStimulus()
+        {
+            if (!chkTestIMD.Checked) return;
+            applyTestStimulusGenerator(chkTestIMDNoise.Checked);
+        }
+
         private bool _old_two_tone_state = false;
         private async void chkTestIMD_CheckedChanged(object sender, System.EventArgs e)
         {
@@ -11605,17 +11656,6 @@ namespace Thetis
                 udFreq2Delay.Enabled = false; //MW0LGE_21
                 btnTwoToneF_defaults.Enabled = false;
                 btnTwoToneF_stealth.Enabled = false;
-                double ttfreq1 = (double)udTestIMDFreq1.Value;
-                double ttfreq2 = (double)udTestIMDFreq2.Value;
-                double ttmag = (double)udTwoToneLevel.Value;
-                double ttmag1, ttmag2;
-                ttmag1 = ttmag2 = 0.49999 * Math.Pow(10.0, ttmag / 20.0);
-                DSPMode mode = console.radio.GetDSPTX(0).CurrentDSPMode;
-                if (chkInvertTones.Checked && ((mode == DSPMode.CWL) || (mode == DSPMode.DIGL) || (mode == DSPMode.LSB)))
-                {
-                    ttfreq1 = -ttfreq1;
-                    ttfreq2 = -ttfreq2;
-                }
                 if (!console.PowerOn)
                 {
                     MessageBox.Show("Power must be on to run this test.",
@@ -11632,69 +11672,8 @@ namespace Thetis
                     await Task.Delay(200); //MW0LGE_21a
                 }
 
-                bool pulsed = chkPulsed_TwoTone.Checked;
-
-                if (chkTestIMDNoise.Checked)
-                {
-                    // Noise for the PureSignal calibration.  The WDSP guide 2.11, Appendix D
-                    // 13.3, recommends noise: it is broadband with a randomly varying envelope,
-                    // so it is a much better proxy for a speech signal than the steady periodic
-                    // envelope of a two tone.
-                    // The noise comes from the TXA *pre* generator, so the TX bandpass filter
-                    // limits it to the transmit passband.  The peak detectors in front of that
-                    // filter have to be taken out of the way, see setNoiseTestLeveling().
-                    setNoiseTestLeveling(true);
-                    console.radio.GetDSPTX(0).TXPostGenRun = 0;         // no two tone
-                    console.radio.GetDSPTX(0).TXPreGenMode = 2;           // noise
-                    // The noise is band limited by the TX filter, so only a small part of it
-                    // reaches the PA and the ALC (which is behind the filter) has to work
-                    // much harder than it does for the two tone to reach the gain reduction
-                    // where the calibration starts.  The noise is therefore fed in louder;
-                    // the ALC brings the level back to the same as the two tone.
-                    // AM (DSB with carrier) needs considerably more audio than SSB for the
-                    // same power at the PA: at full modulation the sidebands carry only a
-                    // third of the total power, so the audio has to be about 4.8dB louder to
-                    // drive the amplifier the same way.
-                    double modeScale = 1.0;
-                    DSPMode txMode = console.radio.GetDSPTX(0).CurrentDSPMode;
-                    if (txMode == DSPMode.AM || txMode == DSPMode.AM_LSB || txMode == DSPMode.AM_USB)
-                        modeScale = 1.74;
-                    console.radio.GetDSPTX(0).TXPreGenNoiseMag = 7.09 * modeScale * 0.49999 * Math.Pow(10.0, ttmag / 20.0);
-                    console.radio.GetDSPTX(0).TXPreGenRun = 1;
-                }
-                else
-                {
-                    setNoiseTestLeveling(false);
-                    console.radio.GetDSPTX(0).TXPreGenRun = 0;         // no noise
-
-                    if (pulsed)
-                    {
-                        setupTwoTonePulse();
-                        console.radio.GetDSPTX(0).TXPostGenMode = 7; // pulsed two tone
-                        console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq1 = ttfreq1;
-                        console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq2 = ttfreq2;
-                        console.radio.GetDSPTX(0).TXPostGenTTPulseMag1 = ttmag1;
-
-                        if ((int)udFreq2Delay.Value == 0)
-                            console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = ttmag2;
-                        else
-                            console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = 0.0;
-                    }
-                    else
-                    {
-                        console.radio.GetDSPTX(0).TXPostGenMode = 1;
-                        console.radio.GetDSPTX(0).TXPostGenTTFreq1 = ttfreq1;
-                        console.radio.GetDSPTX(0).TXPostGenTTFreq2 = ttfreq2;
-                        console.radio.GetDSPTX(0).TXPostGenTTMag1 = ttmag1;
-
-                        //MW0LGE_21a change to delay Freq2 output. Fixes problems with some Amps frequency counters
-                        if ((int)udFreq2Delay.Value == 0)
-                            console.radio.GetDSPTX(0).TXPostGenTTMag2 = ttmag2;
-                        else
-                            console.radio.GetDSPTX(0).TXPostGenTTMag2 = 0.0;
-                    }
-                    console.radio.GetDSPTX(0).TXPostGenRun = 1;
-                }
+                // set the TX generator up for the chosen stimulus
+                applyTestStimulusGenerator(chkTestIMDNoise.Checked);
 
                 //MW0LGE_22b
                 // remember old power //MW0LGE_22b
@@ -11720,12 +11699,13 @@ namespace Thetis
                     return;
                 }
 
-                // set magnitude after a delay for freq2 
-                if ((int)udFreq2Delay.Value > 0)
+                // set magnitude after a delay for freq2
+                if (!chkTestIMDNoise.Checked && (int)udFreq2Delay.Value > 0)
                 {
                     await Task.Delay((int)udFreq2Delay.Value);
 
-                    if (pulsed)
+                    double ttmag2 = 0.49999 * Math.Pow(10.0, (double)udTwoToneLevel.Value / 20.0);
+                    if (chkPulsed_TwoTone.Checked)
                         console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = ttmag2;
                     else
                         console.radio.GetDSPTX(0).TXPostGenTTMag2 = ttmag2;
@@ -11763,7 +11743,7 @@ namespace Thetis
                 chkInvertTones.Enabled = true;
                 udFreq2Delay.Enabled = true;
                 btnTwoToneF_defaults.Enabled = true;
-                btnTwoToneF_stealth.Enabled = true;
+                btnTwoToneF_stealth.Enabled = false;
 
                 chkTestIMD.Text = "Start";
             }
@@ -11781,6 +11761,106 @@ namespace Thetis
                 }
 
                 _old_two_tone_state = chkTestIMD.Checked;
+            }
+        }
+
+        // Set the TX generator up for the test stimulus.
+        //  - the two tone comes from the TXA *post* generator.  It sits behind the TX bandpass
+        //    filters, so it is not band limited - that is fine for two tones, it is what the
+        //    classic IMD test wants.
+        //  - the noise comes from the TXA *pre* generator.  It is in front of the TX bandpass
+        //    filter, so the filter limits it to the transmit passband and it goes through the
+        //    TX audio chain like a microphone signal does.
+        // This is used by the start of the test, by the PureSignal form's "Single Cal" (which
+        // can swap the running stimulus over) and when the DSP is re-initialised while the
+        // test is running.
+        //
+        // The PureSignal calibration normalises the TX envelope with the peak reference (the
+        // "SetPk" box) and bins the samples into 16 envelope buckets over the range 0 .. peak.
+        // A two tone at 0.5 per tone has a TX peak of 1.0, which is 2.5 to 4.3 times the
+        // reference peak (0.233 for the HL2, 0.2899 for the ANAN, 0.4072 for ANAN protocol 1),
+        // so most of its samples are "overrange".  WDSP 2.11 used to put those samples into the
+        // top envelope bucket, where they corrupt the top of the correction curve; it now drops
+        // them like WDSP 1.29 did (see wdsp/calcc.c SAMPLE_ACCEPT_OVERRANGE).
+        // The tone itself keeps its level: the drive and the ALC have to stay where they are.
+        private void applyTestStimulusGenerator(bool noise)
+        {
+            double ttfreq1 = (double)udTestIMDFreq1.Value;
+            double ttfreq2 = (double)udTestIMDFreq2.Value;
+            double ttmag = (double)udTwoToneLevel.Value;
+            double ttmag1, ttmag2;
+            ttmag1 = ttmag2 = 0.49999 * Math.Pow(10.0, ttmag / 20.0);
+            DSPMode mode = console.radio.GetDSPTX(0).CurrentDSPMode;
+            if (chkInvertTones.Checked && ((mode == DSPMode.CWL) || (mode == DSPMode.DIGL) || (mode == DSPMode.LSB)))
+            {
+                ttfreq1 = -ttfreq1;
+                ttfreq2 = -ttfreq2;
+            }
+
+
+
+
+            if (noise)
+            {
+                // Noise for the PureSignal calibration.  The WDSP guide 2.11, Appendix D
+                // 13.3, recommends noise: it is broadband with a randomly varying envelope,
+                // so it is a much better proxy for a speech signal than the steady periodic
+                // envelope of a two tone.  The calibration axis is the TX envelope, so the
+                // noise also gives the calibration a continuous sweep of drive levels.
+                // The noise comes from the TXA *pre* generator, so the TX bandpass filter
+                // limits it to the transmit passband.  The peak detectors in front of that
+                // filter have to be taken out of the way, see setNoiseTestLeveling().
+                setNoiseTestLeveling(true);
+                console.radio.GetDSPTX(0).TXPostGenRun = 0;         // no two tone
+                console.radio.GetDSPTX(0).TXPreGenMode = 2;           // noise
+                // The noise is band limited by the TX filter, so only a small part of it
+                // reaches the PA and the ALC (which is behind the filter) has to work
+                // much harder than it does for the two tone to reach the gain reduction
+                // where the calibration starts.  The noise is therefore fed in louder;
+                // the ALC brings the level back to the same as the two tone.
+                // AM (DSB with carrier) needs considerably more audio than SSB for the
+                // same power at the PA: at full modulation the sidebands carry only a
+                // third of the total power, so the audio has to be about 4.8dB louder to
+                // drive the amplifier the same way.
+                double modeScale = 1.0;
+                DSPMode txMode = console.radio.GetDSPTX(0).CurrentDSPMode;
+                if (txMode == DSPMode.AM || txMode == DSPMode.AM_LSB || txMode == DSPMode.AM_USB)
+                    modeScale = 1.74;
+                console.radio.GetDSPTX(0).TXPreGenNoiseMag = 7.09 * modeScale * 0.49999 * Math.Pow(10.0, ttmag / 20.0);
+                console.radio.GetDSPTX(0).TXPreGenRun = 1;
+            }
+            else
+            {
+                setNoiseTestLeveling(false);
+                console.radio.GetDSPTX(0).TXPreGenRun = 0;         // no noise
+
+                if (chkPulsed_TwoTone.Checked)
+                {
+                    setupTwoTonePulse();
+                    console.radio.GetDSPTX(0).TXPostGenMode = 7; // pulsed two tone
+                    console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq1 = ttfreq1;
+                    console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq2 = ttfreq2;
+                    console.radio.GetDSPTX(0).TXPostGenTTPulseMag1 = ttmag1;
+
+                    if ((int)udFreq2Delay.Value == 0)
+                        console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = ttmag2;
+                    else
+                        console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = 0.0;
+                }
+                else
+                {
+                    console.radio.GetDSPTX(0).TXPostGenMode = 1;
+                    console.radio.GetDSPTX(0).TXPostGenTTFreq1 = ttfreq1;
+                    console.radio.GetDSPTX(0).TXPostGenTTFreq2 = ttfreq2;
+                    console.radio.GetDSPTX(0).TXPostGenTTMag1 = ttmag1;
+
+                    //MW0LGE_21a change to delay Freq2 output. Fixes problems with some Amps frequency counters
+                    if ((int)udFreq2Delay.Value == 0)
+                        console.radio.GetDSPTX(0).TXPostGenTTMag2 = ttmag2;
+                    else
+                        console.radio.GetDSPTX(0).TXPostGenTTMag2 = 0.0;
+                }
+                console.radio.GetDSPTX(0).TXPostGenRun = 1;
             }
         }
 

@@ -211,7 +211,18 @@ void print_OriginalAndFitSamples(CALCC a);
 void print_EQ_Samples(CALCC a);
 
 #define SAMPLE_NBUCKS			  16           
-#define SAMPLE_ACCEPT_OVERRANGE	  1             
+#define SAMPLE_NBUCKS			  16
+// 0 = drop the samples whose normalised TX envelope is above the peak reference,
+// 1 = put them into the top envelope bucket.
+// WDSP 1.29 dropped them (the envelope had to be <= 1.0 to be collected at all).
+// WDSP 2.11 put them into the top bucket, where they mix the samples of completely
+// different drive levels and corrupt the top of the correction curve - the solution
+// check then fails and the calibration never completes.  A two tone at 0.5 per tone
+// has a TX peak of 1.0 and the peak reference is 0.233 (HL2) / 0.2899 (ANAN) /
+// 0.4072 (ANAN protocol 1), so 75 to 80 % of its samples are overrange.
+// The PureSignal calibration is keyed to the TX envelope, so the samples above the
+// reference cannot be characterised anyway - drop them, like WDSP 1.29 did.
+#define SAMPLE_ACCEPT_OVERRANGE	  0             
 #define SAMPLE_MIN_X              0.0050         
 #define VAR_FORCED_SLOPE          0.001         
 

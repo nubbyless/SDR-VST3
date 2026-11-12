@@ -1,4 +1,4 @@
-﻿/*  PSForm.cs
+/*  PSForm.cs
 
 This file is part of a program that implements a Software-Defined Radio.
 
@@ -180,6 +180,7 @@ namespace Thetis
             Debug.Print(DateTime.UtcNow.Ticks.ToString() + " PSForm: Stopping PS Thread");
             if (_ps_thread != null && _ps_thread.IsAlive) _ps_thread.Join(200);
             Debug.Print(DateTime.UtcNow.Ticks.ToString()  + " PSForm: PS Thread Stopped");
+            psLogClose();
 
             if (console != null)
             {
@@ -477,11 +478,70 @@ namespace Thetis
                 // need this incase single cal is unable to complete do to bad feedback level
                 // state machine will drop out if this is the case
                 _singlecalON = false;
+                stopSingleCalStimulus();
                 return;
             }
             console.ForcePureSignalAutoCalDisable();
+            // make sure the stimulus the user chose is the one that is driving the TX
+            startSingleCalStimulus();
             _singlecalON = true;
             console.PSState = false;
+        }
+
+        // The stimulus the "Single Cal" uses.  The user chooses it in the combo box under the
+        // Single Cal button.  The two tone is the default, the noise is selectable.
+        // The noise is the better stimulus for the calibration: the calibration axis is the
+        // TX envelope (wdsp/calcc.c, putSample()/calc()), so a continuously varying envelope
+        // gives the calibration a sweep of drive levels, while the two tone has a nearly
+        // constant envelope.  See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
+        private bool singleCalUseNoise
+        {
+            get { return comboPSCalStimulus != null && comboPSCalStimulus.Text == "Noise"; }
+        }
+
+        // The setup form belongs to the UI thread.  The PS form is driven from the PS thread and
+        // the Single Cal can also be started by a CAT command, so the calls into the setup form
+        // have to be marshalled over to the UI thread.
+        private void runOnUIThread(Action action)
+        {
+            try
+            {
+                if (IsHandleCreated && InvokeRequired)
+                    BeginInvoke(action);
+                else
+                    action();
+            }
+            catch { }
+        }
+
+        // Make sure the stimulus the user selected is the one that is running.
+        private void startSingleCalStimulus()
+        {
+            if (console == null || console.IsSetupFormNull) return;
+
+            bool noise = singleCalUseNoise;
+
+            runOnUIThread(() =>
+            {
+                console.SetupForm.EnsureTestStimulus(noise);
+            });
+        }
+
+        // Stop the stimulus again when the Single Cal is over.  The stimulus is stopped when it
+        // is the one the Single Cal used, no matter who started it - otherwise the transmitter
+        // would keep sending the test tone after the calibration was switched off.
+        private void stopSingleCalStimulus()
+        {
+            if (console == null || console.IsSetupFormNull) return;
+
+            bool noise = singleCalUseNoise;
+
+            runOnUIThread(() =>
+            {
+                if (!console.SetupForm.TTgenrun) return;
+                if (console.SetupForm.TestIMDNoiseStimulus != noise) return;  // a different one is running
+                console.SetupForm.TTgenrun = false;
+            });
         }
 
         //-W2PA Adds capability for CAT control via console
@@ -571,6 +631,70 @@ namespace Thetis
         {
             psdefpeak(HardwareSpecific.PSDefaultPeak);
         }
+
+        // PureSignal diagnostics.  The engine only writes the feedback level and the
+        // "correcting" flag after a successful calibration, so a calibration that never
+        // completes leaves no trace on the screen.  This log shows the engine state and the
+        // internal flags while it runs, so a failed calibration can be analysed afterwards.
+        // It is written to <appdata>\PureSignal\PS_debug.log
+        private string _ps_log_path = null;
+        private StreamWriter _ps_log = null;
+        private DateTime _ps_log_last = DateTime.MinValue;
+        private int _ps_log_last_state = -1;
+
+        private void psLog(string msg)
+        {
+            try
+            {
+                if (_ps_log == null)
+                {
+                    if (_ps_log_path == null)
+                    {
+                        System.IO.Directory.CreateDirectory(console.AppDataPath + "PureSignal\\");
+                        _ps_log_path = console.AppDataPath + "PureSignal\\PS_debug.log";
+                    }
+                    _ps_log = new StreamWriter(_ps_log_path, true);
+                }
+                _ps_log.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff") + " " + msg);
+                _ps_log.Flush();
+            }
+            catch { }
+        }
+
+        private void psLogState()
+        {
+            try
+            {
+                int state = puresignal.Info[15];
+                DateTime now = DateTime.Now;
+
+                // log every state change, otherwise at most once a second
+                if (state == _ps_log_last_state && (now - _ps_log_last).TotalMilliseconds < 1000) return;
+
+                _ps_log_last_state = state;
+                _ps_log_last = now;
+
+                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10}",
+                    state,
+                    puresignal.Info[6],
+                    puresignal.Info[5],
+                    puresignal.Info[13],
+                    puresignal.Info[4],
+                    puresignal.Info[0],
+                    puresignal.Info[1],
+                    puresignal.Info[2],
+                    puresignal.Info[3],
+                    puresignal.CurrentPeak,
+                    console.SetupForm.ATTOnTX));
+            }
+            catch { }
+        }
+
+        private void psLogClose()
+        {
+            try { if (_ps_log != null) { _ps_log.Flush(); _ps_log.Close(); _ps_log = null; } }
+            catch { }
+        }
         #region PSLoops
 
         private bool _performing_single_cal = false;
@@ -583,6 +707,7 @@ namespace Thetis
 
             if (puresignal.HasInfoChanged)
             {
+                psLogState();
                 lblPSInfo0.Text = puresignal.Info[0].ToString();
                 lblPSInfo1.Text = puresignal.Info[1].ToString();
                 lblPSInfo2.Text = puresignal.Info[2].ToString();
@@ -735,7 +860,10 @@ namespace Thetis
                             _singlecalON = true;
                         }
                         else
+                        {
                             _performing_single_cal_retries = 0;
+                            stopSingleCalStimulus();    // the single cal is done
+                        }
                     }
                     break;
                 case eCMDState.TurnOFF://6:     // Turn-OFF
@@ -745,6 +873,7 @@ namespace Thetis
                     if (!PSEnabled) PSEnabled = true;
                     btnPSCalibrate.BackColor = SystemColors.Control;
                     _OFF = false;
+                    stopSingleCalStimulus();        // a single cal that was running is over
                     if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
                     else if (_autoON)
@@ -947,8 +1076,15 @@ namespace Thetis
                 WDSP.SetTXAPostGenRun(_txachannel, 0);
             else
             {
-                WDSP.SetTXAPostGenMode(_txachannel, 1);
-                WDSP.SetTXAPostGenRun(_txachannel, 1);
+                // Re-apply the console's own test stimulus settings.  WDSP's default two tone
+                // (900/1700Hz, wdsp/gen.c) must never be used: its 800Hz spacing is an exact
+                // 1/120 of the 96kHz TX processing rate, so the digitised envelope repeats its
+                // sample values and the PureSignal calibration then only sees a few repeated
+                // levels (WDSP guide 2.11, Appendix D 13.3).
+                if (console != null && !console.IsSetupFormNull)
+                    console.SetupForm.RestartTestStimulus();
+                else
+                    WDSP.SetTXAPostGenRun(_txachannel, 0);
             }
             udPSCalWait_ValueChanged(this, e);
             udPSPhnum_ValueChanged(this, e);
@@ -1128,6 +1264,21 @@ namespace Thetis
         }
         public static int FeedbackLevel {
             get { return _info[4]; }
+        }
+
+        // The PureSignal peak reference (the "SetPk" box in the PureSignal form).  The
+        // calibration normalises the TX envelope with it: the samples are binned into 16
+        // envelope buckets over the range 0 .. peak.  A stimulus whose TX peak is well above
+        // the reference puts all its samples into the top bucket, see
+        // setup.cs applyTestStimulusGenerator().
+        public static double CurrentPeak
+        {
+            get
+            {
+                double peak = 0.0;
+                unsafe { GetPSHWPeak(WDSP.id(1, 0), &peak); }
+                return peak;
+            }
         }
         public static Color FeedbackColourLevel {
             get {
