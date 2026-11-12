@@ -40,6 +40,7 @@
             this.chkPSAutoAttenuate = new System.Windows.Forms.CheckBoxTS();
             this.btnPSAmpView = new System.Windows.Forms.ButtonTS();
             this.btnPSTwoToneGen = new System.Windows.Forms.ButtonTS();
+            this.btnPSNoiseGen = new System.Windows.Forms.ButtonTS();
             this.labelTS8 = new System.Windows.Forms.LabelTS();
             this.lblPSInfoFB = new System.Windows.Forms.LabelTS();
             this.lblPSInfoCO = new System.Windows.Forms.LabelTS();
@@ -236,10 +237,27 @@
             this.btnPSTwoToneGen.Selectable = true;
             this.btnPSTwoToneGen.Size = new System.Drawing.Size(71, 20);
             this.btnPSTwoToneGen.TabIndex = 37;
-            this.btnPSTwoToneGen.Text = "Two-tone";
-            this.toolTip1.SetToolTip(this.btnPSTwoToneGen, "Generate and TX a Two Tone Signal");
+            this.btnPSTwoToneGen.Text = "Two-Tone";
+            this.toolTip1.SetToolTip(this.btnPSTwoToneGen, "Generate and TX a two tone test signal." + "\r\n" +
+                "Watch out for the tone spacing, a spacing that is an exact sub-multiple of the TX sample rate distorts the PureSignal calibration.");
             this.btnPSTwoToneGen.UseVisualStyleBackColor = false;
             this.btnPSTwoToneGen.Click += new System.EventHandler(this.btnPSTwoToneGen_Click);
+            //
+            // btnPSNoiseGen
+            //
+            this.btnPSNoiseGen.BackColor = System.Drawing.SystemColors.Control;
+            this.btnPSNoiseGen.ForeColor = System.Drawing.SystemColors.ControlText;
+            this.btnPSNoiseGen.Image = null;
+            this.btnPSNoiseGen.Location = new System.Drawing.Point(245, 12);
+            this.btnPSNoiseGen.Name = "btnPSNoiseGen";
+            this.btnPSNoiseGen.Selectable = true;
+            this.btnPSNoiseGen.Size = new System.Drawing.Size(71, 20);
+            this.btnPSNoiseGen.TabIndex = 38;
+            this.btnPSNoiseGen.Text = "Noise";
+            this.toolTip1.SetToolTip(this.btnPSNoiseGen, "Generate and TX band limited noise." + "\r\n" +
+                "The WDSP guide recommends noise for the PureSignal calibration, its randomly varying envelope is much closer to a speech signal than a two tone is.");
+            this.btnPSNoiseGen.UseVisualStyleBackColor = false;
+            this.btnPSNoiseGen.Click += new System.EventHandler(this.btnPSNoiseGen_Click);
             // 
             // labelTS8
             // 
@@ -821,6 +839,7 @@
             this.Controls.Add(this.chkPSAutoAttenuate);
             this.Controls.Add(this.btnPSAmpView);
             this.Controls.Add(this.btnPSTwoToneGen);
+            this.Controls.Add(this.btnPSNoiseGen);
             this.Controls.Add(this.labelTS8);
             this.Controls.Add(this.lblPSInfoFB);
             this.Controls.Add(this.lblPSInfoCO);
@@ -879,6 +898,7 @@
         private System.Windows.Forms.LabelTS lblPSInfoCO;
         private System.Windows.Forms.LabelTS labelTS9;
         private System.Windows.Forms.ButtonTS btnPSTwoToneGen;
+        private System.Windows.Forms.ButtonTS btnPSNoiseGen;
         private System.Windows.Forms.LabelTS lblPSfb2;
         private System.Windows.Forms.LabelTS labelTS1;
         private System.Windows.Forms.LabelTS labelTS5;

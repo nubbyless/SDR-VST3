@@ -11579,6 +11579,19 @@ namespace Thetis
             }
         }
 
+        // is the noise stimulus selected for the TX test?
+        public bool TestIMDNoiseStimulus
+        {
+            get { return chkTestIMDNoise.Checked; }
+        }
+
+        // start the TX test with the given stimulus, two tone or noise
+        public void StartTestStimulus(bool noise)
+        {
+            if (chkTestIMDNoise.Checked != noise) chkTestIMDNoise.Checked = noise;
+            TTgenrun = true;
+        }
+
         private bool _old_two_tone_state = false;
         private async void chkTestIMD_CheckedChanged(object sender, System.EventArgs e)
         {
@@ -11621,33 +11634,52 @@ namespace Thetis
 
                 bool pulsed = chkPulsed_TwoTone.Checked;
 
-                if (pulsed)
+                if (chkTestIMDNoise.Checked)
                 {
-                    setupTwoTonePulse();
-                    console.radio.GetDSPTX(0).TXPostGenMode = 7; // pulsed two tone
-                    console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq1 = ttfreq1;
-                    console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq2 = ttfreq2;
-                    console.radio.GetDSPTX(0).TXPostGenTTPulseMag1 = ttmag1;
-
-                    if ((int)udFreq2Delay.Value == 0)
-                        console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = ttmag2;
-                    else
-                        console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = 0.0;
+                    // Band limited noise (the TX bandpass limits it).  The WDSP guide 2.11,
+                    // Appendix D 13.3, recommends noise for the PureSignal calibration: it is
+                    // broadband with a randomly varying envelope, so it is a much better proxy
+                    // for a speech signal than the steady periodic envelope of a two tone.
+                    // The noise is injected by the TXA *pre* generator, so it goes through the
+                    // TX bandpass filter and the ALC like a microphone signal does.  The post
+                    // generator sits behind the filters and would transmit broadband noise.
+                    console.radio.GetDSPTX(0).TXPostGenRun = 0;      // no two tone
+                    console.radio.GetDSPTX(0).TXPreGenMode = 2;        // noise
+                    console.radio.GetDSPTX(0).TXPreGenNoiseMag = 0.49999 * Math.Pow(10.0, ttmag / 20.0);
+                    console.radio.GetDSPTX(0).TXPreGenRun = 1;
                 }
                 else
                 {
-                    console.radio.GetDSPTX(0).TXPostGenMode = 1;
-                    console.radio.GetDSPTX(0).TXPostGenTTFreq1 = ttfreq1;
-                    console.radio.GetDSPTX(0).TXPostGenTTFreq2 = ttfreq2;
-                    console.radio.GetDSPTX(0).TXPostGenTTMag1 = ttmag1;
+                    console.radio.GetDSPTX(0).TXPreGenRun = 0;         // no noise
 
-                    //MW0LGE_21a change to delay Freq2 output. Fixes problems with some Amps frequency counters
-                    if ((int)udFreq2Delay.Value == 0)
-                        console.radio.GetDSPTX(0).TXPostGenTTMag2 = ttmag2;
+                    if (pulsed)
+                    {
+                        setupTwoTonePulse();
+                        console.radio.GetDSPTX(0).TXPostGenMode = 7; // pulsed two tone
+                        console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq1 = ttfreq1;
+                        console.radio.GetDSPTX(0).TXPostGenTTPulseToneFreq2 = ttfreq2;
+                        console.radio.GetDSPTX(0).TXPostGenTTPulseMag1 = ttmag1;
+
+                        if ((int)udFreq2Delay.Value == 0)
+                            console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = ttmag2;
+                        else
+                            console.radio.GetDSPTX(0).TXPostGenTTPulseMag2 = 0.0;
+                    }
                     else
-                        console.radio.GetDSPTX(0).TXPostGenTTMag2 = 0.0;
+                    {
+                        console.radio.GetDSPTX(0).TXPostGenMode = 1;
+                        console.radio.GetDSPTX(0).TXPostGenTTFreq1 = ttfreq1;
+                        console.radio.GetDSPTX(0).TXPostGenTTFreq2 = ttfreq2;
+                        console.radio.GetDSPTX(0).TXPostGenTTMag1 = ttmag1;
+
+                        //MW0LGE_21a change to delay Freq2 output. Fixes problems with some Amps frequency counters
+                        if ((int)udFreq2Delay.Value == 0)
+                            console.radio.GetDSPTX(0).TXPostGenTTMag2 = ttmag2;
+                        else
+                            console.radio.GetDSPTX(0).TXPostGenTTMag2 = 0.0;
+                    }
+                    console.radio.GetDSPTX(0).TXPostGenRun = 1;
                 }
-                console.radio.GetDSPTX(0).TXPostGenRun = 1;
 
                 //MW0LGE_22b
                 // remember old power //MW0LGE_22b
@@ -11707,6 +11739,7 @@ namespace Thetis
                 chkTestIMD.BackColor = SystemColors.Control;
                 console.psform.TTgenON = false;
                 console.radio.GetDSPTX(0).TXPostGenRun = 0;
+                console.radio.GetDSPTX(0).TXPreGenRun = 0; // the noise stimulus uses the pre generator
                 udTestIMDFreq1.Enabled = true;
                 udTestIMDFreq2.Enabled = true;
                 udTwoToneLevel.Enabled = true;
@@ -11720,6 +11753,8 @@ namespace Thetis
             }
 
             Display.TestingIMD = chkTestIMD.Checked;
+            // the IMD peak readout is meaningless for a noise stimulus, there are no discrete peaks
+            Display.TestIMDNoise = chkTestIMD.Checked && chkTestIMDNoise.Checked;
 
             if (_old_two_tone_state != chkTestIMD.Checked)
             {
@@ -12328,6 +12363,17 @@ namespace Thetis
         private void udTestIMDFreq2_LostFocus(object sender, EventArgs e)
         {
             udTestIMDFreq2.Value = udTestIMDFreq2.Value;
+            updateTestIMDSpacingWarning();
+        }
+
+        private void udTestIMDFreq2_ValueChanged(object sender, EventArgs e)
+        {
+            updateTestIMDSpacingWarning();
+        }
+
+        private void udTestIMDFreq1_ValueChanged(object sender, EventArgs e)
+        {
+            updateTestIMDSpacingWarning();
         }
 
         private void udTestIMDPower_LostFocus(object sender, EventArgs e)
@@ -12338,6 +12384,7 @@ namespace Thetis
         private void udTestIMDFreq1_LostFocus(object sender, EventArgs e)
         {
             udTestIMDFreq1.Value = udTestIMDFreq1.Value;
+            updateTestIMDSpacingWarning();
         }
 
         #endregion
@@ -36660,14 +36707,92 @@ namespace Thetis
 
         private void btnTwoToneF_defaults_Click(object sender, EventArgs e)
         {
+            // the spacing is 1250Hz, that is not a sub-multiple of the 96kHz TX processing rate
+            // and not of the 12.288kHz radio rate.  A two tone spacing that IS a sub-multiple
+            // makes the digitised envelope repeat its sample values, the PureSignal calibration
+            // then only sees a few repeated levels instead of a continuous sweep.
             udTestIMDFreq1.Value = 700;
-            udTestIMDFreq2.Value = 1900;
+            udTestIMDFreq2.Value = 1950;
+            updateTestIMDSpacingWarning();
         }
 
         private void btnTwoToneF_stealth_Click(object sender, EventArgs e)
         {
+            // 'stealth', the IMD products stay close to the carrier.  The 124Hz spacing is not a
+            // sub-multiple of the TX processing rate.
             udTestIMDFreq1.Value = 70;
-            udTestIMDFreq2.Value = 190;
+            udTestIMDFreq2.Value = 194;
+            updateTestIMDSpacingWarning();
+        }
+
+        // The TXA runs at 96kHz (ChannelMaster cmaster.c), the radio rate is 12.288kHz.
+        private const double TX_PROCESSING_RATE = 96000.0;
+        private const double RADIO_TX_RATE = 12288.0;
+
+        // Is the spacing of the two tones an exact sub-multiple of one of the sample rates?
+        // See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
+        private bool testIMDSpacingIsSubMultiple(out double rate, out double division)
+        {
+            rate = 0.0;
+            division = 0.0;
+
+            double spacing = Math.Abs((double)udTestIMDFreq2.Value - (double)udTestIMDFreq1.Value);
+            if (spacing < 1.0) return false;
+
+            double[] rates = new double[] { TX_PROCESSING_RATE, RADIO_TX_RATE };
+            for (int n = 0; n < rates.Length; n++)
+            {
+                double d = rates[n] / spacing;
+                if (d > 1.0 && Math.Abs(d - Math.Floor(d + 0.5)) < 0.000001)
+                {
+                    rate = rates[n];
+                    division = d;
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void updateTestIMDSpacingWarning()
+        {
+            if (lblTestIMDWarning == null) return;
+
+            if (chkTestIMDNoise.Checked)
+            {
+                lblTestIMDWarning.Text = "";
+                return;
+            }
+
+            double rate, division;
+            if (testIMDSpacingIsSubMultiple(out rate, out division))
+            {
+                lblTestIMDWarning.Text = "The spacing is exactly 1/" + division.ToString("F0") + " of the " +
+                    (rate / 1000.0).ToString("F0") + "kHz TX rate." + Environment.NewLine +
+                    "The PureSignal calibration then only sees a few repeated levels, use a spacing like 1250Hz.";
+                lblTestIMDWarning.Visible = true;
+            }
+            else
+            {
+                lblTestIMDWarning.Text = "";
+            }
+        }
+
+        private void chkTestIMDNoise_CheckedChanged(object sender, EventArgs e)
+        {
+            bool noise = chkTestIMDNoise.Checked;
+
+            // the frequency and level controls only apply to the two tone
+            udTestIMDFreq1.Enabled = !noise && !chkTestIMD.Checked;
+            udTestIMDFreq2.Enabled = !noise && !chkTestIMD.Checked;
+            lblTestToneFreq1.Enabled = !noise && !chkTestIMD.Checked;
+            lblTestToneFreq2.Enabled = !noise && !chkTestIMD.Checked;
+            chkInvertTones.Enabled = !noise && !chkTestIMD.Checked;
+            chkPulsed_TwoTone.Enabled = !noise && !chkTestIMD.Checked;
+            grpPulsedTwoTone.Enabled = !noise && !chkTestIMD.Checked;
+            btnTwoToneF_defaults.Enabled = !noise && !chkTestIMD.Checked;
+            btnTwoToneF_stealth.Enabled = !noise && !chkTestIMD.Checked;
+
+            updateTestIMDSpacingWarning();
         }
 
         private void nudPulsedTune_window_ValueChanged(object sender, EventArgs e)

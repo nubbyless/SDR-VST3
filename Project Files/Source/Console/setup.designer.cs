@@ -4023,6 +4023,8 @@
             this.chkTestIMD = new System.Windows.Forms.CheckBoxTS();
             this.lblTestToneFreq1 = new System.Windows.Forms.LabelTS();
             this.udTestIMDFreq1 = new System.Windows.Forms.NumericUpDownTS();
+            this.chkTestIMDNoise = new System.Windows.Forms.CheckBoxTS();
+            this.lblTestIMDWarning = new System.Windows.Forms.LabelTS();
             this.grpTestAudioBalance = new System.Windows.Forms.GroupBoxTS();
             this.btnTestAudioBalStart = new System.Windows.Forms.ButtonTS();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -63196,6 +63198,8 @@
             this.grpTestTXIMD.Controls.Add(this.chkPulsed_TwoTone);
             this.grpTestTXIMD.Controls.Add(this.btnTwoToneF_stealth);
             this.grpTestTXIMD.Controls.Add(this.btnTwoToneF_defaults);
+            this.grpTestTXIMD.Controls.Add(this.lblTestIMDWarning);
+            this.grpTestTXIMD.Controls.Add(this.chkTestIMDNoise);
             this.grpTestTXIMD.Controls.Add(this.grpPulsedTwoTone);
             this.grpTestTXIMD.Controls.Add(this.radUseFixedDrive2Tone);
             this.grpTestTXIMD.Controls.Add(this.radUseDriveSlider2Tone);
@@ -63254,9 +63258,35 @@
             this.btnTwoToneF_defaults.Size = new System.Drawing.Size(67, 23);
             this.btnTwoToneF_defaults.TabIndex = 126;
             this.btnTwoToneF_defaults.Text = "Defaults";
-            this.toolTip1.SetToolTip(this.btnTwoToneF_defaults, "Default 700Hz and 1900Hz");
+            this.toolTip1.SetToolTip(this.btnTwoToneF_defaults, "Default 700Hz and 1950Hz." + "\r\n" +
+                "The 1250Hz spacing is not a sub-multiple of the TX sample rate, a two tone spacing that is a sub-multiple distorts the PureSignal calibration.");
             this.btnTwoToneF_defaults.UseVisualStyleBackColor = true;
             this.btnTwoToneF_defaults.Click += new System.EventHandler(this.btnTwoToneF_defaults_Click);
+            //
+            // chkTestIMDNoise
+            //
+            this.chkTestIMDNoise.AutoSize = true;
+            this.chkTestIMDNoise.Image = null;
+            this.chkTestIMDNoise.Location = new System.Drawing.Point(135, 8);
+            this.chkTestIMDNoise.Name = "chkTestIMDNoise";
+            this.chkTestIMDNoise.Size = new System.Drawing.Size(152, 17);
+            this.chkTestIMDNoise.TabIndex = 130;
+            this.chkTestIMDNoise.Text = "Noise (PureSignal Cal)";
+            this.toolTip1.SetToolTip(this.chkTestIMDNoise, "Transmit band limited noise instead of a two tone." + "\r\n" +
+                "The WDSP guide recommends noise for the PureSignal calibration, it is much closer to a speech signal than a two tone is.");
+            this.chkTestIMDNoise.UseVisualStyleBackColor = true;
+            this.chkTestIMDNoise.CheckedChanged += new System.EventHandler(this.chkTestIMDNoise_CheckedChanged);
+            //
+            // lblTestIMDWarning
+            //
+            this.lblTestIMDWarning.AutoSize = false;
+            this.lblTestIMDWarning.ForeColor = System.Drawing.Color.Red;
+            this.lblTestIMDWarning.Location = new System.Drawing.Point(135, 100);
+            this.lblTestIMDWarning.Name = "lblTestIMDWarning";
+            this.lblTestIMDWarning.Size = new System.Drawing.Size(182, 40);
+            this.lblTestIMDWarning.TabIndex = 131;
+            this.lblTestIMDWarning.Text = "";
+            this.lblTestIMDWarning.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // grpPulsedTwoTone
             // 
@@ -63627,11 +63657,12 @@
             this.udTestIMDFreq2.TabIndex = 87;
             this.udTestIMDFreq2.TinyStep = false;
             this.udTestIMDFreq2.Value = new decimal(new int[] {
-            19000,
+            19500,
             0,
             0,
             65536});
             this.udTestIMDFreq2.LostFocus += new System.EventHandler(this.udTestIMDFreq2_LostFocus);
+            this.udTestIMDFreq2.ValueChanged += new System.EventHandler(this.udTestIMDFreq2_ValueChanged);
             // 
             // udTestIMDPower
             // 
@@ -63714,6 +63745,7 @@
             0,
             0});
             this.udTestIMDFreq1.LostFocus += new System.EventHandler(this.udTestIMDFreq1_LostFocus);
+            this.udTestIMDFreq1.ValueChanged += new System.EventHandler(this.udTestIMDFreq1_ValueChanged);
             // 
             // grpTestAudioBalance
             // 
@@ -74363,6 +74395,8 @@
         private LabelTS lblTXFilterColor;
         private LabelTS lblMeterType;
         private CheckBoxTS chkTestIMD;
+        private CheckBoxTS chkTestIMDNoise;
+        private LabelTS lblTestIMDWarning;
         private GroupBoxTS grpMeterEdge;
         private LabelTS lblMeterEdgeBackground;
         private LabelTS lblMeterEdgeHigh;

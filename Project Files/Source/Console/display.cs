@@ -360,6 +360,13 @@ namespace Thetis
                 _show_imd_measurements = value; 
             }
         }
+        // the test stimulus is noise and not a two tone, there are no discrete peaks to measure
+        private static bool _test_imd_noise = false;
+        public static bool TestIMDNoise
+        {
+            get { return _test_imd_noise; }
+            set { _test_imd_noise = value; }
+        }
 
         //public static float FrameDelta { get; private set; }
 
@@ -5465,6 +5472,11 @@ namespace Thetis
 
         private static float _ema_imd3dBc;
         private static float _ema_imd5dBc;
+    private static float _ema_noise_inband = -999;
+    private static float _ema_noise_oob = -999;
+    private static float _ema_noise_regrowth = 0;
+    private static float _ema_noise_total = 0;
+    private static long _ema_noise_oob_freq = 0;
         private static float _ema_oip3;
         private static float _ema_oip5;
         //
@@ -5720,6 +5732,7 @@ namespace Thetis
             bool bDoVisualNotch = false;
 
             bool show_imd_measurements;
+            bool show_noise_measurements;
 
             if (rx == 1)
             {
@@ -5753,7 +5766,8 @@ namespace Thetis
                 bSpectralPeakHold = (!local_mox || _activePeakInTxRX1) && m_bSpectralPeakHoldRX1 && !m_bDelayRX1SpectrumPeaks;
                 dSpectralPeakHoldDelay = m_dSpecralPeakHoldDelayRX1;
                 bPeakBlobs = m_bPeakBlobMaximums && !m_bDelayRX1Blobs;
-                show_imd_measurements = local_mox && _testing_imd && _show_imd_measurements && displayduplex;
+                show_imd_measurements = local_mox && _testing_imd && _show_imd_measurements && displayduplex && !_test_imd_noise;
+                show_noise_measurements = local_mox && _testing_imd && _show_imd_measurements && displayduplex && _test_imd_noise;
                 dBmSpectralPeakFall = m_dBmPerSecondSpectralPeakFallRX1;
                 bActivePeakFill = m_bActivePeakFillRX1;
 
@@ -5802,6 +5816,7 @@ namespace Thetis
                 dSpectralPeakHoldDelay = m_dSpecralPeakHoldDelayRX2;
                 bPeakBlobs = m_bPeakBlobMaximums && !m_bDelayRX2Blobs;
                 show_imd_measurements = false;
+                show_noise_measurements = false;
                 dBmSpectralPeakFall = m_dBmPerSecondSpectralPeakFallRX2;
                 bActivePeakFill = m_bActivePeakFillRX2;
 
@@ -6547,7 +6562,7 @@ namespace Thetis
                 }
 
                 // peak blobs
-                if (bPeakBlobs || show_imd_measurements)
+                if (bPeakBlobs || show_imd_measurements || show_noise_measurements)
                 {
                     Maximums[] maximums;
                     if (show_imd_measurements)
@@ -6605,6 +6620,126 @@ namespace Thetis
                             _d2dRenderTarget.DrawText(entry.max_dBm.ToString("f1") + sAppend, fontDX2d_callout, new RectangleF(m_objEllipse.Point.X + 6, m_objEllipse.Point.Y - 8, float.PositiveInfinity, float.PositiveInfinity), m_bDX2_PeakBlobText, DrawTextOptions.None);
                         }
                     }
+
+                    if (show_noise_measurements)
+                    {
+                        // The noise stimulus has no discrete peaks, so the reading is the
+                        // spectral regrowth: the level of the worst bin outside the TX passband
+                        // relative to the level inside the passband.  The WDSP guide 2.11,
+                        // Appendix D 13.3, calls the noise test the most reliable measurement
+                        // of the transmitted signal quality.
+                        long low_edge_hz = (long)(m_dCentreFreqRX1 * 1e6) + left_edge;
+                        long high_edge_hz = (long)(m_dCentreFreqRX1 * 1e6) + right_edge;
+                        double hz_per_pixel = (high_edge_hz - low_edge_hz) / (double)W;
+
+                        // the TX passband around the carrier
+                        double carrier_hz = m_dCentreFreqRX1 * 1e6;
+                        double band_low = carrier_hz + TXFilterLow;
+                        double band_high = carrier_hz + TXFilterHigh;
+                        if (band_low > band_high)
+                        {
+                            double t = band_low; band_low = band_high; band_high = t;
+                        }
+                        double band_width = band_high - band_low;
+                        double guard = Math.Max(100.0, band_width * 0.1);            // the filter skirts
+                        double oob_from = band_low - (band_width * 2.5);
+                        double oob_to = band_high + (band_width * 2.5);
+
+                        double sum_inband = 0.0;
+                        int n_inband = 0;
+                        double sum_oob = 0.0;
+                        int n_oob = 0;
+                        float max_oob = float.MinValue;
+                        int max_oob_x = -1;
+
+                        for (int i = 0; i < nDecimatedWidth; i++)
+                        {
+                            double f = low_edge_hz + (i * hz_per_pixel);
+                            float dBm = data[i] + fOffset;
+
+                            if (f >= band_low && f <= band_high)
+                            {
+                                sum_inband += Math.Pow(10.0, dBm / 10.0);
+                                n_inband++;
+                            }
+                            else if (f > oob_from && f < oob_to &&
+                                     (f < band_low - guard || f > band_high + guard))
+                            {
+                                sum_oob += Math.Pow(10.0, dBm / 10.0);
+                                n_oob++;
+                                if (dBm > max_oob) { max_oob = dBm; max_oob_x = i; }
+                            }
+                        }
+
+                        // Put the box to the left of the carrier, the same way the two tone box
+                        // sits next to its IMD5 peak, so that it follows the signal on the
+                        // panadapter.  The gap is half the passband so the box never sits on
+                        // the carrier itself.
+                        int carrier_px = (int)((carrier_hz - low_edge_hz) / hz_per_pixel);
+                        int band_px = (int)((band_high - band_low) / hz_per_pixel);
+                        int gap_px = Math.Max(20, band_px / 2);
+                        _two_tone_readings_X_offset = carrier_px - 260 - ((gap_px * 5) / 2);
+                        if (_two_tone_readings_X_offset < 50) _two_tone_readings_X_offset = 50;
+
+                        // the box
+                        RoundedRectangle rr = new RoundedRectangle();
+                        rr.Rect = new RectangleF(_two_tone_readings_X_offset, 50, 260, 180);
+                        rr.RadiusX = 14f;
+                        rr.RadiusY = 14f;
+                        _d2dRenderTarget.FillRoundedRectangle(rr, m_bDX2_m_bHightlightNumberScale);
+                        _d2dRenderTarget.DrawRoundedRectangle(rr, m_bDX2_m_bHightlightNumbers);
+                        //
+
+                        if (n_inband > 4 && max_oob_x >= 0 && n_oob > 4)
+                        {
+                            float inband = (float)(10.0 * Math.Log10(sum_inband / n_inband));
+                            float avg_oob = (float)(10.0 * Math.Log10(sum_oob / n_oob));
+                            float regrowth = inband - max_oob;
+                            float total_rg = inband - avg_oob;
+                            long oob_freq = low_edge_hz + (long)(max_oob_x * hz_per_pixel);
+
+                            if (_ema_noise_inband == -999)
+                            {
+                                _ema_noise_inband = inband;
+                                _ema_noise_oob = max_oob;
+                                _ema_noise_regrowth = regrowth;
+                                _ema_noise_total = total_rg;
+                                _ema_noise_oob_freq = oob_freq;
+                            }
+                            else
+                            {
+                                float alpha = 0.1f;
+                                _ema_noise_inband = alpha * inband + (1 - alpha) * _ema_noise_inband;
+                                _ema_noise_oob = alpha * max_oob + (1 - alpha) * _ema_noise_oob;
+                                _ema_noise_regrowth = alpha * regrowth + (1 - alpha) * _ema_noise_regrowth;
+                                _ema_noise_total = alpha * total_rg + (1 - alpha) * _ema_noise_total;
+                                _ema_noise_oob_freq = (long)(alpha * oob_freq + (1 - alpha) * _ema_noise_oob_freq);
+                            }
+
+                            string readings =
+                                "  In band\n" +
+                                "Worst OOB\n" +
+                                " Regrowth\n" +
+                                "  Total RG\n\n" +
+                                "  OOB freq";
+
+                            string val1 =
+                                _ema_noise_inband.ToString("f2") + " dBm\n" +
+                                _ema_noise_oob.ToString("f2") + " dBm\n" +
+                                _ema_noise_regrowth.ToString("f2") + " dB\n" +
+                                _ema_noise_total.ToString("f2") + " dB\n\n" +
+                                (_ema_noise_oob_freq * 1e-6).ToString("f6") + " MHz";
+
+                            _d2dRenderTarget.DrawText(readings, fontDX2d_callout, new RectangleF(_two_tone_readings_X_offset + 10, 70, 200, 120), m_bDX2_PeakBlobText, DrawTextOptions.None);
+                            _d2dRenderTarget.DrawText(val1, fontDX2d_callout, new RectangleF(_two_tone_readings_X_offset + 70, 70, 200, 120), m_bDX2_PeakBlobText, DrawTextOptions.None);
+                            _d2dRenderTarget.DrawText("Noise stimulus - spectral regrowth", fontDX2d_callout, new RectangleF(_two_tone_readings_X_offset + 10, 54, 240, 120), m_bDX2_PeakBlobText, DrawTextOptions.None);
+                        }
+                        else
+                        {
+                            _d2dRenderTarget.DrawText("No data.\n\nEnsure that the TX passband is\ninside the display.\n\nTry changing zoom or sample rate.", fontDX2d_callout, new RectangleF(_two_tone_readings_X_offset + 10, 54, 240, 120), m_bDX2_PeakBlobText, DrawTextOptions.None);
+                        }
+                    }
+                    else if (_ema_noise_inband != -999) _ema_noise_inband = -999;
 
                     if (show_imd_measurements)
                     {

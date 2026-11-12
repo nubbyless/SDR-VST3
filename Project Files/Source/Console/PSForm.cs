@@ -333,10 +333,26 @@ namespace Thetis
             set
             {
                 _ttgenON = value;
-                if (_ttgenON)
-                    btnPSTwoToneGen.BackColor = Color.FromArgb(_gcolor);
-                else
-                    btnPSTwoToneGen.BackColor = SystemColors.Control;
+                updateTestGenButtons();
+            }
+        }
+
+        // the test generator buttons show which stimulus is running
+        private void updateTestGenButtons()
+        {
+            bool noise = false;
+            // do not touch the SetupForm singleton here, it would create the form
+            if (console != null && !console.IsSetupFormNull) noise = console.SetupForm.TestIMDNoiseStimulus;
+
+            if (_ttgenON)
+            {
+                btnPSTwoToneGen.BackColor = noise ? SystemColors.Control : Color.FromArgb(_gcolor);
+                btnPSNoiseGen.BackColor = noise ? Color.FromArgb(_gcolor) : SystemColors.Control;
+            }
+            else
+            {
+                btnPSTwoToneGen.BackColor = SystemColors.Control;
+                btnPSNoiseGen.BackColor = SystemColors.Control;
             }
         }
 
@@ -500,15 +516,31 @@ namespace Thetis
         {
             if (_ttgenON == false)
             {
-                btnPSTwoToneGen.BackColor = Color.FromArgb(_gcolor);
                 _ttgenON = true;
-                console.SetupForm.TTgenrun = true;
+                console.SetupForm.StartTestStimulus(false); // two tone
+                updateTestGenButtons();
             }
             else
             {
-                btnPSTwoToneGen.BackColor = SystemColors.Control;
                 _ttgenON = false;
                 console.SetupForm.TTgenrun = false;
+                updateTestGenButtons();
+            }
+        }
+
+        private void btnPSNoiseGen_Click(object sender, EventArgs e)
+        {
+            if (_ttgenON == false)
+            {
+                _ttgenON = true;
+                console.SetupForm.StartTestStimulus(true); // noise
+                updateTestGenButtons();
+            }
+            else
+            {
+                _ttgenON = false;
+                console.SetupForm.TTgenrun = false;
+                updateTestGenButtons();
             }
         }
 
