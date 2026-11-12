@@ -11636,20 +11636,35 @@ namespace Thetis
 
                 if (chkTestIMDNoise.Checked)
                 {
-                    // Band limited noise (the TX bandpass limits it).  The WDSP guide 2.11,
-                    // Appendix D 13.3, recommends noise for the PureSignal calibration: it is
-                    // broadband with a randomly varying envelope, so it is a much better proxy
-                    // for a speech signal than the steady periodic envelope of a two tone.
-                    // The noise is injected by the TXA *pre* generator, so it goes through the
-                    // TX bandpass filter and the ALC like a microphone signal does.  The post
-                    // generator sits behind the filters and would transmit broadband noise.
-                    console.radio.GetDSPTX(0).TXPostGenRun = 0;      // no two tone
-                    console.radio.GetDSPTX(0).TXPreGenMode = 2;        // noise
-                    console.radio.GetDSPTX(0).TXPreGenNoiseMag = 0.49999 * Math.Pow(10.0, ttmag / 20.0);
+                    // Noise for the PureSignal calibration.  The WDSP guide 2.11, Appendix D
+                    // 13.3, recommends noise: it is broadband with a randomly varying envelope,
+                    // so it is a much better proxy for a speech signal than the steady periodic
+                    // envelope of a two tone.
+                    // The noise comes from the TXA *pre* generator, so the TX bandpass filter
+                    // limits it to the transmit passband.  The peak detectors in front of that
+                    // filter have to be taken out of the way, see setNoiseTestLeveling().
+                    setNoiseTestLeveling(true);
+                    console.radio.GetDSPTX(0).TXPostGenRun = 0;         // no two tone
+                    console.radio.GetDSPTX(0).TXPreGenMode = 2;           // noise
+                    // The noise is band limited by the TX filter, so only a small part of it
+                    // reaches the PA and the ALC (which is behind the filter) has to work
+                    // much harder than it does for the two tone to reach the gain reduction
+                    // where the calibration starts.  The noise is therefore fed in louder;
+                    // the ALC brings the level back to the same as the two tone.
+                    // AM (DSB with carrier) needs considerably more audio than SSB for the
+                    // same power at the PA: at full modulation the sidebands carry only a
+                    // third of the total power, so the audio has to be about 4.8dB louder to
+                    // drive the amplifier the same way.
+                    double modeScale = 1.0;
+                    DSPMode txMode = console.radio.GetDSPTX(0).CurrentDSPMode;
+                    if (txMode == DSPMode.AM || txMode == DSPMode.AM_LSB || txMode == DSPMode.AM_USB)
+                        modeScale = 1.74;
+                    console.radio.GetDSPTX(0).TXPreGenNoiseMag = 7.09 * modeScale * 0.49999 * Math.Pow(10.0, ttmag / 20.0);
                     console.radio.GetDSPTX(0).TXPreGenRun = 1;
                 }
                 else
                 {
+                    setNoiseTestLeveling(false);
                     console.radio.GetDSPTX(0).TXPreGenRun = 0;         // no noise
 
                     if (pulsed)
@@ -11740,6 +11755,7 @@ namespace Thetis
                 console.psform.TTgenON = false;
                 console.radio.GetDSPTX(0).TXPostGenRun = 0;
                 console.radio.GetDSPTX(0).TXPreGenRun = 0; // the noise stimulus uses the pre generator
+                setNoiseTestLeveling(false);             // restore the mic gain and the leveler
                 udTestIMDFreq1.Enabled = true;
                 udTestIMDFreq2.Enabled = true;
                 udTwoToneLevel.Enabled = true;
@@ -36774,6 +36790,37 @@ namespace Thetis
             else
             {
                 lblTestIMDWarning.Text = "";
+            }
+        }
+
+        // The noise stimulus needs the TX level detectors out of the way.
+        //  - the panel gain is the MIC gain.  The generator replaces the microphone, so the
+        //    gain must not attenuate the noise.
+        //  - the leveler is a peak detector *in front of* the TX bandpass filter: with broadband
+        //    noise it reacts to energy that the filter then throws away and the PA is barely
+        //    driven, the calibration then sees almost no feedback.
+        //  - the ALC is behind the filter, so it holds the in band level like it does for speech.
+        // Both settings are restored when the test stops.
+        private double _tt_saved_mic_gain = -1.0;
+        private bool _tt_saved_leveler_on = false;
+
+        private void setNoiseTestLeveling(bool noise)
+        {
+            if (noise)
+            {
+                if (_tt_saved_mic_gain < 0.0)
+                {
+                    _tt_saved_mic_gain = console.radio.GetDSPTX(0).MicGain;
+                    _tt_saved_leveler_on = console.radio.GetDSPTX(0).TXLevelerOn;
+                }
+                console.radio.GetDSPTX(0).MicGain = 1.0;
+                console.radio.GetDSPTX(0).TXLevelerOn = false;
+            }
+            else if (_tt_saved_mic_gain >= 0.0)
+            {
+                console.radio.GetDSPTX(0).MicGain = _tt_saved_mic_gain;
+                console.radio.GetDSPTX(0).TXLevelerOn = _tt_saved_leveler_on;
+                _tt_saved_mic_gain = -1.0;
             }
         }
 
