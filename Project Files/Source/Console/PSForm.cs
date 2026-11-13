@@ -796,8 +796,16 @@ namespace Thetis
         private void btnPSReset_Click(object sender, EventArgs e)
         {
             console.ForcePureSignalAutoCalDisable();
+            // A single cal that is waiting to run must not switch the PureSignal back on
+            // after the OFF button was pressed.
+            _singlecalON = false;
+            _performing_single_cal = false;
             if (!_OFF) _OFF = true;
             console.PSState = false;
+            // Switch it off now.  Waiting for the engine to acknowledge the reset can take
+            // until the next transmission, and until then the "correcting" light stayed on
+            // and nothing showed that the button had been pressed.
+            _cmdstate = eCMDState.OFF;
         }
 
         private void udPSMoxDelay_ValueChanged(object sender, EventArgs e)
@@ -1013,7 +1021,11 @@ namespace Thetis
                 lblPSInfo15.Text = puresignal.Info[15].ToString();
             }
 
-            if (puresignal.CorrectionsBeingApplied)
+            // The "correcting" light has to go out when the PureSignal is switched off.
+            // The engine only refreshes info[14] when a calibration completes, so the
+            // light could stay green long after the OFF button was pressed.  The state of
+            // the PureSignal itself is the authority here.
+            if (puresignal.CorrectionsBeingApplied && PureSignalOn)
             {
                 btnPSSave.Enabled = true;
                 if (puresignal.Correcting)
@@ -1057,28 +1069,13 @@ namespace Thetis
             // The info bar readout must not be tied to the auto-calibrate mode: a Single Cal
             // switches the auto-calibrate mode off but the PureSignal stays on with its
             // correction applied, the readout has to stay alive.  It follows the PureSignal
-            // itself, so it works in the auto-calibrate mode as well.
-            if (PureSignalOn || _autocal_enabled)
+            // itself, so it works in the auto-calibrate mode as well - and it goes dark
+            // when the PureSignal is switched off.
+            if (PureSignalOn)
             {
                 if (puresignal.HasInfoChanged)
                 {
-                    if (_autocal_enabled)
-                    {
-                        // The auto-calibrate mode measures the feedback continuously, show it.
-                        console.InfoBarFeedbackLevel(puresignal.FeedbackLevel, puresignal.IsFeedbackLevelOK, puresignal.CorrectionsBeingApplied, puresignal.CalibrationAttemptsChanged, puresignal.FeedbackColourLevel);
-                    }
-                    else
-                    {
-                        // A Single Cal is a one-shot, there is no ongoing feedback
-                        // measurement: the console shows the "correcting" light only.
-                        //
-                        // The correction is only applied after the calibration has
-                        // finished (info[14]), and that is a fraction of a second before
-                        // the stimulus stops and MOX goes away again.  While the single cal
-                        // is running the PureSignal is working, so the light is lit then
-                        // too - that is what tells the operator it is on.
-                        console.InfoBarPSOneShot(puresignal.CorrectionsBeingApplied || _performing_single_cal);
-                    }
+                    console.InfoBarFeedbackLevel(puresignal.FeedbackLevel, puresignal.IsFeedbackLevelOK, puresignal.CorrectionsBeingApplied, puresignal.CalibrationAttemptsChanged, puresignal.FeedbackColourLevel);
                 }
             }
             //
@@ -1209,10 +1206,17 @@ namespace Thetis
             // It follows the PureSignal, not the auto-calibrate mode, so it stays alive in
             // the auto-calibrate mode and after a Single Cal alike.
             bool psOn = PureSignalOn;
+
+            // The OFF button is greyed out when the PureSignal is already off - that is the
+            // indication that there is nothing left to switch off.
+            btnPSReset.Enabled = psOn;
+
             if (psOn != _lastPSIndicated)
             {
                 _lastPSIndicated = psOn;
-                console.InfoBarPSEnabled(psOn || _autocal_enabled);
+                // The info bar has to go dark when the PureSignal is switched off, that is
+                // the indication that the OFF button worked.
+                console.InfoBarPSEnabled(psOn);
             }
         }
         private void timer2code()
