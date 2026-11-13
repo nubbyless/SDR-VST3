@@ -1073,10 +1073,14 @@ namespace Thetis
                     else
                     {
                         // A Single Cal is a one-shot, there is no ongoing feedback
-                        // measurement: the console shows the "correcting" light only.  The
-                        // info bar lights it while MOX is on, a Single Cal without a
-                        // transmitter has nothing to measure.
-                        console.InfoBarPSOneShot(puresignal.CorrectionsBeingApplied);
+                        // measurement: the console shows the "correcting" light only.
+                        //
+                        // The correction is only applied after the calibration has
+                        // finished (info[14]), and that is a fraction of a second before
+                        // the stimulus stops and MOX goes away again.  While the single cal
+                        // is running the PureSignal is working, so the light is lit then
+                        // too - that is what tells the operator it is on.
+                        console.InfoBarPSOneShot(puresignal.CorrectionsBeingApplied || _performing_single_cal);
                     }
                 }
             }

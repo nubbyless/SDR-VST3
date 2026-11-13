@@ -104,7 +104,7 @@
             this.chkPSOnTop.AutoSize = true;
             this.chkPSOnTop.ForeColor = System.Drawing.SystemColors.ControlLightLight;
             this.chkPSOnTop.Image = null;
-            this.chkPSOnTop.Location = new System.Drawing.Point(450, 302);
+            this.chkPSOnTop.Location = new System.Drawing.Point(450, 320);
             this.chkPSOnTop.Name = "chkPSOnTop";
             this.chkPSOnTop.Size = new System.Drawing.Size(98, 17);
             this.chkPSOnTop.TabIndex = 48;
@@ -303,9 +303,9 @@
             // 
             this.lblPSSpacingWarning.ForeColor = System.Drawing.Color.Red;
             this.lblPSSpacingWarning.Image = null;
-            this.lblPSSpacingWarning.Location = new System.Drawing.Point(380, 248);
+            this.lblPSSpacingWarning.Location = new System.Drawing.Point(380, 262);
             this.lblPSSpacingWarning.Name = "lblPSSpacingWarning";
-            this.lblPSSpacingWarning.Size = new System.Drawing.Size(285, 52);
+            this.lblPSSpacingWarning.Size = new System.Drawing.Size(285, 50);
             this.lblPSSpacingWarning.TabIndex = 55;
             this.lblPSSpacingWarning.Text = "";
             this.lblPSSpacingWarning.Visible = false;
@@ -394,7 +394,7 @@
             // btnTwoToneF_defaults
             //
             this.btnTwoToneF_defaults.Image = null;
-            this.btnTwoToneF_defaults.Location = new System.Drawing.Point(380, 222);
+            this.btnTwoToneF_defaults.Location = new System.Drawing.Point(380, 232);
             this.btnTwoToneF_defaults.Name = "btnTwoToneF_defaults";
             this.btnTwoToneF_defaults.Selectable = true;
             this.btnTwoToneF_defaults.Size = new System.Drawing.Size(67, 23);
@@ -408,7 +408,7 @@
             // btnTwoToneF_stealth
             //
             this.btnTwoToneF_stealth.Image = null;
-            this.btnTwoToneF_stealth.Location = new System.Drawing.Point(455, 222);
+            this.btnTwoToneF_stealth.Location = new System.Drawing.Point(455, 232);
             this.btnTwoToneF_stealth.Name = "btnTwoToneF_stealth";
             this.btnTwoToneF_stealth.Selectable = true;
             this.btnTwoToneF_stealth.Size = new System.Drawing.Size(67, 23);
