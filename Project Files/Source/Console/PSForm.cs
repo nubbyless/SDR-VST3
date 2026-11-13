@@ -157,6 +157,7 @@ namespace Thetis
 
         private bool _power;
         private bool _psFormReady = false;
+        private bool _lastPSIndicated = false;
 
         private enum eCMDState
         {
@@ -293,19 +294,21 @@ namespace Thetis
         //}
 
         private static bool _psenabled = false;
+        // Is the PureSignal running?  The command state machine is only in the OFF state
+        // when the PureSignal is really off.  Note that PSEnabled is *not* the same thing:
+        // it means "the radio supplies the feedback samples", and the state machine turns
+        // it off in StayON (the correction is stored, no live feedback is needed any more).
+        public bool PureSignalOn
+        {
+            get { return _cmdstate != eCMDState.OFF; }
+        }
+
         public bool PSEnabled
         {
             get { return _psenabled; }
             set
             {
                 _psenabled = value;
-
-                // The console's info bar shows the PureSignal state and the feedback level.
-                // It has to stay alive while the PureSignal is on, not only in the
-                // auto-calibrate mode - a Single Cal switches the auto-calibrate mode off
-                // but the PureSignal stays on with its correction applied.
-                if (console != null)
-                    console.InfoBarPSEnabled(value || _autocal_enabled);
 
                 if (_psenabled)
                 {
@@ -1056,8 +1059,9 @@ namespace Thetis
             // MW0LGE_21k9
             // The info bar readout must not be tied to the auto-calibrate mode: a Single Cal
             // switches the auto-calibrate mode off but the PureSignal stays on with its
-            // correction applied, the readout has to stay alive.
-            if (PSEnabled || _autocal_enabled)
+            // correction applied, the readout has to stay alive.  It follows the PureSignal
+            // itself, so it works in the auto-calibrate mode as well.
+            if (PureSignalOn || _autocal_enabled)
             {
                 if (puresignal.HasInfoChanged)
                     console.InfoBarFeedbackLevel(puresignal.FeedbackLevel, puresignal.IsFeedbackLevelOK, puresignal.CorrectionsBeingApplied, puresignal.CalibrationAttemptsChanged, puresignal.FeedbackColourLevel);
@@ -1184,6 +1188,16 @@ namespace Thetis
                     if (puresignal.State == puresignal.EngineState.LSTAYON)
                         _cmdstate = eCMDState.StayON;//5;
                     break;
+            }
+
+            // The console's info bar shows the PureSignal state and the feedback level.
+            // It follows the PureSignal, not the auto-calibrate mode, so it stays alive in
+            // the auto-calibrate mode and after a Single Cal alike.
+            bool psOn = PureSignalOn;
+            if (psOn != _lastPSIndicated)
+            {
+                _lastPSIndicated = psOn;
+                console.InfoBarPSEnabled(psOn || _autocal_enabled);
             }
         }
         private void timer2code()

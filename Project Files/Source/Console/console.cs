@@ -2296,7 +2296,7 @@ namespace Thetis
             infoBar.LateInit(this);
 
             if (psform != null)
-                infoBar.PSAEnabled = psform.AutoCalEnabled || psform.PSEnabled;
+                infoBar.PSAEnabled = psform.AutoCalEnabled || psform.PureSignalOn;
 
             if (!IsSetupFormNull)
             {
@@ -44993,7 +44993,7 @@ namespace Thetis
             psform.AutoCalEnabled = chkFWCATUBypass.Checked;
             AndromedaIndicatorCheck(EIndicatorActions.eINPuresignalEnabled, false, chkFWCATUBypass.Checked);
 
-            infoBar.PSAEnabled = psform.AutoCalEnabled || psform.PSEnabled;
+            infoBar.PSAEnabled = psform.AutoCalEnabled || psform.PureSignalOn;
 
             if (oldState && !psform.AutoCalEnabled) // was on, now off
             {
