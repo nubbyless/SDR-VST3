@@ -2296,7 +2296,7 @@ namespace Thetis
             infoBar.LateInit(this);
 
             if (psform != null)
-                infoBar.PSAEnabled = psform.AutoCalEnabled;
+                infoBar.PSAEnabled = psform.AutoCalEnabled || psform.PSEnabled;
 
             if (!IsSetupFormNull)
             {
@@ -2325,6 +2325,19 @@ namespace Thetis
                 infoBar.Invoke(new Action(() => infoBar.PSInfo(level, bFeedbackLevelOk, bCorrectionsBeingApplied, bCalibrationAttemptsChanged, feedbackColour)));
             else
                 infoBar.PSInfo(level, bFeedbackLevelOk, bCorrectionsBeingApplied, bCalibrationAttemptsChanged, feedbackColour);
+        }
+
+        // The info bar shows the PureSignal state and the feedback level.  It must not be
+        // tied to the auto-calibrate mode alone: a Single Cal switches the auto-calibrate
+        // mode off but the PureSignal stays on with its correction applied, and the readout
+        // has to stay alive.
+        public void InfoBarPSEnabled(bool enabled)
+        {
+            if (infoBar == null) return;
+            if (infoBar.InvokeRequired)
+                infoBar.Invoke(new Action(() => infoBar.PSAEnabled = enabled));
+            else
+                infoBar.PSAEnabled = enabled;
         }
 
         public ucUnderOverFlowWarningViewer VAC1UnderOver
@@ -44980,7 +44993,7 @@ namespace Thetis
             psform.AutoCalEnabled = chkFWCATUBypass.Checked;
             AndromedaIndicatorCheck(EIndicatorActions.eINPuresignalEnabled, false, chkFWCATUBypass.Checked);
 
-            infoBar.PSAEnabled = psform.AutoCalEnabled;
+            infoBar.PSAEnabled = psform.AutoCalEnabled || psform.PSEnabled;
 
             if (oldState && !psform.AutoCalEnabled) // was on, now off
             {

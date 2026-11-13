@@ -300,6 +300,13 @@ namespace Thetis
             {
                 _psenabled = value;
 
+                // The console's info bar shows the PureSignal state and the feedback level.
+                // It has to stay alive while the PureSignal is on, not only in the
+                // auto-calibrate mode - a Single Cal switches the auto-calibrate mode off
+                // but the PureSignal stays on with its correction applied.
+                if (console != null)
+                    console.InfoBarPSEnabled(value || _autocal_enabled);
+
                 if (_psenabled)
                 {
                     // Set the system to supply feedback.
@@ -1047,7 +1054,10 @@ namespace Thetis
             }
 
             // MW0LGE_21k9
-            if (_autocal_enabled)
+            // The info bar readout must not be tied to the auto-calibrate mode: a Single Cal
+            // switches the auto-calibrate mode off but the PureSignal stays on with its
+            // correction applied, the readout has to stay alive.
+            if (PSEnabled || _autocal_enabled)
             {
                 if (puresignal.HasInfoChanged)
                     console.InfoBarFeedbackLevel(puresignal.FeedbackLevel, puresignal.IsFeedbackLevelOK, puresignal.CorrectionsBeingApplied, puresignal.CalibrationAttemptsChanged, puresignal.FeedbackColourLevel);
