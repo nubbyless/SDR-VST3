@@ -575,6 +575,11 @@ namespace Thetis
             getOptions();
             LogTool.Completed("GETOPTIONS");
 
+            // The PureSignal form (the linearity window) shows the calibration values, they
+            // are owned by the setup form.  It may not exist yet, it pulls them when it is.
+            pushTargetFeedbackToPSForm();
+            pushTestToneFrequencies();
+
             selectSkin();
 
             AskToEnableSDRVST3Skin();
@@ -36874,6 +36879,20 @@ namespace Thetis
                 if (console == null || console.IsSetupFormNull) return;
                 if (console.psform == null) return;
                 console.psform.SetTestToneFrequencies(_testToneFreq1, _testToneFreq2);
+            }
+            catch { }
+        }
+
+        // The PureSignal form (the linearity window) shows the target feedback level in its
+        // "FB Target" box.  It may not exist yet when the database is restored, it pulls the
+        // value when it is created.  Push it over when it does exist.
+        private void pushTargetFeedbackToPSForm()
+        {
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return;
+                if (console.psform == null) return;
+                console.psform.SetTargetFeedbackLevel(PSTargetFeedbackLevel);
             }
             catch { }
         }

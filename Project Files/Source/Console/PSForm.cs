@@ -100,11 +100,18 @@ namespace Thetis
 
             // Diagnostic: what the values in here ended up as.  The target feedback level has
             // been read from more than one place over the years, this shows which one won.
+            // NOTE: console.SetupForm is a lazy singleton - touching it creates the setup form.
+            // That must not happen here, the setup form is initialised at the wrong point of
+            // the console startup otherwise (the display buffers are not ready yet).
             try
             {
+                int setupTarget = -1;
+                if (console != null && !console.IsSetupFormNull)
+                    setupTarget = console.SetupForm.PSTargetFeedbackLevel;
+
                 psLog(string.Format("PS form start: fbTarget box={0} setup={1} engine={2} hwDefault={3} tones={4}/{5}",
                     udPSTargetFeedback.Value,
-                    console.SetupForm.PSTargetFeedbackLevel,
+                    setupTarget,
                     puresignal.TargetFeedbackLevel,
                     HardwareSpecific.PSTargetFeedbackLevel,
                     udTestIMDFreq1.Value,
@@ -589,6 +596,18 @@ namespace Thetis
             {
                 if (udTestIMDFreq1 != null && udTestIMDFreq1.Value != f1) udTestIMDFreq1.Value = f1;
                 if (udTestIMDFreq2 != null && udTestIMDFreq2.Value != f2) udTestIMDFreq2.Value = f2;
+            }
+            catch { }
+        }
+
+        // The "FB Target" box.  The setup form owns the value (it is in the database), this
+        // form only shows and edits it.
+        public void SetTargetFeedbackLevel(int value)
+        {
+            try
+            {
+                if (udPSTargetFeedback != null && udPSTargetFeedback.Value != value)
+                    udPSTargetFeedback.Value = value;
             }
             catch { }
         }
@@ -1311,8 +1330,14 @@ namespace Thetis
             udPSPhnum_ValueChanged(this, e);
             udPSMoxDelay_ValueChanged(this, e);
             chkPSAutoAttenuate_CheckedChanged(this, e);
-            udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
-            udPSTargetFeedback_ValueChanged(this, e);
+            // The setup form owns the target feedback level.  It may not exist yet - do not
+            // create it here, that would run its initialisation at the wrong point of the
+            // console startup.
+            if (console != null && !console.IsSetupFormNull)
+            {
+                udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
+                udPSTargetFeedback_ValueChanged(this, e);
+            }
             comboPSDeadlock_SelectedIndexChanged(this, e);
             chkPSOnTop_CheckedChanged(this, e);
             chkQuickAttenuate_CheckedChanged(this, e);
