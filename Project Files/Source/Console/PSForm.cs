@@ -813,7 +813,7 @@ namespace Thetis
             try { puresignal.SetPSCorrectionOff(_txachannel); }
             catch { }
 
-            try { psLog("EVENT puresignal OFF"); }
+            try { psLog("EVENT puresignal OFF pressed"); }
             catch { }
         }
 
@@ -1118,7 +1118,13 @@ namespace Thetis
                     _cmdstate = eCMDState.AutoCalibrate;// 2;
                     break;
                 case eCMDState.AutoCalibrate://2:     // Auto-Calibrate Mode
-                    if (_OFF)
+                    // A Single Cal wins over the "off" flag.  ForcePureSignalAutoCalDisable()
+                    // sets _OFF when the Single Cal button unchecks PS-A, and if the state
+                    // machine honoured that it would switch the PureSignal off and throw the
+                    // single cal away instead of running it.
+                    if (_singlecalON)
+                        _cmdstate = eCMDState.TurnOnSingleCalibrate;// 3;
+                    else if (_OFF)
                         _cmdstate = eCMDState.TurnOFF;// 6;
                     else if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
