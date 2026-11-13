@@ -2054,6 +2054,15 @@ void pscc (int channel, int size, double* tx, double* rx)
 						a->ctrl.state = LSETUP;
 					else a->ctrl.state = LWAIT;
 				}
+				// A reset must always be able to get the state machine out of LCALC.  If the
+				// calculation does not come back - the correction thread is stuck - the engine
+				// would wait for ever and the PureSignal would be dead until the program is
+				// restarted.
+				else if (a->ctrl.reset)
+				{
+					a->ctrl.calcinprogress = 0;
+					a->ctrl.state = LRESET;
+				}
 				break;
 			case LDELAY:
 				InterlockedExchange (&a->ctrl.current_state, LDELAY);
@@ -2138,23 +2147,28 @@ void SetPSRunCal (int channel, int run)
 }
 
 // Stop applying the PureSignal correction right now.  The state machine of the engine
-// does this in its LRESET case (SetTXAiqcEnd), but the state machine only runs while
-// the radio delivers the feedback samples - it does not run in between transmissions.
+// does this in its LRESET case, but the state machine only runs while the radio
+// delivers the feedback samples - it does not run in between transmissions.
 // The OFF button has to switch the correction off there and then, not at the next
 // transmission.
 //
-// Only the run flag of the IQC is cleared, with an interlocked operation.  That is what
-// switches the correction off in the transmit chain (xiqc does nothing while the flag is
-// clear).  SetTXAiqcEnd() would also take the DSP critical section and wait for the DSP
-// thread - this is called from the user interface thread and must never block it.
+// The correction thread is signalled exactly like the LRESET case does.  The thread
+// then does the SetTXAiqcEnd, which takes the DSP critical section and waits for the
+// DSP thread - that must not happen on the user interface thread.
+//
+// The run flag of the IQC must NOT be cleared here: xiqc clears the busy flag at
+// the end of its block, and only while the IQC is running.  Clearing the flag here
+// would leave the busy flag set, the correction thread would then wait for the DSP
+// thread for ever - and the engine would wait for the calculation that thread has
+// to run.
 PORT
 void SetPSCorrectionOff (int channel)
 {
-	InterlockedBitTestAndReset (&txa[channel].iqc.p->run, 0);
+	CALCC a = txa[channel].calcc.p;
 
-	CALCC a;
+	ReleaseSemaphore (a->SemsPSCorr[0], 1, 0);
+
 	EnterCriticalSection (&txa[channel].calcc.cs_update);
-	a = txa[channel].calcc.p;
 	a->info[14] = 0;
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
 }
