@@ -395,7 +395,7 @@
             // btnTwoToneF_defaults
             //
             this.btnTwoToneF_defaults.Image = null;
-            this.btnTwoToneF_defaults.Location = new System.Drawing.Point(380, 232);
+            this.btnTwoToneF_defaults.Location = new System.Drawing.Point(447, 232);
             this.btnTwoToneF_defaults.Name = "btnTwoToneF_defaults";
             this.btnTwoToneF_defaults.Selectable = true;
             this.btnTwoToneF_defaults.Size = new System.Drawing.Size(67, 23);
