@@ -43,6 +43,7 @@
             this.btnPSNoiseGen = new System.Windows.Forms.ButtonTS();
             this.comboPSCalStimulus = new System.Windows.Forms.ComboBoxTS();
             this.lblPSCalStimulus = new System.Windows.Forms.LabelTS();
+            this.lblPSSpacingWarning = new System.Windows.Forms.LabelTS();
             this.labelTS8 = new System.Windows.Forms.LabelTS();
             this.lblPSInfoFB = new System.Windows.Forms.LabelTS();
             this.lblPSInfoCO = new System.Windows.Forms.LabelTS();
@@ -274,12 +275,13 @@
             this.comboPSCalStimulus.Size = new System.Drawing.Size(74, 21);
             this.comboPSCalStimulus.TabIndex = 53;
             this.comboPSCalStimulus.SelectedIndex = 0;
+            this.comboPSCalStimulus.SelectedIndexChanged += new System.EventHandler(this.comboPSCalStimulus_SelectedIndexChanged);
             this.toolTip1.SetToolTip(this.comboPSCalStimulus, "The stimulus the \"Single Cal\" uses." + "\r\n" +
                 "Two-Tone (the default) is the classic stimulus.  Noise is the better stimulus for the calibration: the calibration axis is the TX envelope, so the randomly varying envelope of the noise gives it a sweep of drive levels, while the two tone has a nearly constant envelope." + "\r\n" +
                 "If the stimulus is not running it is started for the Single Cal and stopped again afterwards.");
-            //
+            // 
             // lblPSCalStimulus
-            //
+            // 
             this.lblPSCalStimulus.AutoSize = true;
             this.lblPSCalStimulus.ForeColor = System.Drawing.Color.White;
             this.lblPSCalStimulus.Image = null;
@@ -288,6 +290,18 @@
             this.lblPSCalStimulus.Size = new System.Drawing.Size(167, 13);
             this.lblPSCalStimulus.TabIndex = 54;
             this.lblPSCalStimulus.Text = "Cal Stimulus (Noise Recommended)";
+            // 
+            // lblPSSpacingWarning
+            // 
+            this.lblPSSpacingWarning.ForeColor = System.Drawing.Color.Red;
+            this.lblPSSpacingWarning.Image = null;
+            this.lblPSSpacingWarning.Location = new System.Drawing.Point(380, 205);
+            this.lblPSSpacingWarning.Name = "lblPSSpacingWarning";
+            this.lblPSSpacingWarning.Size = new System.Drawing.Size(285, 80);
+            this.lblPSSpacingWarning.TabIndex = 55;
+            this.lblPSSpacingWarning.Text = "";
+            this.lblPSSpacingWarning.Visible = false;
+            this.toolTip1.SetToolTip(this.lblPSSpacingWarning, "The PureSignal calibration bins the TX envelope into 16 levels.  When the tone spacing is an exact 1/N of the TX processing rate the digitised envelope repeats its sample values, the calibration then only sees a few repeated levels instead of a continuous sweep.  See the WDSP guide 2.11, Appendix D 13.3 and 13.6.");
             // 
             // labelTS8
             // 
@@ -873,6 +887,7 @@
             this.Controls.Add(this.btnPSNoiseGen);
             this.Controls.Add(this.comboPSCalStimulus);
             this.Controls.Add(this.lblPSCalStimulus);
+            this.Controls.Add(this.lblPSSpacingWarning);
             this.Controls.Add(this.labelTS8);
             this.Controls.Add(this.lblPSInfoFB);
             this.Controls.Add(this.lblPSInfoCO);
@@ -934,6 +949,7 @@
         private System.Windows.Forms.ButtonTS btnPSNoiseGen;
         private System.Windows.Forms.ComboBoxTS comboPSCalStimulus;
         private System.Windows.Forms.LabelTS lblPSCalStimulus;
+        private System.Windows.Forms.LabelTS lblPSSpacingWarning;
         private System.Windows.Forms.LabelTS lblPSfb2;
         private System.Windows.Forms.LabelTS labelTS1;
         private System.Windows.Forms.LabelTS labelTS5;

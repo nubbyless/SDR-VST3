@@ -1910,6 +1910,10 @@ namespace Thetis
                 if (getDict.ContainsKey(s))
                     _oldSettings.Add(s);
 
+            // the stimulus selection moved to the PureSignal form (the linearity window)
+            if (getDict.ContainsKey("chkTestIMDNoise"))
+                _oldSettings.Add("chkTestIMDNoise");
+
             handleOldPAGainSettings(ref getDict);
         }
         private void removeOutdatedOptions()
@@ -11587,16 +11591,18 @@ namespace Thetis
             }
         }
 
-        // is the noise stimulus selected for the TX test?
+        // Is the noise stimulus selected for the TX test?  The selection lives in the
+        // PureSignal form (the linearity window) - the Setup > Tests tab has no stimulus
+        // selector of its own any more.
         public bool TestIMDNoiseStimulus
         {
-            get { return chkTestIMDNoise.Checked; }
+            get { return console.psform != null && console.psform.UseNoiseStimulus; }
         }
 
         // start the TX test with the given stimulus, two tone or noise
         public void StartTestStimulus(bool noise)
         {
-            if (chkTestIMDNoise.Checked != noise) chkTestIMDNoise.Checked = noise;
+            console.psform.SetCalStimulus(noise);
             TTgenrun = true;
         }
 
@@ -11616,19 +11622,15 @@ namespace Thetis
             if (chkTestIMD.Checked)
             {
                 // it is already the right one
-                if (chkTestIMDNoise.Checked == noise) return;
+                if (TestIMDNoiseStimulus == noise) return;
 
                 // The other stimulus is running: swap the generator over.  The test itself
                 // (MOX, power, drive) keeps running, only the excitation changes.
-                chkTestIMDNoise.Checked = noise;
-                applyTestStimulusGenerator(noise);
-                console.psform.TTgenON = true;                    // refresh the button highlight
-                // the IMD peak readout is meaningless for a noise stimulus, there are no discrete peaks
-                Display.TestIMDNoise = chkTestIMD.Checked && chkTestIMDNoise.Checked;
+                console.psform.SetCalStimulus(noise);   // -> OnCalStimulusChanged()
                 return;
             }
 
-            chkTestIMDNoise.Checked = noise;
+            console.psform.SetCalStimulus(noise);
             TTgenrun = true;
         }
 
@@ -11640,7 +11642,7 @@ namespace Thetis
         public void RestartTestStimulus()
         {
             if (!chkTestIMD.Checked) return;
-            applyTestStimulusGenerator(chkTestIMDNoise.Checked);
+            applyTestStimulusGenerator(TestIMDNoiseStimulus);
         }
 
         private bool _old_two_tone_state = false;
@@ -11648,14 +11650,10 @@ namespace Thetis
         {
             if (chkTestIMD.Checked)
             {
-                udTestIMDFreq1.Enabled = false;
-                udTestIMDFreq2.Enabled = false;
                 udTwoToneLevel.Enabled = false;
                 udTestIMDPower.Enabled = false;
-                chkInvertTones.Enabled = false;
                 udFreq2Delay.Enabled = false; //MW0LGE_21
-                btnTwoToneF_defaults.Enabled = false;
-                btnTwoToneF_stealth.Enabled = false;
+                updateTestToneControls(TestIMDNoiseStimulus);
                 if (!console.PowerOn)
                 {
                     MessageBox.Show("Power must be on to run this test.",
@@ -11673,7 +11671,7 @@ namespace Thetis
                 }
 
                 // set the TX generator up for the chosen stimulus
-                applyTestStimulusGenerator(chkTestIMDNoise.Checked);
+                applyTestStimulusGenerator(TestIMDNoiseStimulus);
 
                 //MW0LGE_22b
                 // remember old power //MW0LGE_22b
@@ -11700,7 +11698,7 @@ namespace Thetis
                 }
 
                 // set magnitude after a delay for freq2
-                if (!chkTestIMDNoise.Checked && (int)udFreq2Delay.Value > 0)
+                if (!TestIMDNoiseStimulus && (int)udFreq2Delay.Value > 0)
                 {
                     await Task.Delay((int)udFreq2Delay.Value);
 
@@ -11736,21 +11734,17 @@ namespace Thetis
                 console.radio.GetDSPTX(0).TXPostGenRun = 0;
                 console.radio.GetDSPTX(0).TXPreGenRun = 0; // the noise stimulus uses the pre generator
                 setNoiseTestLeveling(false);             // restore the mic gain and the leveler
-                udTestIMDFreq1.Enabled = true;
-                udTestIMDFreq2.Enabled = true;
                 udTwoToneLevel.Enabled = true;
                 udTestIMDPower.Enabled = true;
-                chkInvertTones.Enabled = true;
                 udFreq2Delay.Enabled = true;
-                btnTwoToneF_defaults.Enabled = true;
-                btnTwoToneF_stealth.Enabled = false;
+                updateTestToneControls(TestIMDNoiseStimulus);
 
                 chkTestIMD.Text = "Start";
             }
 
             Display.TestingIMD = chkTestIMD.Checked;
             // the IMD peak readout is meaningless for a noise stimulus, there are no discrete peaks
-            Display.TestIMDNoise = chkTestIMD.Checked && chkTestIMDNoise.Checked;
+            Display.TestIMDNoise = chkTestIMD.Checked && TestIMDNoiseStimulus;
 
             if (_old_two_tone_state != chkTestIMD.Checked)
             {
@@ -36849,28 +36843,24 @@ namespace Thetis
             return false;
         }
 
+        // The warning about the tone spacing belongs in the PureSignal form (the linearity
+        // window).  That is where the calibration is set up and where the warning has to be
+        // seen - in the Setup > Tests tab it was easy to miss it.
         private void updateTestIMDSpacingWarning()
         {
-            if (lblTestIMDWarning == null) return;
+            if (console == null || console.IsSetupFormNull) return;
 
-            if (chkTestIMDNoise.Checked)
-            {
-                lblTestIMDWarning.Text = "";
-                return;
-            }
+            string msg = "";
 
             double rate, division;
             if (testIMDSpacingIsSubMultiple(out rate, out division))
             {
-                lblTestIMDWarning.Text = "The spacing is exactly 1/" + division.ToString("F0") + " of the " +
-                    (rate / 1000.0).ToString("F0") + "kHz TX rate." + Environment.NewLine +
-                    "The PureSignal calibration then only sees a few repeated levels, use a spacing like 1250Hz.";
-                lblTestIMDWarning.Visible = true;
+                msg = "The tone spacing is exactly 1/" + division.ToString("F0") + " of the " +
+                (rate / 1000.0).ToString("F0") + "kHz TX rate." + Environment.NewLine +
+                "The PureSignal calibration then only sees a few repeated levels, use a spacing like 1250Hz.";
             }
-            else
-            {
-                lblTestIMDWarning.Text = "";
-            }
+
+            console.psform.SetCalStimulusWarning(msg);
         }
 
         // The noise stimulus needs the TX level detectors out of the way.
@@ -36904,22 +36894,51 @@ namespace Thetis
             }
         }
 
-        private void chkTestIMDNoise_CheckedChanged(object sender, EventArgs e)
+        // The user changed the stimulus in the PureSignal form.
+        public void OnCalStimulusChanged(bool noise)
         {
-            bool noise = chkTestIMDNoise.Checked;
+            try
+            {
+                if (chkTestIMD.Checked)
+                {
+                    // The test is running, swap the generator over.  The test itself
+                    // (MOX, power, drive) keeps running, only the excitation changes.
+                    applyTestStimulusGenerator(noise);
+                    console.psform.TTgenON = true;                    // refresh the button highlight
+                    // the IMD peak readout is meaningless for a noise stimulus, there are no discrete peaks
+                    Display.TestIMDNoise = true;
+                }
+
+                UpdateCalStimulusUI(noise);
+            }
+            catch { }
+        }
+
+        // Refresh the controls and the tone spacing warning for the given stimulus.
+        public void UpdateCalStimulusUI(bool noise)
+        {
+            try
+            {
+                updateTestToneControls(noise);
+                updateTestIMDSpacingWarning();
+            }
+            catch { }
+        }
+
+        private void updateTestToneControls(bool noise)
+        {
+            bool running = chkTestIMD.Checked;
 
             // the frequency and level controls only apply to the two tone
-            udTestIMDFreq1.Enabled = !noise && !chkTestIMD.Checked;
-            udTestIMDFreq2.Enabled = !noise && !chkTestIMD.Checked;
-            lblTestToneFreq1.Enabled = !noise && !chkTestIMD.Checked;
-            lblTestToneFreq2.Enabled = !noise && !chkTestIMD.Checked;
-            chkInvertTones.Enabled = !noise && !chkTestIMD.Checked;
-            chkPulsed_TwoTone.Enabled = !noise && !chkTestIMD.Checked;
-            grpPulsedTwoTone.Enabled = !noise && !chkTestIMD.Checked;
-            btnTwoToneF_defaults.Enabled = !noise && !chkTestIMD.Checked;
-            btnTwoToneF_stealth.Enabled = !noise && !chkTestIMD.Checked;
-
-            updateTestIMDSpacingWarning();
+            udTestIMDFreq1.Enabled = !noise && !running;
+            udTestIMDFreq2.Enabled = !noise && !running;
+            lblTestToneFreq1.Enabled = !noise && !running;
+            lblTestToneFreq2.Enabled = !noise && !running;
+            chkInvertTones.Enabled = !noise && !running;
+            chkPulsed_TwoTone.Enabled = !noise && !running;
+            grpPulsedTwoTone.Enabled = !noise && !running;
+            btnTwoToneF_defaults.Enabled = !noise && !running;
+            btnTwoToneF_stealth.Enabled = !noise && !running;
         }
 
         private void nudPulsedTune_window_ValueChanged(object sender, EventArgs e)

@@ -410,6 +410,11 @@ namespace Thetis
             }
 
             txtPSpeak.Text = _PShwpeak.ToString();
+
+            // The stimulus selection and the tone spacing warning belong to this window,
+            // not to the Setup > Tests tab.  Make sure they are up to date.
+            try { console.SetupForm.UpdateCalStimulusUI(singleCalUseNoise); }
+            catch { }
         }
 
         private void PSForm_Closing(object sender, FormClosingEventArgs e)
@@ -499,6 +504,52 @@ namespace Thetis
         private bool singleCalUseNoise
         {
             get { return comboPSCalStimulus != null && comboPSCalStimulus.Text == "Noise"; }
+        }
+
+        // The stimulus the TX test runs with.  This is the single source of truth for it:
+        // the Setup > Tests tab has no stimulus selector of its own any more, the
+        // PureSignal form (the linearity window) is where the calibration is set up.
+        public bool UseNoiseStimulus
+        {
+            get { return singleCalUseNoise; }
+        }
+
+        // Select the stimulus.  The setup form is told about it so it can swap the
+        // generator over when the TX test is already running.
+        public void SetCalStimulus(bool noise)
+        {
+            try
+            {
+                if (comboPSCalStimulus == null) return;
+                int index = noise ? 1 : 0;
+                if (comboPSCalStimulus.SelectedIndex == index) return;
+                comboPSCalStimulus.SelectedIndex = index;  // runs the change handler
+            }
+            catch { }
+        }
+
+        private void comboPSCalStimulus_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return;
+                console.SetupForm.OnCalStimulusChanged(singleCalUseNoise);
+            }
+            catch { }
+        }
+
+        // Show the tone spacing warning.  It belongs here, in the linearity window, and
+        // not in the Setup > Tests tab: this is where the PureSignal calibration is set
+        // up and where the warning has to be seen.
+        public void SetCalStimulusWarning(string text)
+        {
+            try
+            {
+                if (lblPSSpacingWarning == null) return;
+                lblPSSpacingWarning.Text = text ?? "";
+                lblPSSpacingWarning.Visible = lblPSSpacingWarning.Text.Length > 0;
+            }
+            catch { }
         }
 
         // The setup form belongs to the UI thread.  The PS form is driven from the PS thread and
