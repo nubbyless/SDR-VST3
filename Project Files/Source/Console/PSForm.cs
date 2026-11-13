@@ -456,9 +456,28 @@ namespace Thetis
 
             txtPSpeak.Text = _PShwpeak.ToString();
 
+            // The box must show the value the engine actually uses.  It is the same value
+            // that the auto-attenuator works with (puresignal.TargetFeedbackLevel).
+            try
+            {
+                if (udPSTargetFeedback.Value != puresignal.TargetFeedbackLevel)
+                    udPSTargetFeedback.Value = puresignal.TargetFeedbackLevel;
+            }
+            catch { }
+
             // The stimulus selection and the tone spacing warning belong to this window,
             // not to the Setup > Tests tab.  Make sure they are up to date.
             try { console.SetupForm.UpdateCalStimulusUI(singleCalUseNoise); }
+            catch { }
+
+            try
+            {
+                psLog(string.Format("PS form shown: fbTarget box={0} engine={1} tones={2}/{3}",
+                    udPSTargetFeedback.Value,
+                    puresignal.TargetFeedbackLevel,
+                    udTestIMDFreq1.Value,
+                    udTestIMDFreq2.Value));
+            }
             catch { }
         }
 
@@ -1262,6 +1281,9 @@ namespace Thetis
             // would be dropped and never reach the database.
             if (console != null && !console.IsSetupFormNull)
                 console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
+
+            try { psLog("FB Target changed to " + udPSTargetFeedback.Value); }
+            catch { }
         }
 
         private void comboPSDeadlock_SelectedIndexChanged(object sender, EventArgs e)
