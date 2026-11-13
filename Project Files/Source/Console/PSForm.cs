@@ -1064,7 +1064,21 @@ namespace Thetis
             if (PureSignalOn || _autocal_enabled)
             {
                 if (puresignal.HasInfoChanged)
-                    console.InfoBarFeedbackLevel(puresignal.FeedbackLevel, puresignal.IsFeedbackLevelOK, puresignal.CorrectionsBeingApplied, puresignal.CalibrationAttemptsChanged, puresignal.FeedbackColourLevel);
+                {
+                    if (_autocal_enabled)
+                    {
+                        // The auto-calibrate mode measures the feedback continuously, show it.
+                        console.InfoBarFeedbackLevel(puresignal.FeedbackLevel, puresignal.IsFeedbackLevelOK, puresignal.CorrectionsBeingApplied, puresignal.CalibrationAttemptsChanged, puresignal.FeedbackColourLevel);
+                    }
+                    else
+                    {
+                        // A Single Cal is a one-shot, there is no ongoing feedback
+                        // measurement: the console shows the "correcting" light only.  The
+                        // info bar lights it while MOX is on, a Single Cal without a
+                        // transmitter has nothing to measure.
+                        console.InfoBarPSOneShot(puresignal.CorrectionsBeingApplied);
+                    }
+                }
             }
             //
             unsafe

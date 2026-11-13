@@ -2340,6 +2340,17 @@ namespace Thetis
                 infoBar.PSAEnabled = enabled;
         }
 
+        // A Single Cal is a one-shot: there is no continuous feedback measurement going on,
+        // so the info bar shows the "correcting" light but not the feedback readout.
+        public void InfoBarPSOneShot(bool bCorrectionsBeingApplied)
+        {
+            if (infoBar == null) return;
+            if (infoBar.InvokeRequired)
+                infoBar.Invoke(new Action(() => infoBar.PSInfoOneShot(bCorrectionsBeingApplied)));
+            else
+                infoBar.PSInfoOneShot(bCorrectionsBeingApplied);
+        }
+
         public ucUnderOverFlowWarningViewer VAC1UnderOver
         {
             get { return ucVAC1UnderOver; }

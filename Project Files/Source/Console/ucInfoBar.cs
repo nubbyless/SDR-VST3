@@ -88,6 +88,8 @@ namespace Thetis
         private Console _console;
         private bool _mox;
         private bool _psEnabled = false;
+        // A Single Cal is a one-shot, there is no continuous feedback measurement then.
+        private bool _psOneShot = false;
         private System.Timers.Timer _psTimer;
         private System.Timers.Timer _warningTimer;
         private bool _preventClickEvents = false;
@@ -805,24 +807,39 @@ namespace Thetis
         private Color _feedbackColour = Color.Black;
         private int _nFeedbackLevel = 0;
 
-        public void PSInfo(int level, bool bFeedbackLevelOk, bool bCorrectionsBeingApplied, bool bCalibrationAttemptsChanged, Color feedbackColour)
-        {
-            if (_shutDown) return;
-
-            _bCalibrationAttemptsChanged = bCalibrationAttemptsChanged;
-
-            if (_bCalibrationAttemptsChanged && _mox)
-            {
-                _nFeedbackLevel = level;
-                _feedbackColour = feedbackColour;
-                _bCorrectionsBeingApplied = bCorrectionsBeingApplied;
-                _bFeedbackLevelOk = bFeedbackLevelOk;
-
-                updatePSDisplay();
-
-                _psTimer.Start();
-            }
-        }
+   public void PSInfo(int level, bool bFeedbackLevelOk, bool bCorrectionsBeingApplied, bool bCalibrationAttemptsChanged, Color feedbackColour)
+   {
+   if (_shutDown) return;
+   
+   _psOneShot = false;
+   _bCalibrationAttemptsChanged = bCalibrationAttemptsChanged;
+   
+   if (_bCalibrationAttemptsChanged && _mox)
+   {
+   _nFeedbackLevel = level;
+   _feedbackColour = feedbackColour;
+   _bCorrectionsBeingApplied = bCorrectionsBeingApplied;
+   _bFeedbackLevelOk = bFeedbackLevelOk;
+   
+   updatePSDisplay();
+   
+   _psTimer.Start();
+   }
+   }
+   
+   // A Single Cal is a one-shot: there is no continuous feedback measurement going on,
+   // so the feedback light and its number are not shown.  The "correcting" light tells
+   // that the PureSignal is on and correcting.
+   public void PSInfoOneShot(bool bCorrectionsBeingApplied)
+   {
+   if (_shutDown) return;
+   
+   _psOneShot = true;
+   _bCorrectionsBeingApplied = bCorrectionsBeingApplied;
+   _bFeedbackLevelOk = true;
+   
+   updatePSDisplay();
+   }
 
         public bool PSAEnabled
         {
@@ -864,11 +881,15 @@ namespace Thetis
                         lblPS.BackColor = Color.FromArgb(255, Color.SeaGreen);
                     }
 
-                    lblFB.BackColor = _feedbackColour;
-                    _lastColor = _feedbackColour;
-
-                    if (_hideFeedback || !_bCalibrationAttemptsChanged)
+                    if (_psOneShot)
                     {
+                        // A one-shot Single Cal: there is no ongoing feedback measurement,
+                        // so the feedback light and its number stay neutral.  The "correcting"
+                        // light above tells that the PureSignal is working.
+                        lblFB.BackColor = Color.FromArgb(255, Color.SeaGreen);
+                        _lastColor = Color.SeaGreen;
+                        _feedbackColour = Color.SeaGreen;
+
                         if (_useSmallFonts)
                             lblFB.Text = "FB";
                         else
@@ -876,7 +897,20 @@ namespace Thetis
                     }
                     else
                     {
-                        lblFB.Text = _nFeedbackLevel.ToString();
+                        lblFB.BackColor = _feedbackColour;
+                        _lastColor = _feedbackColour;
+
+                        if (_hideFeedback || !_bCalibrationAttemptsChanged)
+                        {
+                            if (_useSmallFonts)
+                                lblFB.Text = "FB";
+                            else
+                                lblFB.Text = "Feedback";
+                        }
+                        else
+                        {
+                            lblFB.Text = _nFeedbackLevel.ToString();
+                        }
                     }
                 }
                 else
