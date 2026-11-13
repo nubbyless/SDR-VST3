@@ -664,7 +664,6 @@ namespace Thetis
                 if (lblTestToneFreq1 != null) lblTestToneFreq1.Enabled = enabled;
                 if (lblTestToneFreq2 != null) lblTestToneFreq2.Enabled = enabled;
                 if (btnTwoToneF_defaults != null) btnTwoToneF_defaults.Enabled = enabled;
-                if (btnTwoToneF_stealth != null) btnTwoToneF_stealth.Enabled = enabled;
             }
             catch { }
         }
@@ -676,13 +675,6 @@ namespace Thetis
             // makes the digitised envelope repeat its sample values, the PureSignal calibration
             // then only sees a few repeated levels instead of a continuous sweep.
             setTestToneFrequencies(700m, 1950m);
-        }
-
-        private void btnTwoToneF_stealth_Click(object sender, EventArgs e)
-        {
-            // 'stealth', the IMD products stay close to the carrier.  The 124Hz spacing is not a
-            // sub-multiple of the TX processing rate.
-            setTestToneFrequencies(70m, 194m);
         }
 
         private void setTestToneFrequencies(decimal f1, decimal f2)

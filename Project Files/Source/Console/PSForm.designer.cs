@@ -49,7 +49,6 @@
             this.lblTestToneFreq2 = new System.Windows.Forms.LabelTS();
             this.udTestIMDFreq2 = new System.Windows.Forms.NumericUpDownTS();
             this.btnTwoToneF_defaults = new System.Windows.Forms.ButtonTS();
-            this.btnTwoToneF_stealth = new System.Windows.Forms.ButtonTS();
             this.labelTS8 = new System.Windows.Forms.LabelTS();
             this.lblPSInfoFB = new System.Windows.Forms.LabelTS();
             this.lblPSInfoCO = new System.Windows.Forms.LabelTS();
@@ -405,21 +404,8 @@
             this.btnTwoToneF_defaults.UseVisualStyleBackColor = true;
             this.btnTwoToneF_defaults.Click += new System.EventHandler(this.btnTwoToneF_defaults_Click);
             //
-            // btnTwoToneF_stealth
-            //
-            this.btnTwoToneF_stealth.Image = null;
-            this.btnTwoToneF_stealth.Location = new System.Drawing.Point(455, 232);
-            this.btnTwoToneF_stealth.Name = "btnTwoToneF_stealth";
-            this.btnTwoToneF_stealth.Selectable = true;
-            this.btnTwoToneF_stealth.Size = new System.Drawing.Size(67, 23);
-            this.btnTwoToneF_stealth.TabIndex = 61;
-            this.btnTwoToneF_stealth.Text = "\'Stealth\'";
-            this.toolTip1.SetToolTip(this.btnTwoToneF_stealth, "A \'stealth\' 70Hz and 194Hz");
-            this.btnTwoToneF_stealth.UseVisualStyleBackColor = true;
-            this.btnTwoToneF_stealth.Click += new System.EventHandler(this.btnTwoToneF_stealth_Click);
-            // 
             // labelTS8
-            // 
+            //
             this.labelTS8.AutoSize = true;
             this.labelTS8.ForeColor = System.Drawing.Color.White;
             this.labelTS8.Image = null;
@@ -578,7 +564,7 @@
             this.grpPSInfo.ForeColor = System.Drawing.Color.White;
             this.grpPSInfo.Location = new System.Drawing.Point(14, 171);
             this.grpPSInfo.Name = "grpPSInfo";
-            this.grpPSInfo.Size = new System.Drawing.Size(358, 148);
+            this.grpPSInfo.Size = new System.Drawing.Size(358, 174);
             this.grpPSInfo.TabIndex = 21;
             this.grpPSInfo.TabStop = false;
             this.grpPSInfo.Text = "Calibration Information";
@@ -1008,7 +994,6 @@
             this.Controls.Add(this.lblTestToneFreq2);
             this.Controls.Add(this.udTestIMDFreq2);
             this.Controls.Add(this.btnTwoToneF_defaults);
-            this.Controls.Add(this.btnTwoToneF_stealth);
             this.Controls.Add(this.labelTS8);
             this.Controls.Add(this.lblPSInfoFB);
             this.Controls.Add(this.lblPSInfoCO);
@@ -1076,7 +1061,6 @@
         private System.Windows.Forms.LabelTS lblTestToneFreq2;
         private System.Windows.Forms.NumericUpDownTS udTestIMDFreq2;
         private System.Windows.Forms.ButtonTS btnTwoToneF_defaults;
-        private System.Windows.Forms.ButtonTS btnTwoToneF_stealth;
         private System.Windows.Forms.LabelTS lblPSfb2;
         private System.Windows.Forms.LabelTS labelTS1;
         private System.Windows.Forms.LabelTS labelTS5;

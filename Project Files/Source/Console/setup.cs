@@ -36983,8 +36983,13 @@ namespace Thetis
         {
             bool running = chkTestIMD.Checked;
 
-            // the frequency and level controls only apply to the two tone
-            console.psform.SetTestToneControlsEnabled(!noise && !running);
+            // The tone frequencies and their presets in the linearity window are always
+            // available - they are only disabled while the TX test is running.  They used
+            // to be greyed out with the noise stimulus, which hid them in the two tone
+            // mode, the exact opposite of what they are for.
+            console.psform.SetTestToneControlsEnabled(!running);
+
+            // the level and the pulsed tone controls are only used by the two tone
             chkInvertTones.Enabled = !noise && !running;
             chkPulsed_TwoTone.Enabled = !noise && !running;
             grpPulsedTwoTone.Enabled = !noise && !running;
