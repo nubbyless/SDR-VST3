@@ -807,6 +807,12 @@ namespace Thetis
             // and nothing showed that the button had been pressed.
             _cmdstate = eCMDState.OFF;
 
+            // Stop applying the correction now.  The engine only does that when it gets the
+            // reset, and it only gets it while the radio delivers the feedback samples - in
+            // between transmissions the correction would stay in the signal.
+            try { puresignal.SetPSCorrectionOff(_txachannel); }
+            catch { }
+
             try { psLog("EVENT puresignal OFF"); }
             catch { }
         }
@@ -1526,6 +1532,9 @@ namespace Thetis
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSControl", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSControl(int channel, int reset, int mancal, int automode, int turnon);
+
+        [DllImport("wdsp.dll", EntryPoint = "SetPSCorrectionOff", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetPSCorrectionOff(int channel);
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSLoopDelay", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSLoopDelay(int channel, double delay);

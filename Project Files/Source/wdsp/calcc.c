@@ -2137,6 +2137,23 @@ void SetPSRunCal (int channel, int run)
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
 }
 
+// Stop applying the PureSignal correction right now.  The state machine of the engine
+// does this in its LRESET case (SetTXAiqcEnd), but the state machine only runs while
+// the radio delivers the feedback samples - it does not run in between transmissions.
+// The OFF button has to switch the correction off there and then, not at the next
+// transmission.
+PORT
+void SetPSCorrectionOff (int channel)
+{
+	CALCC a;
+	EnterCriticalSection (&txa[channel].calcc.cs_update);
+	a = txa[channel].calcc.p;
+	a->info[14] = 0;
+	LeaveCriticalSection (&txa[channel].calcc.cs_update);
+
+	SetTXAiqcEnd (channel);
+}
+
 PORT
 void SetPSMox (int channel, int mox)
 {
