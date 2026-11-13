@@ -72,7 +72,26 @@ namespace Thetis
 
             console = c;    // MW0LGE moved above restore, so that we actaully have console when control events fire because of restore form
             
-            Common.RestoreForm(this, "PureSignal", false); // will also restore txtPSpeak //MW0LGE_21k9rc5
+            try
+            {
+                Common.RestoreForm(this, "PureSignal", false); // will also restore txtPSpeak //MW0LGE_21k9rc5
+            }
+            catch
+            {
+                // A bad entry in the table must not abort the constructor.  If it does, the
+                // form is left half initialised: _psFormReady stays false and the values the
+                // user changes are then never written back to the database.
+            }
+
+            // The target feedback level is stored in the setup form's database (the "Options"
+            // table, as "udPSTargetFeedbackLevel").  The "PureSignal" table also has an entry
+            // for this control, it must not become a second source of truth.
+            try
+            {
+                if (console != null && !console.IsSetupFormNull)
+                    udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
+            }
+            catch { }
 
             console.PowerChangeHanders += onPowerOn;
             console.ConsoleClosingHandlersAsync += onConsoleClosingAsync;
@@ -806,7 +825,7 @@ namespace Thetis
                 _ps_log_last_state = state;
                 _ps_log_last = now;
 
-                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4}",
+                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4} tgt={13}",
                     state,
                     puresignal.Info[6],
                     puresignal.Info[5],
@@ -819,7 +838,8 @@ namespace Thetis
                     puresignal.CurrentPeak,
                     console.SetupForm.ATTOnTX,
                     psStimulusName(),
-                    psMeasuredPeak()));
+                    psMeasuredPeak(),
+                    puresignal.TargetFeedbackLevel));
             }
             catch { }
         }
@@ -1180,7 +1200,9 @@ namespace Thetis
         private void udPSTargetFeedback_ValueChanged(object sender, EventArgs e)
         {
             puresignal.TargetFeedbackLevel = (int)udPSTargetFeedback.Value;
-            if (_psFormReady && console != null && console.SetupForm != null)
+            // No _psFormReady guard here: if the form is not fully initialised the change
+            // would be dropped and never reach the database.
+            if (console != null && !console.IsSetupFormNull)
                 console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
         }
 
