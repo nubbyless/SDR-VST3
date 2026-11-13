@@ -806,6 +806,9 @@ namespace Thetis
             // until the next transmission, and until then the "correcting" light stayed on
             // and nothing showed that the button had been pressed.
             _cmdstate = eCMDState.OFF;
+
+            try { psLog("EVENT puresignal OFF"); }
+            catch { }
         }
 
         private void udPSMoxDelay_ValueChanged(object sender, EventArgs e)
@@ -1217,6 +1220,8 @@ namespace Thetis
                 // The info bar has to go dark when the PureSignal is switched off, that is
                 // the indication that the OFF button worked.
                 console.InfoBarPSEnabled(psOn);
+                try { psLog("EVENT puresignal " + (psOn ? "ON" : "OFF")); }
+                catch { }
             }
         }
         private void timer2code()
