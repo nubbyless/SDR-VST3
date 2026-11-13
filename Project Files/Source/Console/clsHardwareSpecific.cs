@@ -321,13 +321,28 @@ namespace Thetis
         #endregion
 
         // Yurij_eu2av: hardware-specific target Feedback Level for PureSignal auto-attenuator.
-        // Default 152 preserves legacy behaviour; Anvelina PRO3 needs ~22 for its typical feedback coupling.
+        // Default 152 preserves legacy behaviour; Anvelina PRO3 needs ~30 for its typical feedback coupling.
+        //
+        // The target is a PureSignal 2 (WDSP 1.29) era number.  PureSignal 3 changed the
+        // reference point the feedback level is measured against: PS2 used the cubic fit at
+        // the top *measured* drive interval (wdsp.backup.200/calcc.c), PS3 extrapolates the
+        // fitted curve to the reference drive (wdsp/calcc.c).  The same amplifier therefore
+        // reads a different feedback number under PS3.
+        //
+        // The auto-attenuator drives the feedback onto the target by moving the TX step
+        // attenuator (0..31 dB, it cannot go further), so the target decides where the
+        // attenuator lands.  With the old 22 the amplifier is asked for a feedback level
+        // that needs more attenuation than exists: the auto-attenuator runs into the 31 dB
+        // ceiling, the feedback stays above the target and the indicator never goes green.
+        // Measured on an ANAN-7000: feedback 64 at 21 dB of attenuation, i.e. the level
+        // scales as 674 * 10^(-att/20).  A target of 30 lands the attenuator at ~27 dB,
+        // which is where it used to land with WDSP 1.29.
         public static int PSTargetFeedbackLevel
         {
             get
             {
                 // Yurij_eu2av: Orion MK2 based rigs (ANAN-7000/8000/Anvelina PRO3)
-                // share the same feedback coupling levels.  Target ~22 keeps the
+                // share the same feedback coupling levels.  Target ~30 keeps the
                 // ADC2208 and codec well inside their linear range while giving
                 // enough feedback for PureSignal correction.
                 switch (_model)
@@ -335,7 +350,7 @@ namespace Thetis
                     case HPSDRModel.ANAN7000D:
                     case HPSDRModel.ANAN8000D:
                     case HPSDRModel.ANVELINAPRO3:
-                        return 22;
+                        return 30;
                     default:
                         return 152;
                 }

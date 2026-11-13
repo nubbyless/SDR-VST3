@@ -1802,6 +1802,11 @@ namespace Thetis
             // add this manually because the usbbcd combo box will need this to recover previously selected
             a.Add("UsbBCDSerialNumber", m_sUsbBCDSerialNumber);
 
+            // the two tone frequencies live in the PureSignal form (the linearity window),
+            // they are stored under the names they had in the Setup > Tests tab
+            a.Add("udTestIMDFreq1", console.psform.TestToneFreq1.ToString());
+            a.Add("udTestIMDFreq2", console.psform.TestToneFreq2.ToString());
+
             // add this manually because soundfile string not stored in any control in setup
             a.Add("QSOTimerFilenameWav", console.QSOTimerAudioPlayer.SoundFile);
 
@@ -2291,6 +2296,10 @@ namespace Thetis
             {
                 ucRadioList_Radios.ClearRadios();
             }
+
+            // The two tone frequencies live in the PureSignal form (the linearity window).
+            // They are stored under the names they had in the Setup > Tests tab.
+            restoreTestToneFrequencies(a);
 
             _gettingOptions = false;
         }
@@ -11779,8 +11788,8 @@ namespace Thetis
         // The tone itself keeps its level: the drive and the ALC have to stay where they are.
         private void applyTestStimulusGenerator(bool noise)
         {
-            double ttfreq1 = (double)udTestIMDFreq1.Value;
-            double ttfreq2 = (double)udTestIMDFreq2.Value;
+            double ttfreq1 = (double)console.psform.TestToneFreq1;
+            double ttfreq2 = (double)console.psform.TestToneFreq2;
             double ttmag = (double)udTwoToneLevel.Value;
             double ttmag1, ttmag2;
             ttmag1 = ttmag2 = 0.49999 * Math.Pow(10.0, ttmag / 20.0);
@@ -12450,31 +12459,9 @@ namespace Thetis
             udTXGenSweepLow.Value = udTXGenSweepLow.Value;
         }
 
-        private void udTestIMDFreq2_LostFocus(object sender, EventArgs e)
-        {
-            udTestIMDFreq2.Value = udTestIMDFreq2.Value;
-            updateTestIMDSpacingWarning();
-        }
-
-        private void udTestIMDFreq2_ValueChanged(object sender, EventArgs e)
-        {
-            updateTestIMDSpacingWarning();
-        }
-
-        private void udTestIMDFreq1_ValueChanged(object sender, EventArgs e)
-        {
-            updateTestIMDSpacingWarning();
-        }
-
         private void udTestIMDPower_LostFocus(object sender, EventArgs e)
         {
             udTestIMDPower.Value = udTestIMDPower.Value;
-        }
-
-        private void udTestIMDFreq1_LostFocus(object sender, EventArgs e)
-        {
-            udTestIMDFreq1.Value = udTestIMDFreq1.Value;
-            updateTestIMDSpacingWarning();
         }
 
         #endregion
@@ -36795,25 +36782,8 @@ namespace Thetis
             RadioDSP.CacheImpulseSaveRestore = chkWDSP_save_restore_cache_impulse.Checked;
         }
 
-        private void btnTwoToneF_defaults_Click(object sender, EventArgs e)
-        {
-            // the spacing is 1250Hz, that is not a sub-multiple of the 96kHz TX processing rate
-            // and not of the 12.288kHz radio rate.  A two tone spacing that IS a sub-multiple
-            // makes the digitised envelope repeat its sample values, the PureSignal calibration
-            // then only sees a few repeated levels instead of a continuous sweep.
-            udTestIMDFreq1.Value = 700;
-            udTestIMDFreq2.Value = 1950;
-            updateTestIMDSpacingWarning();
-        }
-
-        private void btnTwoToneF_stealth_Click(object sender, EventArgs e)
-        {
-            // 'stealth', the IMD products stay close to the carrier.  The 124Hz spacing is not a
-            // sub-multiple of the TX processing rate.
-            udTestIMDFreq1.Value = 70;
-            udTestIMDFreq2.Value = 194;
-            updateTestIMDSpacingWarning();
-        }
+        // The tone frequencies and the Defaults / 'Stealth' presets live in the PureSignal
+        // form (the linearity window) now, together with the spacing warning.
 
         // The TXA runs at 96kHz (ChannelMaster cmaster.c), the radio rate is 12.288kHz.
         private const double TX_PROCESSING_RATE = 96000.0;
@@ -36826,7 +36796,7 @@ namespace Thetis
             rate = 0.0;
             division = 0.0;
 
-            double spacing = Math.Abs((double)udTestIMDFreq2.Value - (double)udTestIMDFreq1.Value);
+            double spacing = Math.Abs((double)console.psform.TestToneFreq2 - (double)console.psform.TestToneFreq1);
             if (spacing < 1.0) return false;
 
             double[] rates = new double[] { TX_PROCESSING_RATE, RADIO_TX_RATE };
@@ -36841,6 +36811,38 @@ namespace Thetis
                 }
             }
             return false;
+        }
+
+        // Restore the two tone frequencies into the PureSignal form (the linearity window).
+        // They are stored under the names they had in the Setup > Tests tab.
+        //
+        // The console used to ship with 700/1900Hz, a 1200Hz spacing.  96000/1200 is exactly 80,
+        // so that spacing is an exact sub-multiple of the TX processing rate: the digitised
+        // envelope then repeats its sample values and the PureSignal calibration only sees a few
+        // repeated levels instead of a continuous sweep.  The 'Defaults' preset was changed to
+        // 700/1950Hz (a 1250Hz spacing) but the *stored* value was never migrated, so every
+        // database created before that still holds the trap.  Move it over now.
+        // See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
+        private void restoreTestToneFrequencies(Dictionary<string, string> a)
+        {
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return;
+
+                decimal f1 = 700m;
+                decimal f2 = 1950m;
+
+                if (a.ContainsKey("udTestIMDFreq1")) decimal.TryParse(a["udTestIMDFreq1"], out f1);
+                if (a.ContainsKey("udTestIMDFreq2")) decimal.TryParse(a["udTestIMDFreq2"], out f2);
+
+                // the old shipped defaults, both of them a spacing trap
+                if (f1 == 700m && f2 == 1900m) f2 = 1950m;
+                if (f1 == 70m && f2 == 190m) f2 = 194m;
+
+                console.psform.TestToneFreq1 = f1;
+                console.psform.TestToneFreq2 = f2;
+            }
+            catch { }
         }
 
         // The warning about the tone spacing belongs in the PureSignal form (the linearity
@@ -36930,15 +36932,10 @@ namespace Thetis
             bool running = chkTestIMD.Checked;
 
             // the frequency and level controls only apply to the two tone
-            udTestIMDFreq1.Enabled = !noise && !running;
-            udTestIMDFreq2.Enabled = !noise && !running;
-            lblTestToneFreq1.Enabled = !noise && !running;
-            lblTestToneFreq2.Enabled = !noise && !running;
+            console.psform.SetTestToneControlsEnabled(!noise && !running);
             chkInvertTones.Enabled = !noise && !running;
             chkPulsed_TwoTone.Enabled = !noise && !running;
             grpPulsedTwoTone.Enabled = !noise && !running;
-            btnTwoToneF_defaults.Enabled = !noise && !running;
-            btnTwoToneF_stealth.Enabled = !noise && !running;
         }
 
         private void nudPulsedTune_window_ValueChanged(object sender, EventArgs e)

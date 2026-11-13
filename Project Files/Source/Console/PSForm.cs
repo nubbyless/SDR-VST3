@@ -538,6 +538,79 @@ namespace Thetis
             catch { }
         }
 
+        // The two tone frequencies.  They live here, in the linearity window, and not in the
+        // Setup > Tests tab: the tone spacing decides whether the calibration sees a
+        // continuous sweep of drive levels or only a few repeated ones.  A spacing that is an
+        // exact sub-multiple of the TX processing rate is the trap, see the WDSP guide 2.11,
+        // Appendix D 13.3 and 13.6.
+        public decimal TestToneFreq1
+        {
+            get { return udTestIMDFreq1 != null ? udTestIMDFreq1.Value : 700m; }
+            set { if (udTestIMDFreq1 != null) udTestIMDFreq1.Value = value; }
+        }
+
+        public decimal TestToneFreq2
+        {
+            get { return udTestIMDFreq2 != null ? udTestIMDFreq2.Value : 1950m; }
+            set { if (udTestIMDFreq2 != null) udTestIMDFreq2.Value = value; }
+        }
+
+        // The tone controls are only usable with the two tone and only while the test is
+        // not running.
+        public void SetTestToneControlsEnabled(bool enabled)
+        {
+            try
+            {
+                if (udTestIMDFreq1 != null) udTestIMDFreq1.Enabled = enabled;
+                if (udTestIMDFreq2 != null) udTestIMDFreq2.Enabled = enabled;
+                if (lblTestToneFreq1 != null) lblTestToneFreq1.Enabled = enabled;
+                if (lblTestToneFreq2 != null) lblTestToneFreq2.Enabled = enabled;
+                if (btnTwoToneF_defaults != null) btnTwoToneF_defaults.Enabled = enabled;
+                if (btnTwoToneF_stealth != null) btnTwoToneF_stealth.Enabled = enabled;
+            }
+            catch { }
+        }
+
+        private void btnTwoToneF_defaults_Click(object sender, EventArgs e)
+        {
+            // the spacing is 1250Hz, that is not a sub-multiple of the 96kHz TX processing rate
+            // and not of the 12.288kHz radio rate.  A two tone spacing that IS a sub-multiple
+            // makes the digitised envelope repeat its sample values, the PureSignal calibration
+            // then only sees a few repeated levels instead of a continuous sweep.
+            TestToneFreq1 = 700m;
+            TestToneFreq2 = 1950m;
+            updateToneSpacingWarning();
+        }
+
+        private void btnTwoToneF_stealth_Click(object sender, EventArgs e)
+        {
+            // 'stealth', the IMD products stay close to the carrier.  The 124Hz spacing is not a
+            // sub-multiple of the TX processing rate.
+            TestToneFreq1 = 70m;
+            TestToneFreq2 = 194m;
+            updateToneSpacingWarning();
+        }
+
+        private void udTestIMDFreq1_ValueChanged(object sender, EventArgs e)
+        {
+            updateToneSpacingWarning();
+        }
+
+        private void udTestIMDFreq2_ValueChanged(object sender, EventArgs e)
+        {
+            updateToneSpacingWarning();
+        }
+
+        private void updateToneSpacingWarning()
+        {
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return;
+                console.SetupForm.UpdateCalStimulusUI(singleCalUseNoise);
+            }
+            catch { }
+        }
+
         // Show the tone spacing warning.  It belongs here, in the linearity window, and
         // not in the Setup > Tests tab: this is where the PureSignal calibration is set
         // up and where the warning has to be seen.
