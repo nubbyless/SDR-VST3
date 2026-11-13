@@ -313,6 +313,7 @@
             // lblTestToneFreq1
             //
             this.lblTestToneFreq1.AutoSize = true;
+            this.lblTestToneFreq1.ForeColor = System.Drawing.Color.White;
             this.lblTestToneFreq1.Image = null;
             this.lblTestToneFreq1.Location = new System.Drawing.Point(380, 208);
             this.lblTestToneFreq1.Name = "lblTestToneFreq1";
@@ -353,6 +354,7 @@
             // lblTestToneFreq2
             //
             this.lblTestToneFreq2.AutoSize = true;
+            this.lblTestToneFreq2.ForeColor = System.Drawing.Color.White;
             this.lblTestToneFreq2.Image = null;
             this.lblTestToneFreq2.Location = new System.Drawing.Point(492, 208);
             this.lblTestToneFreq2.Name = "lblTestToneFreq2";

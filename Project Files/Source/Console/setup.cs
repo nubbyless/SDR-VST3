@@ -36983,11 +36983,12 @@ namespace Thetis
         {
             bool running = chkTestIMD.Checked;
 
-            // The tone frequencies and their presets in the linearity window are always
-            // available - they are only disabled while the TX test is running.  They used
-            // to be greyed out with the noise stimulus, which hid them in the two tone
-            // mode, the exact opposite of what they are for.
-            console.psform.SetTestToneControlsEnabled(!running);
+            // The tone frequencies in the linearity window are always shown and always
+            // usable.  They used to be greyed out with the noise stimulus, and a disabled
+            // control is not painted at all, so the text disappeared exactly when it was
+            // needed.  A change of the frequencies only takes effect the next time the
+            // stimulus starts, so there is nothing to lock either.
+            console.psform.SetTestToneControlsEnabled(true);
 
             // the level and the pulsed tone controls are only used by the two tone
             chkInvertTones.Enabled = !noise && !running;

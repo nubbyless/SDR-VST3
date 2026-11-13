@@ -101,6 +101,9 @@ namespace Thetis
             }
             catch { }
 
+            // The tone frequency boxes are always shown and always usable.
+            SetTestToneControlsEnabled(true);
+
             // Diagnostic: what the values in here ended up as.  The target feedback level has
             // been read from more than one place over the years, this shows which one won.
             // NOTE: console.SetupForm is a lazy singleton - touching it creates the setup form.
@@ -653,17 +656,19 @@ namespace Thetis
             catch { }
         }
 
-        // The tone controls are only usable with the two tone and only while the test is
-        // not running.
+        // The tone frequency boxes are always shown.  They used to be greyed out with the
+        // noise stimulus, and a disabled control is not drawn at all, so they disappeared
+        // exactly when they were needed.  Only the values are locked while the TX test
+        // is running.
         public void SetTestToneControlsEnabled(bool enabled)
         {
             try
             {
-                if (udTestIMDFreq1 != null) udTestIMDFreq1.Enabled = enabled;
-                if (udTestIMDFreq2 != null) udTestIMDFreq2.Enabled = enabled;
-                if (lblTestToneFreq1 != null) lblTestToneFreq1.Enabled = enabled;
-                if (lblTestToneFreq2 != null) lblTestToneFreq2.Enabled = enabled;
-                if (btnTwoToneF_defaults != null) btnTwoToneF_defaults.Enabled = enabled;
+                if (udTestIMDFreq1 != null) { udTestIMDFreq1.Visible = true; udTestIMDFreq1.Enabled = enabled; }
+                if (udTestIMDFreq2 != null) { udTestIMDFreq2.Visible = true; udTestIMDFreq2.Enabled = enabled; }
+                if (lblTestToneFreq1 != null) { lblTestToneFreq1.Visible = true; lblTestToneFreq1.Enabled = enabled; }
+                if (lblTestToneFreq2 != null) { lblTestToneFreq2.Visible = true; lblTestToneFreq2.Enabled = enabled; }
+                if (btnTwoToneF_defaults != null) { btnTwoToneF_defaults.Visible = true; btnTwoToneF_defaults.Enabled = enabled; }
             }
             catch { }
         }
