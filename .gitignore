@@ -448,3 +448,9 @@ HANDOFF_FLDIGI_*.md
 HANDOFF_FT8_*.md
 
 FREEDV_HANDOFF.md
+
+# Local build output and scratch files -- never publish to GitHub
+/SDR-VST3*.wxs
+*.exe.bak
+*.exe.bak.pkv
+ANALYZER_HANDOFF.md
