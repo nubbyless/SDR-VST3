@@ -88,6 +88,20 @@ enum _iqcstate
 
 #define IQC_OUT_MAX 0.999
 
+// The DSP thread clears the busy flag when the changeover of the correction is done.
+// The wait has to be bounded: the DSP thread only runs the correction while the radio
+// transmits.  An endless wait would block the correction thread for ever when the
+// radio is idle - and the engine would then wait for the result of the calculation
+// that thread has to run for ever as well.
+static void iqc_wait_busy (IQC a)
+{
+	for (int i = 0; i < 2000; i++)		// 2 seconds
+	{
+		if (!_InterlockedAnd (&a->busy, 1)) return;
+		Sleep(1);
+	}
+}
+
 void xiqc (IQC a)
 {
 	if (_InterlockedAnd(&a->run, 1))
@@ -246,7 +260,7 @@ void SetTXAiqcSwap (int channel, NS_Spline* m_spline, CurveEMA* m_calavg, double
 	a->count = 0;
 	LeaveCriticalSection (&ch[channel].csDSP);
 
-	while (_InterlockedAnd (&a->busy, 1)) Sleep(1);
+	iqc_wait_busy (a);
 }
 
 
@@ -277,7 +291,7 @@ void SetTXAiqcStart (int channel, NS_Spline* m_spline, CurveEMA* m_calavg, doubl
 	a->count = 0;
 	LeaveCriticalSection (&ch[channel].csDSP);
 	InterlockedBitTestAndSet   (&txa[channel].iqc.p->run, 0);
-	while (_InterlockedAnd (&a->busy, 1)) Sleep(1);
+	iqc_wait_busy (a);
 }
 
 void SetTXAiqcEnd (int channel)
@@ -288,7 +302,7 @@ void SetTXAiqcEnd (int channel)
 	a->state = END;
 	a->count = 0;
 	LeaveCriticalSection (&ch[channel].csDSP);
-	while (_InterlockedAnd (&a->busy, 1)) Sleep(1);
+	iqc_wait_busy (a);
 	InterlockedBitTestAndReset (&txa[channel].iqc.p->run, 0);
 }
 

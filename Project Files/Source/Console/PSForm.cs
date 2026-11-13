@@ -938,7 +938,7 @@ namespace Thetis
                 _ps_log_last_state = state;
                 _ps_log_last = now;
 
-                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4} tgt={13} appl={14}",
+                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4} tgt={13} appl={14} iqc={15}/{16}/{17} run={18}",
                     state,
                     puresignal.Info[6],
                     puresignal.Info[5],
@@ -953,7 +953,13 @@ namespace Thetis
                     psStimulusName(),
                     psMeasuredPeak(),
                     puresignal.TargetFeedbackLevel,
-                    puresignal.Info[14]));
+                    puresignal.Info[14],
+                    // the state of the correction: run flag, busy flag and the state of
+                    // the IQC (0=run, 1=begin, 2=swap, 3=end, 4=done)
+                    puresignal.Info[16],
+                    puresignal.Info[17],
+                    puresignal.Info[18],
+                    puresignal.Info[19]));
             }
             catch { }
         }
@@ -1578,8 +1584,8 @@ namespace Thetis
         #endregion
 
         #region public methods
-        private static int[] _info = new int[16];
-        private static int[] _oldInfo = new int[16];
+        private static int[] _info = new int[20];
+        private static int[] _oldInfo = new int[20];
         private static bool _bInvertRedBlue = false;
         private static int _targetFeedbackLevel = 152;
         public static int TargetFeedbackLevel
@@ -1596,7 +1602,7 @@ namespace Thetis
         public static int FeedbackLevelGreenHigh { get { return (int)(_targetFeedbackLevel * 1.3); } }
         static puresignal()
         {
-            for(int i = 0; i < 16; i++)
+            for(int i = 0; i < 20; i++)
             {
                 _info[i] = 0;
                 _oldInfo[i] = _info[i];
@@ -1611,7 +1617,7 @@ namespace Thetis
             //make copy of old, used in HasInfoChanged & CalibrationAttemptsChanged MW0LGE
             fixed (void* dest = &_oldInfo[0])
             fixed (void* src = &_info[0])
-                Win32.memcpy(dest, src, 16 * sizeof(int));
+                Win32.memcpy(dest, src, 20 * sizeof(int));
 
             fixed (int* ptr = &(_info[0]))
                 GetPSInfo(txachannel, ptr);
@@ -1619,7 +1625,7 @@ namespace Thetis
         public static bool HasInfoChanged 
         {
             get {
-                for (int n = 0; n < 16; n++)
+                for (int n = 0; n < 20; n++)
                 {
                     if (_info[n] != _oldInfo[n])
                         return true;
