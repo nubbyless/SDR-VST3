@@ -478,11 +478,13 @@ namespace Thetis
                 // need this incase single cal is unable to complete do to bad feedback level
                 // state machine will drop out if this is the case
                 _singlecalON = false;
+                psLog("EVENT single cal stop");
                 stopSingleCalStimulus();
                 return;
             }
             console.ForcePureSignalAutoCalDisable();
             // make sure the stimulus the user chose is the one that is driving the TX
+            psLog("EVENT single cal start: " + (singleCalUseNoise ? "noise" : "twotone"));
             startSingleCalStimulus();
             _singlecalON = true;
             console.PSState = false;
@@ -524,6 +526,7 @@ namespace Thetis
             runOnUIThread(() =>
             {
                 console.SetupForm.EnsureTestStimulus(noise);
+                psLog("EVENT single cal stimulus start: " + (noise ? "noise" : "twotone"));
             });
         }
 
@@ -541,6 +544,7 @@ namespace Thetis
                 if (!console.SetupForm.TTgenrun) return;
                 if (console.SetupForm.TestIMDNoiseStimulus != noise) return;  // a different one is running
                 console.SetupForm.TTgenrun = false;
+                psLog("EVENT single cal stimulus stop");
             });
         }
 
@@ -578,12 +582,14 @@ namespace Thetis
             {
                 _ttgenON = true;
                 console.SetupForm.StartTestStimulus(false); // two tone
+                psLog("EVENT two tone generator on");
                 updateTestGenButtons();
             }
             else
             {
                 _ttgenON = false;
                 console.SetupForm.TTgenrun = false;
+                psLog("EVENT two tone generator off");
                 updateTestGenButtons();
             }
         }
@@ -594,12 +600,14 @@ namespace Thetis
             {
                 _ttgenON = true;
                 console.SetupForm.StartTestStimulus(true); // noise
+                psLog("EVENT noise generator on");
                 updateTestGenButtons();
             }
             else
             {
                 _ttgenON = false;
                 console.SetupForm.TTgenrun = false;
+                psLog("EVENT noise generator off");
                 updateTestGenButtons();
             }
         }
@@ -674,7 +682,7 @@ namespace Thetis
                 _ps_log_last_state = state;
                 _ps_log_last = now;
 
-                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10}",
+                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4}",
                     state,
                     puresignal.Info[6],
                     puresignal.Info[5],
@@ -685,9 +693,37 @@ namespace Thetis
                     puresignal.Info[2],
                     puresignal.Info[3],
                     puresignal.CurrentPeak,
-                    console.SetupForm.ATTOnTX));
+                    console.SetupForm.ATTOnTX,
+                    psStimulusName(),
+                    psMeasuredPeak()));
             }
             catch { }
+        }
+
+        // The stimulus that is currently driving the TX.  The log has to name it, otherwise a
+        // log of a noise run and a log of a two tone run cannot be told apart afterwards.
+        private string psStimulusName()
+        {
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return "none";
+                if (!console.SetupForm.TTgenrun) return "none";
+                return console.SetupForm.TestIMDNoiseStimulus ? "noise" : "twotone";
+            }
+            catch { return "?"; }
+        }
+
+        // The measured peak of the digital TX feedback (the "GetPk" box).  With the two tone it
+        // reads about 1.0, with the noise it reads about the peak reference.
+        private double psMeasuredPeak()
+        {
+            try
+            {
+                double peak = 0.0;
+                unsafe { puresignal.GetPSMaxTX(_txachannel, &peak); }
+                return peak;
+            }
+            catch { return 0.0; }
         }
 
         private void psLogClose()
