@@ -914,7 +914,7 @@ namespace Thetis
                 _ps_log_last_state = state;
                 _ps_log_last = now;
 
-                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4} tgt={13}",
+                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4} tgt={13} appl={14}",
                     state,
                     puresignal.Info[6],
                     puresignal.Info[5],
@@ -928,7 +928,8 @@ namespace Thetis
                     console.SetupForm.ATTOnTX,
                     psStimulusName(),
                     psMeasuredPeak(),
-                    puresignal.TargetFeedbackLevel));
+                    puresignal.TargetFeedbackLevel,
+                    puresignal.Info[14]));
             }
             catch { }
         }
@@ -1091,6 +1092,13 @@ namespace Thetis
                     break;
                 case eCMDState.TurnOnSingleCalibrate://3:     // Turn-ON Single-Calibrate Mode
                     _autoON = false;
+                    // A Single Cal *replaces* the auto-calibrate mode, it is not a request
+                    // to switch the PureSignal off.  ForcePureSignalAutoCalDisable() sets
+                    // _OFF (the PS form's "switch off" flag) when it unchecks PS-A, and the
+                    // Single Cal button calls it - so the flag has to be cleared again here,
+                    // otherwise the state machine turns the PS off (and drops the freshly
+                    // calculated correction) as soon as the single cal is done.
+                    _OFF = false;
                     _performing_single_cal = true;
                     puresignal.SetPSControl(_txachannel, 1, 1, 0, 0);
                     if (!PSEnabled) PSEnabled = true;
@@ -1099,7 +1107,9 @@ namespace Thetis
                     break;
                 case eCMDState.SingleCalibrate://4:     // Single-Calibrate Mode
                     _singlecalON = false;
-                    if (_OFF)
+                    // While the single cal is running the PS stays on, the correction it
+                    // produced must not be thrown away.
+                    if (_OFF && !_performing_single_cal)
                         _cmdstate = eCMDState.TurnOFF;// 6;
                     else if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
@@ -1111,7 +1121,10 @@ namespace Thetis
                 case eCMDState.StayON://5:     // Stay-ON
                     if (PSEnabled) PSEnabled = false;
                     btnPSCalibrate.BackColor = SystemColors.Control;
-                    if (_OFF)
+                    // A Single Cal wins over the "off" flag, see TurnOnSingleCalibrate.
+                    if (_singlecalON)
+                        _cmdstate = eCMDState.TurnOnSingleCalibrate;// 3;
+                    else if (_OFF)
                         _cmdstate = eCMDState.TurnOFF;// 6;
                     else if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
@@ -1561,7 +1574,11 @@ namespace Thetis
             get { return _info[5]; }
         }
         public static bool Correcting {
-            get { return FeedbackLevel > 90; }
+        // MW0LGE: the old threshold was a fixed 90.  That was 0.6 of the old target (152).
+        // PureSignal 3 measures the feedback against a different reference and the target is
+        // now 30, so a fixed number can never be reached again and the "correcting" light
+        // stayed yellow for ever.  Scale it with the target.
+        get { return FeedbackLevel > (int)(_targetFeedbackLevel * 0.6); }
         }
         public static bool NeedToRecalibrate(int nCurrentATTonTX) {
             // Yurij_eu2av: recalibrate if feedback is too high relative to target,
