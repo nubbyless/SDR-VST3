@@ -456,12 +456,13 @@ namespace Thetis
 
             txtPSpeak.Text = _PShwpeak.ToString();
 
-            // The box must show the value the engine actually uses.  It is the same value
-            // that the auto-attenuator works with (puresignal.TargetFeedbackLevel).
+            // The box is the master: the value in it is the value the engine and the setup
+            // form use.  It was restored from the database, so it is the right one.
             try
             {
-                if (udPSTargetFeedback.Value != puresignal.TargetFeedbackLevel)
-                    udPSTargetFeedback.Value = puresignal.TargetFeedbackLevel;
+                puresignal.TargetFeedbackLevel = (int)udPSTargetFeedback.Value;
+                if (console != null && !console.IsSetupFormNull)
+                    console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
             }
             catch { }
 
@@ -472,11 +473,17 @@ namespace Thetis
 
             try
             {
-                psLog(string.Format("PS form shown: fbTarget box={0} engine={1} tones={2}/{3}",
+                psLog(string.Format("PS form shown: fbTarget box={0} engine={1} min={2} max={3} inc={4} text='{5}' tones={6}/{7} getpk={8} fb={9}",
                     udPSTargetFeedback.Value,
                     puresignal.TargetFeedbackLevel,
+                    udPSTargetFeedback.Minimum,
+                    udPSTargetFeedback.Maximum,
+                    udPSTargetFeedback.Increment,
+                    udPSTargetFeedback.Text,
                     udTestIMDFreq1.Value,
-                    udTestIMDFreq2.Value));
+                    udTestIMDFreq2.Value,
+                    GetPSpeak.Text,
+                    lblPSfb2.Text));
             }
             catch { }
         }
@@ -1283,6 +1290,19 @@ namespace Thetis
                 console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
 
             try { psLog("FB Target changed to " + udPSTargetFeedback.Value); }
+            catch { }
+        }
+
+        private void udPSTargetFeedback_Validating(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            try
+            {
+                // A NumericUpDown keeps the text that was typed until it parses.  A value
+                // below the minimum (0) is never accepted, so the box would go on showing a
+                // number that is not the one in use.  Put the real value back.
+                if (udPSTargetFeedback.Text != udPSTargetFeedback.Value.ToString())
+                    udPSTargetFeedback.Value = puresignal.TargetFeedbackLevel;
+            }
             catch { }
         }
 

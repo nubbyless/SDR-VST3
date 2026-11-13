@@ -162,9 +162,10 @@
             0,
             0,
             0});
-            this.toolTip1.SetToolTip(this.udPSTargetFeedback, "Target Feedback Level for auto-attenuator and indicator. Default 30 for Orion MK2 rigs (ANAN-7000/8000/Anvelina PRO3), 152 for other hardware." + "\r\n" +
+            this.toolTip1.SetToolTip(this.udPSTargetFeedback, "Target Feedback Level for auto-attenuator and indicator. Default 30." + "\r\n" +
                 "The auto-attenuator drives the feedback onto this target by moving the TX step attenuator (0..31 dB).  PureSignal 3 measures the feedback against a different reference than PureSignal 2 did, so a target that worked with WDSP 1.29 has to be higher now - with the old value the attenuator runs into its 31 dB ceiling and the indicator never goes green.");
             this.udPSTargetFeedback.ValueChanged += new System.EventHandler(this.udPSTargetFeedback_ValueChanged);
+            this.udPSTargetFeedback.Validating += new System.ComponentModel.CancelEventHandler(this.udPSTargetFeedback_Validating);
             // 
             // lblPSTargetFeedback
             // 
