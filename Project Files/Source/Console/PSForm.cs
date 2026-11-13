@@ -89,7 +89,26 @@ namespace Thetis
             try
             {
                 if (console != null && !console.IsSetupFormNull)
+                {
                     udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
+
+                    // The two tone frequencies live in the setup form as well.
+                    SetTestToneFrequencies(console.SetupForm.TestToneFreq1, console.SetupForm.TestToneFreq2);
+                }
+            }
+            catch { }
+
+            // Diagnostic: what the values in here ended up as.  The target feedback level has
+            // been read from more than one place over the years, this shows which one won.
+            try
+            {
+                psLog(string.Format("PS form start: fbTarget box={0} setup={1} engine={2} hwDefault={3} tones={4}/{5}",
+                    udPSTargetFeedback.Value,
+                    console.SetupForm.PSTargetFeedbackLevel,
+                    puresignal.TargetFeedbackLevel,
+                    HardwareSpecific.PSTargetFeedbackLevel,
+                    udTestIMDFreq1.Value,
+                    udTestIMDFreq2.Value));
             }
             catch { }
 
@@ -562,16 +581,16 @@ namespace Thetis
         // continuous sweep of drive levels or only a few repeated ones.  A spacing that is an
         // exact sub-multiple of the TX processing rate is the trap, see the WDSP guide 2.11,
         // Appendix D 13.3 and 13.6.
-        public decimal TestToneFreq1
+        // The setup form owns the values (it stores them in the database), the form here
+        // only shows and edits them.
+        public void SetTestToneFrequencies(decimal f1, decimal f2)
         {
-            get { return udTestIMDFreq1 != null ? udTestIMDFreq1.Value : 700m; }
-            set { if (udTestIMDFreq1 != null) udTestIMDFreq1.Value = value; }
-        }
-
-        public decimal TestToneFreq2
-        {
-            get { return udTestIMDFreq2 != null ? udTestIMDFreq2.Value : 1950m; }
-            set { if (udTestIMDFreq2 != null) udTestIMDFreq2.Value = value; }
+            try
+            {
+                if (udTestIMDFreq1 != null && udTestIMDFreq1.Value != f1) udTestIMDFreq1.Value = f1;
+                if (udTestIMDFreq2 != null && udTestIMDFreq2.Value != f2) udTestIMDFreq2.Value = f2;
+            }
+            catch { }
         }
 
         // The tone controls are only usable with the two tone and only while the test is
@@ -596,28 +615,48 @@ namespace Thetis
             // and not of the 12.288kHz radio rate.  A two tone spacing that IS a sub-multiple
             // makes the digitised envelope repeat its sample values, the PureSignal calibration
             // then only sees a few repeated levels instead of a continuous sweep.
-            TestToneFreq1 = 700m;
-            TestToneFreq2 = 1950m;
-            updateToneSpacingWarning();
+            setTestToneFrequencies(700m, 1950m);
         }
 
         private void btnTwoToneF_stealth_Click(object sender, EventArgs e)
         {
             // 'stealth', the IMD products stay close to the carrier.  The 124Hz spacing is not a
             // sub-multiple of the TX processing rate.
-            TestToneFreq1 = 70m;
-            TestToneFreq2 = 194m;
-            updateToneSpacingWarning();
+            setTestToneFrequencies(70m, 194m);
+        }
+
+        private void setTestToneFrequencies(decimal f1, decimal f2)
+        {
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return;
+                console.SetupForm.TestToneFreq1 = f1;
+                console.SetupForm.TestToneFreq2 = f2;
+                updateToneSpacingWarning();
+            }
+            catch { }
         }
 
         private void udTestIMDFreq1_ValueChanged(object sender, EventArgs e)
         {
-            updateToneSpacingWarning();
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return;
+                console.SetupForm.TestToneFreq1 = (decimal)udTestIMDFreq1.Value;
+                updateToneSpacingWarning();
+            }
+            catch { }
         }
 
         private void udTestIMDFreq2_ValueChanged(object sender, EventArgs e)
         {
-            updateToneSpacingWarning();
+            try
+            {
+                if (console == null || console.IsSetupFormNull) return;
+                console.SetupForm.TestToneFreq2 = (decimal)udTestIMDFreq2.Value;
+                updateToneSpacingWarning();
+            }
+            catch { }
         }
 
         private void updateToneSpacingWarning()
