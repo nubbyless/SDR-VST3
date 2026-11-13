@@ -91,10 +91,13 @@ namespace Thetis
                 if (console != null && !console.IsSetupFormNull)
                 {
                     udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
-
-                    // The two tone frequencies live in the setup form as well.
                     SetTestToneFrequencies(console.SetupForm.TestToneFreq1, console.SetupForm.TestToneFreq2);
                 }
+
+                // The restore sets the Value, but a NumericUpDown only pushes its text to the
+                // display once it has a window handle.  Set the text as well, otherwise the box
+                // shows whatever it had (often "0") while the value is correct.
+                SyncControlTexts();
             }
             catch { }
 
@@ -463,6 +466,8 @@ namespace Thetis
                 puresignal.TargetFeedbackLevel = (int)udPSTargetFeedback.Value;
                 if (console != null && !console.IsSetupFormNull)
                     console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
+
+                SyncControlTexts();
             }
             catch { }
 
@@ -1293,6 +1298,25 @@ namespace Thetis
             catch { }
         }
 
+        // A NumericUpDown only pushes its text to the display once it has a window handle.
+        // The values are restored before that happens, so the boxes would show whatever text
+        // they had ("0" for a fresh control) while their value is correct.  Put the text back.
+        private void SyncControlTexts()
+        {
+            try
+            {
+                if (udPSTargetFeedback != null && udPSTargetFeedback.Text != udPSTargetFeedback.Value.ToString())
+                    udPSTargetFeedback.Text = udPSTargetFeedback.Value.ToString();
+
+                if (udTestIMDFreq1 != null && udTestIMDFreq1.Text != udTestIMDFreq1.Value.ToString())
+                    udTestIMDFreq1.Text = udTestIMDFreq1.Value.ToString();
+
+                if (udTestIMDFreq2 != null && udTestIMDFreq2.Text != udTestIMDFreq2.Value.ToString())
+                    udTestIMDFreq2.Text = udTestIMDFreq2.Value.ToString();
+            }
+            catch { }
+        }
+
         private void udPSTargetFeedback_Validating(object sender, System.ComponentModel.CancelEventArgs e)
         {
             try
@@ -1302,6 +1326,8 @@ namespace Thetis
                 // number that is not the one in use.  Put the real value back.
                 if (udPSTargetFeedback.Text != udPSTargetFeedback.Value.ToString())
                     udPSTargetFeedback.Value = puresignal.TargetFeedbackLevel;
+
+                SyncControlTexts();
             }
             catch { }
         }
