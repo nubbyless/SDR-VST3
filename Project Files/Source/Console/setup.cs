@@ -568,17 +568,18 @@ namespace Thetis
             initStreamOutTab(); //prior to getOptions setup streaming output options
 
             // Yurij_eu2av: hardware-specific default for PureSignal target feedback.
-            // Done before getOptions() so a saved user override takes precedence.
-            PSTargetFeedbackLevel = HardwareSpecific.PSTargetFeedbackLevel;
+            // It is not a user setting any more, the hidden control only holds the record of
+            // the value in use.
+            if (udPSTargetFeedbackLevel != null)
+                udPSTargetFeedbackLevel.Value = HardwareSpecific.PSTargetFeedbackLevel;
 
             LogTool.AddLogEntry("        Setup getting options...", "GETOPTIONS");
             getOptions();
             LogTool.Completed("GETOPTIONS");
 
-            // The PureSignal form (the linearity window) shows the calibration values, they
-            // are owned by the setup form.  It may not exist yet, it pulls them when it is.
+            // The PureSignal form (the linearity window) shows the target feedback level, it
+            // is owned by the code.  It may not exist yet, it pulls the value when it is.
             pushTargetFeedbackToPSForm();
-            pushTestToneFrequencies();
 
             selectSkin();
 
@@ -1807,10 +1808,8 @@ namespace Thetis
             // add this manually because the usbbcd combo box will need this to recover previously selected
             a.Add("UsbBCDSerialNumber", m_sUsbBCDSerialNumber);
 
-            // the two tone frequencies live in the PureSignal form (the linearity window),
-            // they are stored under the names they had in the Setup > Tests tab
-            a.Add("udTestIMDFreq1", _testToneFreq1.ToString());
-            a.Add("udTestIMDFreq2", _testToneFreq2.ToString());
+            // the marker for the one time two tone frequency migration, see handleOutdatedOptions()
+            a.Add("udTestToneFreq1250Hz", "1");
 
             // add this manually because soundfile string not stored in any control in setup
             a.Add("QSOTimerFilenameWav", console.QSOTimerAudioPlayer.SoundFile);
@@ -1923,6 +1922,29 @@ namespace Thetis
             // the stimulus selection moved to the PureSignal form (the linearity window)
             if (getDict.ContainsKey("chkTestIMDNoise"))
                 _oldSettings.Add("chkTestIMDNoise");
+
+            // The two tone frequencies.  The console used to ship with 700/1900Hz, a 1200Hz
+            // spacing, and 96000/1200 is exactly 80 - an exact sub-multiple of the TX
+            // processing rate.  The digitised envelope then repeats its sample values and the
+            // PureSignal calibration only sees a few repeated levels instead of a continuous
+            // sweep.  Bring every database up to the 1250Hz spacing of the 'Defaults' preset.
+            // The migration runs once - the marker is written with the next save, after that
+            // the operator's own choice (the 'Stealth' preset for example) is left alone.
+            // See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
+            if (!getDict.ContainsKey("udTestToneFreq1250Hz"))
+            {
+                getDict["udTestIMDFreq1"] = "700";
+                getDict["udTestIMDFreq2"] = "1950";
+                getDict["udTestToneFreq1250Hz"] = "1";
+            }
+
+            // The PureSignal target feedback level is set by the code for the radio in use,
+            // it is not a user setting any more.  A stale value in the database is a dead
+            // setpoint for the auto-attenuator - it chases a target the rig cannot reach,
+            // parks on the end stop of the TX step attenuator and the feedback light never
+            // goes green.  Replace it with the value in use.
+            if (getDict.ContainsKey("udPSTargetFeedbackLevel"))
+                getDict["udPSTargetFeedbackLevel"] = HardwareSpecific.PSTargetFeedbackLevel.ToString();
 
             handleOldPAGainSettings(ref getDict);
         }
@@ -2301,10 +2323,6 @@ namespace Thetis
             {
                 ucRadioList_Radios.ClearRadios();
             }
-
-            // The two tone frequencies live in the PureSignal form (the linearity window).
-            // They are stored under the names they had in the Setup > Tests tab.
-            restoreTestToneFrequencies(a);
 
             _gettingOptions = false;
         }
@@ -4422,25 +4440,12 @@ namespace Thetis
             }
         }
 
+        // The PureSignal target feedback level is set by the code for the radio in use
+        // (HardwareSpecific.PSTargetFeedbackLevel).  It is not a user setting, so the
+        // database entry it used to live in is only a record now.
         public int PSTargetFeedbackLevel
         {
-            get
-            {
-                if (udPSTargetFeedbackLevel != null) return (int)udPSTargetFeedbackLevel.Value;
-                else return HardwareSpecific.PSTargetFeedbackLevel;
-            }
-            set
-            {
-                if (udPSTargetFeedbackLevel != null)
-                {
-                    if (value > (int)udPSTargetFeedbackLevel.Maximum) value = (int)udPSTargetFeedbackLevel.Maximum;
-                    if (value < (int)udPSTargetFeedbackLevel.Minimum) value = (int)udPSTargetFeedbackLevel.Minimum;
-                    udPSTargetFeedbackLevel.Value = value;
-                }
-                // The PureSignal form (the linearity window) shows the target in its "FB Target"
-                // box.  It may not exist yet when the database is restored, it pulls the value
-                // when it is created.
-            }
+            get { return HardwareSpecific.PSTargetFeedbackLevel; }
         }
 
         public string SerialNumber
@@ -11796,8 +11801,8 @@ namespace Thetis
         // The tone itself keeps its level: the drive and the ALC have to stay where they are.
         private void applyTestStimulusGenerator(bool noise)
         {
-            double ttfreq1 = (double)TestToneFreq1;
-            double ttfreq2 = (double)TestToneFreq2;
+            double ttfreq1 = (double)udTestIMDFreq1.Value;
+            double ttfreq2 = (double)udTestIMDFreq2.Value;
             double ttmag = (double)udTwoToneLevel.Value;
             double ttmag1, ttmag2;
             ttmag1 = ttmag2 = 0.49999 * Math.Pow(10.0, ttmag / 20.0);
@@ -12465,6 +12470,28 @@ namespace Thetis
         private void udTXGenSweepLow_LostFocus(object sender, EventArgs e)
         {
             udTXGenSweepLow.Value = udTXGenSweepLow.Value;
+        }
+
+        private void udTestIMDFreq1_LostFocus(object sender, EventArgs e)
+        {
+            udTestIMDFreq1.Value = udTestIMDFreq1.Value;
+            updateTestIMDSpacingWarning();
+        }
+
+        private void udTestIMDFreq1_ValueChanged(object sender, EventArgs e)
+        {
+            updateTestIMDSpacingWarning();
+        }
+
+        private void udTestIMDFreq2_LostFocus(object sender, EventArgs e)
+        {
+            udTestIMDFreq2.Value = udTestIMDFreq2.Value;
+            updateTestIMDSpacingWarning();
+        }
+
+        private void udTestIMDFreq2_ValueChanged(object sender, EventArgs e)
+        {
+            updateTestIMDSpacingWarning();
         }
 
         private void udTestIMDPower_LostFocus(object sender, EventArgs e)
@@ -36804,7 +36831,7 @@ namespace Thetis
             rate = 0.0;
             division = 0.0;
 
-            double spacing = Math.Abs((double)TestToneFreq2 - (double)TestToneFreq1);
+            double spacing = Math.Abs((double)udTestIMDFreq2.Value - (double)udTestIMDFreq1.Value);
             if (spacing < 1.0) return false;
 
             double[] rates = new double[] { TX_PROCESSING_RATE, RADIO_TX_RATE };
@@ -36821,71 +36848,42 @@ namespace Thetis
             return false;
         }
 
-        // Restore the two tone frequencies into the PureSignal form (the linearity window).
-        // They are stored under the names they had in the Setup > Tests tab.
-        //
-        // The console used to ship with 700/1900Hz, a 1200Hz spacing.  96000/1200 is exactly 80,
-        // so that spacing is an exact sub-multiple of the TX processing rate: the digitised
-        // envelope then repeats its sample values and the PureSignal calibration only sees a few
-        // repeated levels instead of a continuous sweep.  The 'Defaults' preset was changed to
-        // 700/1950Hz (a 1250Hz spacing) but the *stored* value was never migrated, so every
-        // database created before that still holds the trap.  Move it over now.
-        // See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
-        private void restoreTestToneFrequencies(Dictionary<string, string> a)
-        {
-            try
-            {
-                decimal f1 = 700m;
-                decimal f2 = 1950m;
-
-                if (a.ContainsKey("udTestIMDFreq1")) decimal.TryParse(a["udTestIMDFreq1"], out f1);
-                if (a.ContainsKey("udTestIMDFreq2")) decimal.TryParse(a["udTestIMDFreq2"], out f2);
-
-                // the old shipped defaults, both of them a spacing trap
-                if (f1 == 700m && f2 == 1900m) f2 = 1950m;
-                if (f1 == 70m && f2 == 190m) f2 = 194m;
-
-                _testToneFreq1 = f1;
-                _testToneFreq2 = f2;
-
-                pushTestToneFrequencies();
-            }
-            catch { }
-        }
-
-        // The two tone frequencies.  The setup form owns them, they are stored in the
-        // database under the names they had in the Setup > Tests tab.  The PureSignal form
-        // (the linearity window) shows and edits them - it may not exist yet when the
-        // database is restored, so the values are kept here and pushed to it when it is.
-        private decimal _testToneFreq1 = 700m;
-        private decimal _testToneFreq2 = 1950m;
-
+        // The two tone frequencies.  They live in the Setup > Tests tab, the controls are part
+        // of this form and the generic database save/restore handles them.  The PureSignal
+        // form (the linearity window) only reads them.
         public decimal TestToneFreq1
         {
-            get { return _testToneFreq1; }
-            set { _testToneFreq1 = value; pushTestToneFrequencies(); }
+            get { return udTestIMDFreq1.Value; }
         }
 
         public decimal TestToneFreq2
         {
-            get { return _testToneFreq2; }
-            set { _testToneFreq2 = value; pushTestToneFrequencies(); }
+            get { return udTestIMDFreq2.Value; }
         }
 
-        private void pushTestToneFrequencies()
+        private void btnTwoToneF_defaults_Click(object sender, EventArgs e)
         {
-            try
-            {
-                if (console == null || console.IsSetupFormNull) return;
-                if (console.psform == null) return;
-                console.psform.SetTestToneFrequencies(_testToneFreq1, _testToneFreq2);
-            }
-            catch { }
+            // the spacing is 1250Hz, that is not a sub-multiple of the 96kHz TX processing rate
+            // and not of the 12.288kHz radio rate.  A two tone spacing that IS a sub-multiple
+            // makes the digitised envelope repeat its sample values, the PureSignal calibration
+            // then only sees a few repeated levels instead of a continuous sweep.
+            udTestIMDFreq1.Value = 700;
+            udTestIMDFreq2.Value = 1950;
+            updateTestIMDSpacingWarning();
+        }
+
+        private void btnTwoToneF_stealth_Click(object sender, EventArgs e)
+        {
+            // 'stealth', the IMD products stay close to the carrier.  The 124Hz spacing is not a
+            // sub-multiple of the TX processing rate.
+            udTestIMDFreq1.Value = 70;
+            udTestIMDFreq2.Value = 194;
+            updateTestIMDSpacingWarning();
         }
 
         // The PureSignal form (the linearity window) shows the target feedback level in its
-        // "FB Target" box.  It may not exist yet when the database is restored, it pulls the
-        // value when it is created.  Push it over when it does exist.
+        // "FB Target" readout.  It may not exist yet when the database is restored, it pulls
+        // the value when it is created.  Push it over when it does exist.
         private void pushTargetFeedbackToPSForm()
         {
             try
@@ -36911,8 +36909,12 @@ namespace Thetis
             {
                 msg = "The tone spacing is exactly 1/" + division.ToString("F0") + " of the " +
                 (rate / 1000.0).ToString("F0") + "kHz TX rate." + Environment.NewLine +
-                "The PureSignal calibration then only sees a few repeated levels, use a spacing like 1250Hz.";
+                "The PureSignal calibration then only sees a few repeated levels, use a spacing like 1250Hz." + Environment.NewLine +
+                "Change the frequencies in Setup > Tests.";
             }
+
+            // The PureSignal form may not exist yet - the frequencies live in this form now.
+            if (console.psform == null) return;
 
             console.psform.SetCalStimulusWarning(msg);
         }
@@ -36983,12 +36985,17 @@ namespace Thetis
         {
             bool running = chkTestIMD.Checked;
 
-            // The tone frequencies in the linearity window are always shown and always
-            // usable.  They used to be greyed out with the noise stimulus, and a disabled
-            // control is not painted at all, so the text disappeared exactly when it was
-            // needed.  A change of the frequencies only takes effect the next time the
-            // stimulus starts, so there is nothing to lock either.
-            console.psform.SetTestToneControlsEnabled(true);
+            // The tone frequencies are always shown and always usable.  They used to be greyed
+            // out with the noise stimulus, and a disabled control is not painted at all, so
+            // the text disappeared exactly when it was needed.  A change of the frequencies
+            // only takes effect the next time the stimulus starts, so there is nothing to
+            // lock either.
+            udTestIMDFreq1.Enabled = true;
+            udTestIMDFreq2.Enabled = true;
+            lblTestToneFreq1.Enabled = true;
+            lblTestToneFreq2.Enabled = true;
+            btnTwoToneF_defaults.Enabled = true;
+            btnTwoToneF_stealth.Enabled = true;
 
             // the level and the pulsed tone controls are only used by the two tone
             chkInvertTones.Enabled = !noise && !running;

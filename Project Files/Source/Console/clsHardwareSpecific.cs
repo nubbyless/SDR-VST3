@@ -325,23 +325,35 @@ namespace Thetis
         // The target is the feedback level the auto-attenuator drives the amplifier to.  It
         // has to be reachable: the auto-attenuator moves the TX step attenuator and that only
         // goes from 0 to 31 dB.  A target that asks for more attenuation than exists runs the
-        // auto-attenuator into the ceiling, the feedback stays above the target and the
-        // indicator never goes green.
+        // auto-attenuator into the ceiling, it parks on the end stop with a weak feedback
+        // signal and the indicator never goes green.
         //
-        // PureSignal 3 changed the reference point the feedback level is measured against:
-        // PS2 used the cubic fit at the top *measured* interval, PS3 extrapolates the fitted
-        // curve to the reference drive.  The same amplifier therefore reads a different
-        // number under PS3, and the old PureSignal 2 numbers (152, 22) no longer apply.
+        // The number is a property of the radio's feedback path, it is not a user setting:
+        // binfo[4] = 256 * y_at_1 / peak, so it depends on the feedback coupling of the rig
+        // and on the peak reference (SetPk).  The same amplifier reads a different number on
+        // a different radio.  The operator must not be able to change it - a wrong value is
+        // how an amplifier ends up in the wrong operating point.
         //
-        // Measured on an ANAN-10E (peak reference 0.2899): the feedback reads 30 with the
-        // attenuator at 31 dB.  30 is the default for that reference, the rigs differ in their
-        // feedback coupling and the value can be changed in the linearity window
-        // ("FB Target") - it is stored in the database.
+        // Orion MK2 based rigs (ANAN-7000/8000/Anvelina PRO3) share the same feedback
+        // coupling levels.  Target ~22 keeps the ADC2208 and codec well inside their linear
+        // range while giving enough feedback for PureSignal correction.
+        //
+        // Verified on an ANAN-10E (peak reference 0.2899) on 2026-11-13: with the target at
+        // 152 the auto-attenuator walks the TX attenuator from 31 dB to 18 dB and the
+        // feedback lands at 149..156 - exactly where it landed with PureSignal 2 (WDSP 1.29).
         public static int PSTargetFeedbackLevel
         {
             get
             {
-                return 30;
+                switch (_model)
+                {
+                    case HPSDRModel.ANAN7000D:
+                    case HPSDRModel.ANAN8000D:
+                    case HPSDRModel.ANVELINAPRO3:
+                        return 22;
+                    default:
+                        return 152;
+                }
             }
         }
 

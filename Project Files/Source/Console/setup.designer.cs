@@ -3994,6 +3994,8 @@
             this.cmboSigGenRXMode = new System.Windows.Forms.ComboBoxTS();
             this.grpTestTXIMD = new System.Windows.Forms.GroupBoxTS();
             this.chkPulsed_TwoTone = new System.Windows.Forms.CheckBoxTS();
+            this.btnTwoToneF_stealth = new System.Windows.Forms.ButtonTS();
+            this.btnTwoToneF_defaults = new System.Windows.Forms.ButtonTS();
             this.grpPulsedTwoTone = new System.Windows.Forms.GroupBoxTS();
             this.lblTwoTonePulse_info = new System.Windows.Forms.LabelTS();
             this.labelTS440 = new System.Windows.Forms.LabelTS();
@@ -4015,8 +4017,12 @@
             this.chkInvertTones = new System.Windows.Forms.CheckBoxTS();
             this.lblTwoToneLevel = new System.Windows.Forms.LabelTS();
             this.udTwoToneLevel = new System.Windows.Forms.NumericUpDownTS();
+            this.lblTestToneFreq2 = new System.Windows.Forms.LabelTS();
+            this.udTestIMDFreq2 = new System.Windows.Forms.NumericUpDownTS();
             this.udTestIMDPower = new System.Windows.Forms.NumericUpDownTS();
             this.chkTestIMD = new System.Windows.Forms.CheckBoxTS();
+            this.lblTestToneFreq1 = new System.Windows.Forms.LabelTS();
+            this.udTestIMDFreq1 = new System.Windows.Forms.NumericUpDownTS();
             this.grpTestAudioBalance = new System.Windows.Forms.GroupBoxTS();
             this.btnTestAudioBalStart = new System.Windows.Forms.ButtonTS();
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
@@ -5572,7 +5578,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.nudPulsed_TwoTone_percent)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFreq2Delay)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udTwoToneLevel)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.udTestIMDFreq2)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udTestIMDPower)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.udTestIMDFreq1)).BeginInit();
             this.grpTestAudioBalance.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nudHistory_axis1_max)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudHistory_axis1_min)).BeginInit();
@@ -63186,6 +63194,8 @@
             // grpTestTXIMD
             // 
             this.grpTestTXIMD.Controls.Add(this.chkPulsed_TwoTone);
+            this.grpTestTXIMD.Controls.Add(this.btnTwoToneF_stealth);
+            this.grpTestTXIMD.Controls.Add(this.btnTwoToneF_defaults);
             this.grpTestTXIMD.Controls.Add(this.grpPulsedTwoTone);
             this.grpTestTXIMD.Controls.Add(this.radUseFixedDrive2Tone);
             this.grpTestTXIMD.Controls.Add(this.radUseDriveSlider2Tone);
@@ -63197,8 +63207,12 @@
             this.grpTestTXIMD.Controls.Add(this.chkInvertTones);
             this.grpTestTXIMD.Controls.Add(this.lblTwoToneLevel);
             this.grpTestTXIMD.Controls.Add(this.udTwoToneLevel);
+            this.grpTestTXIMD.Controls.Add(this.lblTestToneFreq2);
+            this.grpTestTXIMD.Controls.Add(this.udTestIMDFreq2);
             this.grpTestTXIMD.Controls.Add(this.udTestIMDPower);
             this.grpTestTXIMD.Controls.Add(this.chkTestIMD);
+            this.grpTestTXIMD.Controls.Add(this.lblTestToneFreq1);
+            this.grpTestTXIMD.Controls.Add(this.udTestIMDFreq1);
             this.grpTestTXIMD.Location = new System.Drawing.Point(8, 8);
             this.grpTestTXIMD.Name = "grpTestTXIMD";
             this.grpTestTXIMD.Size = new System.Drawing.Size(323, 326);
@@ -63217,6 +63231,34 @@
             this.toolTip1.SetToolTip(this.chkPulsed_TwoTone, "Enable pulsed two tone");
             this.chkPulsed_TwoTone.UseVisualStyleBackColor = true;
             this.chkPulsed_TwoTone.CheckedChanged += new System.EventHandler(this.chkPulsed_TwoTone_CheckedChanged);
+            // 
+            // btnTwoToneF_stealth
+            // 
+            this.btnTwoToneF_stealth.Image = null;
+            this.btnTwoToneF_stealth.Location = new System.Drawing.Point(135, 73);
+            this.btnTwoToneF_stealth.Name = "btnTwoToneF_stealth";
+            this.btnTwoToneF_stealth.Selectable = true;
+            this.btnTwoToneF_stealth.Size = new System.Drawing.Size(67, 23);
+            this.btnTwoToneF_stealth.TabIndex = 127;
+            this.btnTwoToneF_stealth.Text = "\'Stealth\'";
+            this.toolTip1.SetToolTip(this.btnTwoToneF_stealth, "A 'stealth' 70Hz and 194Hz." + "\r\n" +
+                "The IMD products stay close to the carrier.  The 124Hz spacing is not a sub-multiple of the TX processing rate.");
+            this.btnTwoToneF_stealth.UseVisualStyleBackColor = true;
+            this.btnTwoToneF_stealth.Click += new System.EventHandler(this.btnTwoToneF_stealth_Click);
+            // 
+            // btnTwoToneF_defaults
+            // 
+            this.btnTwoToneF_defaults.Image = null;
+            this.btnTwoToneF_defaults.Location = new System.Drawing.Point(135, 49);
+            this.btnTwoToneF_defaults.Name = "btnTwoToneF_defaults";
+            this.btnTwoToneF_defaults.Selectable = true;
+            this.btnTwoToneF_defaults.Size = new System.Drawing.Size(67, 23);
+            this.btnTwoToneF_defaults.TabIndex = 126;
+            this.btnTwoToneF_defaults.Text = "Defaults";
+            this.toolTip1.SetToolTip(this.btnTwoToneF_defaults, "Default 700Hz and 1950Hz." + "\r\n" +
+                "The 1250Hz spacing is not a sub-multiple of the TX sample rate, a two tone spacing that is a sub-multiple distorts the PureSignal calibration.");
+            this.btnTwoToneF_defaults.UseVisualStyleBackColor = true;
+            this.btnTwoToneF_defaults.Click += new System.EventHandler(this.btnTwoToneF_defaults_Click);
             // 
             // grpPulsedTwoTone
             // 
@@ -63553,6 +63595,47 @@
             0});
             this.udTwoToneLevel.ValueChanged += new System.EventHandler(this.udTwoToneLevel_ValueChanged);
             // 
+            // lblTestToneFreq2
+            // 
+            this.lblTestToneFreq2.AutoSize = true;
+            this.lblTestToneFreq2.Image = null;
+            this.lblTestToneFreq2.Location = new System.Drawing.Point(8, 75);
+            this.lblTestToneFreq2.Name = "lblTestToneFreq2";
+            this.lblTestToneFreq2.Size = new System.Drawing.Size(47, 13);
+            this.lblTestToneFreq2.TabIndex = 88;
+            this.lblTestToneFreq2.Text = "Freq #2:";
+            this.lblTestToneFreq2.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            // 
+            // udTestIMDFreq2
+            // 
+            this.udTestIMDFreq2.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.udTestIMDFreq2.Location = new System.Drawing.Point(70, 73);
+            this.udTestIMDFreq2.Maximum = new decimal(new int[] {
+            20000,
+            0,
+            0,
+            0});
+            this.udTestIMDFreq2.Minimum = new decimal(new int[] {
+            20000,
+            0,
+            0,
+            -2147483648});
+            this.udTestIMDFreq2.Name = "udTestIMDFreq2";
+            this.udTestIMDFreq2.Size = new System.Drawing.Size(56, 20);
+            this.udTestIMDFreq2.TabIndex = 87;
+            this.udTestIMDFreq2.TinyStep = false;
+            this.udTestIMDFreq2.Value = new decimal(new int[] {
+            19500,
+            0,
+            0,
+            65536});
+            this.udTestIMDFreq2.LostFocus += new System.EventHandler(this.udTestIMDFreq2_LostFocus);
+            this.udTestIMDFreq2.ValueChanged += new System.EventHandler(this.udTestIMDFreq2_ValueChanged);
+            // 
             // udTestIMDPower
             // 
             this.udTestIMDPower.Increment = new decimal(new int[] {
@@ -63594,6 +63677,47 @@
             this.chkTestIMD.Text = "Start";
             this.chkTestIMD.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.chkTestIMD.CheckedChanged += new System.EventHandler(this.chkTestIMD_CheckedChanged);
+            // 
+            // lblTestToneFreq1
+            // 
+            this.lblTestToneFreq1.AutoSize = true;
+            this.lblTestToneFreq1.Image = null;
+            this.lblTestToneFreq1.Location = new System.Drawing.Point(8, 52);
+            this.lblTestToneFreq1.Name = "lblTestToneFreq1";
+            this.lblTestToneFreq1.Size = new System.Drawing.Size(47, 13);
+            this.lblTestToneFreq1.TabIndex = 83;
+            this.lblTestToneFreq1.Text = "Freq #1:";
+            this.lblTestToneFreq1.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            // 
+            // udTestIMDFreq1
+            // 
+            this.udTestIMDFreq1.Increment = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.udTestIMDFreq1.Location = new System.Drawing.Point(70, 49);
+            this.udTestIMDFreq1.Maximum = new decimal(new int[] {
+            20000,
+            0,
+            0,
+            0});
+            this.udTestIMDFreq1.Minimum = new decimal(new int[] {
+            20000,
+            0,
+            0,
+            -2147483648});
+            this.udTestIMDFreq1.Name = "udTestIMDFreq1";
+            this.udTestIMDFreq1.Size = new System.Drawing.Size(56, 20);
+            this.udTestIMDFreq1.TabIndex = 82;
+            this.udTestIMDFreq1.TinyStep = false;
+            this.udTestIMDFreq1.Value = new decimal(new int[] {
+            700,
+            0,
+            0,
+            0});
+            this.udTestIMDFreq1.LostFocus += new System.EventHandler(this.udTestIMDFreq1_LostFocus);
+            this.udTestIMDFreq1.ValueChanged += new System.EventHandler(this.udTestIMDFreq1_ValueChanged);
             // 
             // grpTestAudioBalance
             // 
@@ -73760,7 +73884,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.nudPulsed_TwoTone_percent)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFreq2Delay)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udTwoToneLevel)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.udTestIMDFreq2)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udTestIMDPower)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.udTestIMDFreq1)).EndInit();
             this.grpTestAudioBalance.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.nudHistory_axis1_max)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.nudHistory_axis1_min)).EndInit();
@@ -74661,6 +74787,12 @@
         private LabelTS labelTS20;
         private CheckBoxTS chk20dbMicBoost;
         private NumericUpDownTS udTwoToneLevel;
+        private LabelTS lblTestToneFreq2;
+        private NumericUpDownTS udTestIMDFreq2;
+        private LabelTS lblTestToneFreq1;
+        private NumericUpDownTS udTestIMDFreq1;
+        private ButtonTS btnTwoToneF_defaults;
+        private ButtonTS btnTwoToneF_stealth;
         private LabelTS lblTwoToneLevel;
         private NumericUpDownTS udTXDisplayCalOffset;
         private GroupBoxTS grpBoxTXDisplayCal;

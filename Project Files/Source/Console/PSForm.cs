@@ -83,45 +83,35 @@ namespace Thetis
                 // user changes are then never written back to the database.
             }
 
-            // The target feedback level is stored in the setup form's database (the "Options"
-            // table, as "udPSTargetFeedbackLevel").  The "PureSignal" table also has an entry
-            // for this control, it must not become a second source of truth.
+            // The target feedback level is set by the code for the radio in use, it is not a
+            // user setting: the operator must not be able to change it.  It used to be stored
+            // in the setup form's database (the "Options" table, as "udPSTargetFeedbackLevel"),
+            // that entry is dead now.
             try
             {
-                if (console != null && !console.IsSetupFormNull)
-                {
-                    udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
-                    SetTestToneFrequencies(console.SetupForm.TestToneFreq1, console.SetupForm.TestToneFreq2);
-                }
-
-                // The restore sets the Value, but a NumericUpDown only pushes its text to the
-                // display once it has a window handle.  Set the text as well, otherwise the box
-                // shows whatever it had (often "0") while the value is correct.
-                SyncControlTexts();
+                SetTargetFeedbackLevel(HardwareSpecific.PSTargetFeedbackLevel);
             }
             catch { }
 
-            // The tone frequency boxes are always shown and always usable.
-            SetTestToneControlsEnabled(true);
-
-            // Diagnostic: what the values in here ended up as.  The target feedback level has
-            // been read from more than one place over the years, this shows which one won.
+            // Diagnostic: what the values in here ended up as.
             // NOTE: console.SetupForm is a lazy singleton - touching it creates the setup form.
             // That must not happen here, the setup form is initialised at the wrong point of
             // the console startup otherwise (the display buffers are not ready yet).
             try
             {
-                int setupTarget = -1;
+                decimal tf1 = -1;
+                decimal tf2 = -1;
                 if (console != null && !console.IsSetupFormNull)
-                    setupTarget = console.SetupForm.PSTargetFeedbackLevel;
+                {
+                    tf1 = console.SetupForm.TestToneFreq1;
+                    tf2 = console.SetupForm.TestToneFreq2;
+                }
 
-                psLog(string.Format("PS form start: fbTarget box={0} setup={1} engine={2} hwDefault={3} tones={4}/{5}",
-                    udPSTargetFeedback.Value,
-                    setupTarget,
+                psLog(string.Format("PS form start: fbTarget={0} hwDefault={1} tones={2}/{3}",
                     puresignal.TargetFeedbackLevel,
                     HardwareSpecific.PSTargetFeedbackLevel,
-                    udTestIMDFreq1.Value,
-                    udTestIMDFreq2.Value));
+                    tf1,
+                    tf2));
             }
             catch { }
 
@@ -472,15 +462,11 @@ namespace Thetis
 
             txtPSpeak.Text = _PShwpeak.ToString();
 
-            // The box is the master: the value in it is the value the engine and the setup
-            // form use.  It was restored from the database, so it is the right one.
+            // The target feedback level comes from the code (the radio in use), it is not a
+            // user setting.  Show it and make sure the engine has it.
             try
             {
-                puresignal.TargetFeedbackLevel = (int)udPSTargetFeedback.Value;
-                if (console != null && !console.IsSetupFormNull)
-                    console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
-
-                SyncControlTexts();
+                SetTargetFeedbackLevel(HardwareSpecific.PSTargetFeedbackLevel);
             }
             catch { }
 
@@ -491,15 +477,11 @@ namespace Thetis
 
             try
             {
-                psLog(string.Format("PS form shown: fbTarget box={0} engine={1} min={2} max={3} inc={4} text='{5}' tones={6}/{7} getpk={8} fb={9}",
-                    udPSTargetFeedback.Value,
+                psLog(string.Format("PS form shown: fbTarget={0} hwDefault={1} tones={2}/{3} getpk={4} fb={5}",
                     puresignal.TargetFeedbackLevel,
-                    udPSTargetFeedback.Minimum,
-                    udPSTargetFeedback.Maximum,
-                    udPSTargetFeedback.Increment,
-                    udPSTargetFeedback.Text,
-                    udTestIMDFreq1.Value,
-                    udTestIMDFreq2.Value,
+                    HardwareSpecific.PSTargetFeedbackLevel,
+                    console.SetupForm.TestToneFreq1,
+                    console.SetupForm.TestToneFreq2,
                     GetPSpeak.Text,
                     lblPSfb2.Text));
             }
@@ -627,101 +609,21 @@ namespace Thetis
             catch { }
         }
 
-        // The two tone frequencies.  They live here, in the linearity window, and not in the
-        // Setup > Tests tab: the tone spacing decides whether the calibration sees a
-        // continuous sweep of drive levels or only a few repeated ones.  A spacing that is an
-        // exact sub-multiple of the TX processing rate is the trap, see the WDSP guide 2.11,
-        // Appendix D 13.3 and 13.6.
-        // The setup form owns the values (it stores them in the database), the form here
-        // only shows and edits them.
-        public void SetTestToneFrequencies(decimal f1, decimal f2)
-        {
-            try
-            {
-                if (udTestIMDFreq1 != null && udTestIMDFreq1.Value != f1) udTestIMDFreq1.Value = f1;
-                if (udTestIMDFreq2 != null && udTestIMDFreq2.Value != f2) udTestIMDFreq2.Value = f2;
-            }
-            catch { }
-        }
+        // The two tone frequencies live in the Setup > Tests tab again, together with the
+        // 'Defaults' and 'Stealth' presets.  The tone spacing decides whether the
+        // calibration sees a continuous sweep of drive levels or only a few repeated ones.
+        // A spacing that is an exact sub-multiple of the TX processing rate is the trap,
+        // see the WDSP guide 2.11, Appendix D 13.3 and 13.6.  The warning about it is
+        // still shown here, in the linearity window, where the calibration is set up.
 
-        // The "FB Target" box.  The setup form owns the value (it is in the database), this
-        // form only shows and edits it.
+        // The "FB Target" readout.  The value is set by the code for the radio in use, this
+        // form only shows it.
         public void SetTargetFeedbackLevel(int value)
         {
             try
             {
-                if (udPSTargetFeedback != null && udPSTargetFeedback.Value != value)
-                    udPSTargetFeedback.Value = value;
-            }
-            catch { }
-        }
-
-        // The tone frequency boxes are always shown.  They used to be greyed out with the
-        // noise stimulus, and a disabled control is not drawn at all, so they disappeared
-        // exactly when they were needed.  Only the values are locked while the TX test
-        // is running.
-        public void SetTestToneControlsEnabled(bool enabled)
-        {
-            try
-            {
-                if (udTestIMDFreq1 != null) { udTestIMDFreq1.Visible = true; udTestIMDFreq1.Enabled = enabled; }
-                if (udTestIMDFreq2 != null) { udTestIMDFreq2.Visible = true; udTestIMDFreq2.Enabled = enabled; }
-                if (lblTestToneFreq1 != null) { lblTestToneFreq1.Visible = true; lblTestToneFreq1.Enabled = enabled; }
-                if (lblTestToneFreq2 != null) { lblTestToneFreq2.Visible = true; lblTestToneFreq2.Enabled = enabled; }
-                if (btnTwoToneF_defaults != null) { btnTwoToneF_defaults.Visible = true; btnTwoToneF_defaults.Enabled = enabled; }
-            }
-            catch { }
-        }
-
-        private void btnTwoToneF_defaults_Click(object sender, EventArgs e)
-        {
-            // the spacing is 1250Hz, that is not a sub-multiple of the 96kHz TX processing rate
-            // and not of the 12.288kHz radio rate.  A two tone spacing that IS a sub-multiple
-            // makes the digitised envelope repeat its sample values, the PureSignal calibration
-            // then only sees a few repeated levels instead of a continuous sweep.
-            setTestToneFrequencies(700m, 1950m);
-        }
-
-        private void setTestToneFrequencies(decimal f1, decimal f2)
-        {
-            try
-            {
-                if (console == null || console.IsSetupFormNull) return;
-                console.SetupForm.TestToneFreq1 = f1;
-                console.SetupForm.TestToneFreq2 = f2;
-                updateToneSpacingWarning();
-            }
-            catch { }
-        }
-
-        private void udTestIMDFreq1_ValueChanged(object sender, EventArgs e)
-        {
-            try
-            {
-                if (console == null || console.IsSetupFormNull) return;
-                console.SetupForm.TestToneFreq1 = (decimal)udTestIMDFreq1.Value;
-                updateToneSpacingWarning();
-            }
-            catch { }
-        }
-
-        private void udTestIMDFreq2_ValueChanged(object sender, EventArgs e)
-        {
-            try
-            {
-                if (console == null || console.IsSetupFormNull) return;
-                console.SetupForm.TestToneFreq2 = (decimal)udTestIMDFreq2.Value;
-                updateToneSpacingWarning();
-            }
-            catch { }
-        }
-
-        private void updateToneSpacingWarning()
-        {
-            try
-            {
-                if (console == null || console.IsSetupFormNull) return;
-                console.SetupForm.UpdateCalStimulusUI(singleCalUseNoise);
+                if (lblPSTargetFeedback != null)
+                    lblPSTargetFeedback.Text = "FB Target: " + value;
             }
             catch { }
         }
@@ -1365,52 +1267,6 @@ namespace Thetis
             cmaster.PSLoopback = checkLoopback.Checked;
         }
 
-        private void udPSTargetFeedback_ValueChanged(object sender, EventArgs e)
-        {
-            puresignal.TargetFeedbackLevel = (int)udPSTargetFeedback.Value;
-            // No _psFormReady guard here: if the form is not fully initialised the change
-            // would be dropped and never reach the database.
-            if (console != null && !console.IsSetupFormNull)
-                console.SetupForm.PSTargetFeedbackLevel = (int)udPSTargetFeedback.Value;
-
-            try { psLog("FB Target changed to " + udPSTargetFeedback.Value); }
-            catch { }
-        }
-
-        // A NumericUpDown only pushes its text to the display once it has a window handle.
-        // The values are restored before that happens, so the boxes would show whatever text
-        // they had ("0" for a fresh control) while their value is correct.  Put the text back.
-        private void SyncControlTexts()
-        {
-            try
-            {
-                if (udPSTargetFeedback != null && udPSTargetFeedback.Text != udPSTargetFeedback.Value.ToString())
-                    udPSTargetFeedback.Text = udPSTargetFeedback.Value.ToString();
-
-                if (udTestIMDFreq1 != null && udTestIMDFreq1.Text != udTestIMDFreq1.Value.ToString())
-                    udTestIMDFreq1.Text = udTestIMDFreq1.Value.ToString();
-
-                if (udTestIMDFreq2 != null && udTestIMDFreq2.Text != udTestIMDFreq2.Value.ToString())
-                    udTestIMDFreq2.Text = udTestIMDFreq2.Value.ToString();
-            }
-            catch { }
-        }
-
-        private void udPSTargetFeedback_Validating(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-            try
-            {
-                // A NumericUpDown keeps the text that was typed until it parses.  A value
-                // below the minimum (0) is never accepted, so the box would go on showing a
-                // number that is not the one in use.  Put the real value back.
-                if (udPSTargetFeedback.Text != udPSTargetFeedback.Value.ToString())
-                    udPSTargetFeedback.Value = puresignal.TargetFeedbackLevel;
-
-                SyncControlTexts();
-            }
-            catch { }
-        }
-
         private void comboPSDeadlock_SelectedIndexChanged(object sender, EventArgs e)
         {
             // DL1BZ: adjustable WDSP 2.00+ deadlock minimum useful fraction.
@@ -1477,14 +1333,10 @@ namespace Thetis
             udPSPhnum_ValueChanged(this, e);
             udPSMoxDelay_ValueChanged(this, e);
             chkPSAutoAttenuate_CheckedChanged(this, e);
-            // The setup form owns the target feedback level.  It may not exist yet - do not
-            // create it here, that would run its initialisation at the wrong point of the
-            // console startup.
-            if (console != null && !console.IsSetupFormNull)
-            {
-                udPSTargetFeedback.Value = console.SetupForm.PSTargetFeedbackLevel;
-                udPSTargetFeedback_ValueChanged(this, e);
-            }
+            // The target feedback level is set by the code for the radio in use.  It may not
+            // exist yet when the database is restored - do not create the setup form here,
+            // that would run its initialisation at the wrong point of the console startup.
+            SetTargetFeedbackLevel(HardwareSpecific.PSTargetFeedbackLevel);
             comboPSDeadlock_SelectedIndexChanged(this, e);
             chkPSOnTop_CheckedChanged(this, e);
             chkQuickAttenuate_CheckedChanged(this, e);
@@ -1587,19 +1439,16 @@ namespace Thetis
         private static int[] _info = new int[20];
         private static int[] _oldInfo = new int[20];
         private static bool _bInvertRedBlue = false;
-        private static int _targetFeedbackLevel = 152;
+        // The target feedback level is set by the code for the radio in use
+        // (HardwareSpecific.PSTargetFeedbackLevel).  It is not a user setting: the operator
+        // must not be able to change it, a wrong value drives the amplifier into the wrong
+        // operating point.
         public static int TargetFeedbackLevel
         {
-            get { return _targetFeedbackLevel; }
-            set
-            {
-                if (value < 1) value = 1;
-                if (value > 256) value = 256;
-                _targetFeedbackLevel = value;
-            }
+            get { return HardwareSpecific.PSTargetFeedbackLevel; }
         }
-        public static int FeedbackLevelGreenLow { get { return (int)(_targetFeedbackLevel * 0.7); } }
-        public static int FeedbackLevelGreenHigh { get { return (int)(_targetFeedbackLevel * 1.3); } }
+        public static int FeedbackLevelGreenLow { get { return (int)(TargetFeedbackLevel * 0.7); } }
+        public static int FeedbackLevelGreenHigh { get { return (int)(TargetFeedbackLevel * 1.3); } }
         static puresignal()
         {
             for(int i = 0; i < 20; i++)
@@ -1644,16 +1493,16 @@ namespace Thetis
         }
         public static bool Correcting {
         // MW0LGE: the old threshold was a fixed 90.  That was 0.6 of the old target (152).
-        // PureSignal 3 measures the feedback against a different reference and the target is
-        // now 30, so a fixed number can never be reached again and the "correcting" light
-        // stayed yellow for ever.  Scale it with the target.
-        get { return FeedbackLevel > (int)(_targetFeedbackLevel * 0.6); }
+        // PureSignal 3 measures the feedback against a different reference, so a fixed number
+        // can never be reached and the "correcting" light stayed yellow for ever.  Scale it
+        // with the target.
+        get { return FeedbackLevel > (int)(TargetFeedbackLevel * 0.6); }
         }
         public static bool NeedToRecalibrate(int nCurrentATTonTX) {
             // Yurij_eu2av: recalibrate if feedback is too high relative to target,
             // or too low while we still have attenuation headroom.
-            return (FeedbackLevel > (int)(_targetFeedbackLevel * 1.5) ||
-                    (FeedbackLevel < (int)(_targetFeedbackLevel * 0.7) && nCurrentATTonTX > 0));
+            return (FeedbackLevel > (int)(TargetFeedbackLevel * 1.5) ||
+                    (FeedbackLevel < (int)(TargetFeedbackLevel * 0.7) && nCurrentATTonTX > 0));
         }
         public static bool IsFeedbackLevelOK {
             get { return FeedbackLevel <= 256; }
@@ -1684,8 +1533,8 @@ namespace Thetis
             get {
                 int greenLow = FeedbackLevelGreenLow;
                 int greenHigh = FeedbackLevelGreenHigh;
-                int yellowLow = (int)(_targetFeedbackLevel * 0.5);
-                int yellowHigh = (int)(_targetFeedbackLevel * 1.5);
+                int yellowLow = (int)(TargetFeedbackLevel * 0.5);
+                int yellowHigh = (int)(TargetFeedbackLevel * 1.5);
 
                 if (FeedbackLevel >= greenLow && FeedbackLevel <= greenHigh)
                     return Color.Lime;

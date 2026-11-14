@@ -31,7 +31,6 @@
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(PSForm));
             this.chkPSOnTop = new System.Windows.Forms.CheckBoxTS();
-            this.udPSTargetFeedback = new System.Windows.Forms.NumericUpDownTS();
             this.lblPSTargetFeedback = new System.Windows.Forms.LabelTS();
             this.comboPSDeadlock = new System.Windows.Forms.ComboBoxTS();
             this.lblPSDeadlock = new System.Windows.Forms.LabelTS();
@@ -44,11 +43,6 @@
             this.comboPSCalStimulus = new System.Windows.Forms.ComboBoxTS();
             this.lblPSCalStimulus = new System.Windows.Forms.LabelTS();
             this.lblPSSpacingWarning = new System.Windows.Forms.LabelTS();
-            this.lblTestToneFreq1 = new System.Windows.Forms.LabelTS();
-            this.udTestIMDFreq1 = new System.Windows.Forms.NumericUpDownTS();
-            this.lblTestToneFreq2 = new System.Windows.Forms.LabelTS();
-            this.udTestIMDFreq2 = new System.Windows.Forms.NumericUpDownTS();
-            this.btnTwoToneF_defaults = new System.Windows.Forms.ButtonTS();
             this.labelTS8 = new System.Windows.Forms.LabelTS();
             this.lblPSInfoFB = new System.Windows.Forms.LabelTS();
             this.lblPSInfoCO = new System.Windows.Forms.LabelTS();
@@ -94,7 +88,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.udPSPhnum)).BeginInit();
             this.grpPSInfo.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.udPSCalWait)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.udPSTargetFeedback)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.pbWarningSetPk)).BeginInit();
             this.SuspendLayout();
             // 
@@ -140,32 +133,6 @@
             this.btnPSSave.UseVisualStyleBackColor = false;
             this.btnPSSave.Click += new System.EventHandler(this.btnPSSave_Click);
             // 
-            // udPSTargetFeedback
-            // 
-            this.udPSTargetFeedback.Location = new System.Drawing.Point(490, 157);
-            this.udPSTargetFeedback.Maximum = new decimal(new int[] {
-            256,
-            0,
-            0,
-            0});
-            this.udPSTargetFeedback.Minimum = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.udPSTargetFeedback.Name = "udPSTargetFeedback";
-            this.udPSTargetFeedback.Size = new System.Drawing.Size(50, 20);
-            this.udPSTargetFeedback.TabIndex = 73;
-            this.udPSTargetFeedback.Value = new decimal(new int[] {
-            152,
-            0,
-            0,
-            0});
-            this.toolTip1.SetToolTip(this.udPSTargetFeedback, "Target Feedback Level for auto-attenuator and indicator. Default 30." + "\r\n" +
-                "The auto-attenuator drives the feedback onto this target by moving the TX step attenuator (0..31 dB).  PureSignal 3 measures the feedback against a different reference than PureSignal 2 did, so a target that worked with WDSP 1.29 has to be higher now - with the old value the attenuator runs into its 31 dB ceiling and the indicator never goes green.");
-            this.udPSTargetFeedback.ValueChanged += new System.EventHandler(this.udPSTargetFeedback_ValueChanged);
-            this.udPSTargetFeedback.Validating += new System.ComponentModel.CancelEventHandler(this.udPSTargetFeedback_Validating);
-            // 
             // lblPSTargetFeedback
             // 
             this.lblPSTargetFeedback.AutoSize = true;
@@ -175,7 +142,8 @@
             this.lblPSTargetFeedback.Name = "lblPSTargetFeedback";
             this.lblPSTargetFeedback.Size = new System.Drawing.Size(54, 13);
             this.lblPSTargetFeedback.TabIndex = 74;
-            this.lblPSTargetFeedback.Text = "FB Target";
+            this.lblPSTargetFeedback.Text = "FB Target: 152";
+            this.toolTip1.SetToolTip(this.lblPSTargetFeedback, "The PureSignal target feedback level.  It is set by the code for the radio in use and it cannot be changed here.");
             // 
             // lblPSDeadlock
             // 
@@ -302,109 +270,13 @@
             // 
             this.lblPSSpacingWarning.ForeColor = System.Drawing.Color.Red;
             this.lblPSSpacingWarning.Image = null;
-            this.lblPSSpacingWarning.Location = new System.Drawing.Point(380, 262);
+            this.lblPSSpacingWarning.Location = new System.Drawing.Point(380, 205);
             this.lblPSSpacingWarning.Name = "lblPSSpacingWarning";
-            this.lblPSSpacingWarning.Size = new System.Drawing.Size(285, 50);
+            this.lblPSSpacingWarning.Size = new System.Drawing.Size(285, 90);
             this.lblPSSpacingWarning.TabIndex = 55;
             this.lblPSSpacingWarning.Text = "";
             this.lblPSSpacingWarning.Visible = false;
             this.toolTip1.SetToolTip(this.lblPSSpacingWarning, "The PureSignal calibration bins the TX envelope into 16 levels.  When the tone spacing is an exact 1/N of the TX processing rate the digitised envelope repeats its sample values, the calibration then only sees a few repeated levels instead of a continuous sweep.  See the WDSP guide 2.11, Appendix D 13.3 and 13.6.");
-            //
-            // lblTestToneFreq1
-            //
-            this.lblTestToneFreq1.AutoSize = true;
-            this.lblTestToneFreq1.ForeColor = System.Drawing.Color.White;
-            this.lblTestToneFreq1.Image = null;
-            this.lblTestToneFreq1.Location = new System.Drawing.Point(380, 208);
-            this.lblTestToneFreq1.Name = "lblTestToneFreq1";
-            this.lblTestToneFreq1.Size = new System.Drawing.Size(47, 13);
-            this.lblTestToneFreq1.TabIndex = 56;
-            this.lblTestToneFreq1.Text = "Freq #1:";
-            this.lblTestToneFreq1.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            //
-            // udTestIMDFreq1
-            //
-            this.udTestIMDFreq1.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.udTestIMDFreq1.Location = new System.Drawing.Point(430, 205);
-            this.udTestIMDFreq1.Maximum = new decimal(new int[] {
-            20000,
-            0,
-            0,
-            0});
-            this.udTestIMDFreq1.Minimum = new decimal(new int[] {
-            20000,
-            0,
-            0,
-            -2147483648});
-            this.udTestIMDFreq1.Name = "udTestIMDFreq1";
-            this.udTestIMDFreq1.Size = new System.Drawing.Size(56, 20);
-            this.udTestIMDFreq1.TabIndex = 57;
-            this.udTestIMDFreq1.TinyStep = false;
-            this.udTestIMDFreq1.Value = new decimal(new int[] {
-            700,
-            0,
-            0,
-            0});
-            this.udTestIMDFreq1.ValueChanged += new System.EventHandler(this.udTestIMDFreq1_ValueChanged);
-            //
-            // lblTestToneFreq2
-            //
-            this.lblTestToneFreq2.AutoSize = true;
-            this.lblTestToneFreq2.ForeColor = System.Drawing.Color.White;
-            this.lblTestToneFreq2.Image = null;
-            this.lblTestToneFreq2.Location = new System.Drawing.Point(492, 208);
-            this.lblTestToneFreq2.Name = "lblTestToneFreq2";
-            this.lblTestToneFreq2.Size = new System.Drawing.Size(47, 13);
-            this.lblTestToneFreq2.TabIndex = 58;
-            this.lblTestToneFreq2.Text = "Freq #2:";
-            this.lblTestToneFreq2.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
-            //
-            // udTestIMDFreq2
-            //
-            this.udTestIMDFreq2.Increment = new decimal(new int[] {
-            1,
-            0,
-            0,
-            0});
-            this.udTestIMDFreq2.Location = new System.Drawing.Point(542, 205);
-            this.udTestIMDFreq2.Maximum = new decimal(new int[] {
-            20000,
-            0,
-            0,
-            0});
-            this.udTestIMDFreq2.Minimum = new decimal(new int[] {
-            20000,
-            0,
-            0,
-            -2147483648});
-            this.udTestIMDFreq2.Name = "udTestIMDFreq2";
-            this.udTestIMDFreq2.Size = new System.Drawing.Size(56, 20);
-            this.udTestIMDFreq2.TabIndex = 59;
-            this.udTestIMDFreq2.TinyStep = false;
-            this.udTestIMDFreq2.Value = new decimal(new int[] {
-            19500,
-            0,
-            0,
-            65536});
-            this.udTestIMDFreq2.ValueChanged += new System.EventHandler(this.udTestIMDFreq2_ValueChanged);
-            //
-            // btnTwoToneF_defaults
-            //
-            this.btnTwoToneF_defaults.Image = null;
-            this.btnTwoToneF_defaults.Location = new System.Drawing.Point(447, 232);
-            this.btnTwoToneF_defaults.Name = "btnTwoToneF_defaults";
-            this.btnTwoToneF_defaults.Selectable = true;
-            this.btnTwoToneF_defaults.Size = new System.Drawing.Size(67, 23);
-            this.btnTwoToneF_defaults.TabIndex = 60;
-            this.btnTwoToneF_defaults.Text = "Defaults";
-            this.toolTip1.SetToolTip(this.btnTwoToneF_defaults, "Default 700Hz and 1950Hz." + "\r\n" +
-                "The 1250Hz spacing is not a sub-multiple of the TX sample rate, a two tone spacing that is a sub-multiple distorts the PureSignal calibration.");
-            this.btnTwoToneF_defaults.UseVisualStyleBackColor = true;
-            this.btnTwoToneF_defaults.Click += new System.EventHandler(this.btnTwoToneF_defaults_Click);
             //
             // labelTS8
             //
@@ -978,7 +850,6 @@
             this.Controls.Add(this.pbWarningSetPk);
             this.Controls.Add(this.chkQuickAttenuate);
             this.Controls.Add(this.chkPSOnTop);
-            this.Controls.Add(this.udPSTargetFeedback);
             this.Controls.Add(this.lblPSTargetFeedback);
             this.Controls.Add(this.comboPSDeadlock);
             this.Controls.Add(this.lblPSDeadlock);
@@ -991,11 +862,6 @@
             this.Controls.Add(this.comboPSCalStimulus);
             this.Controls.Add(this.lblPSCalStimulus);
             this.Controls.Add(this.lblPSSpacingWarning);
-            this.Controls.Add(this.lblTestToneFreq1);
-            this.Controls.Add(this.udTestIMDFreq1);
-            this.Controls.Add(this.lblTestToneFreq2);
-            this.Controls.Add(this.udTestIMDFreq2);
-            this.Controls.Add(this.btnTwoToneF_defaults);
             this.Controls.Add(this.labelTS8);
             this.Controls.Add(this.lblPSInfoFB);
             this.Controls.Add(this.lblPSInfoCO);
@@ -1058,18 +924,12 @@
         private System.Windows.Forms.ComboBoxTS comboPSCalStimulus;
         private System.Windows.Forms.LabelTS lblPSCalStimulus;
         private System.Windows.Forms.LabelTS lblPSSpacingWarning;
-        private System.Windows.Forms.LabelTS lblTestToneFreq1;
-        private System.Windows.Forms.NumericUpDownTS udTestIMDFreq1;
-        private System.Windows.Forms.LabelTS lblTestToneFreq2;
-        private System.Windows.Forms.NumericUpDownTS udTestIMDFreq2;
-        private System.Windows.Forms.ButtonTS btnTwoToneF_defaults;
         private System.Windows.Forms.LabelTS lblPSfb2;
         private System.Windows.Forms.LabelTS labelTS1;
         private System.Windows.Forms.LabelTS labelTS5;
         private System.Windows.Forms.TextBoxTS txtPSpeak;
         private System.Windows.Forms.TextBoxTS GetPSpeak;
         private System.Windows.Forms.LabelTS labelTS3;
-        private System.Windows.Forms.NumericUpDownTS udPSTargetFeedback;
         private System.Windows.Forms.LabelTS lblPSTargetFeedback;
         private System.Windows.Forms.ComboBoxTS comboPSDeadlock;
         private System.Windows.Forms.LabelTS lblPSDeadlock;
