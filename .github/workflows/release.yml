@@ -22,10 +22,20 @@ jobs:
           $version = "${{ github.ref_name }}" -replace '^v', ''
           $file = "Project Files/Source/Console/AssemblyInfo.cs"
           $content = Get-Content $file -Raw
+          # The file version needs EXACTLY four parts.  "$version.0.0" only gave four
+          # parts for a two digit tag (v6.3 -> 6.3.0.0); with v6.3.1 it produced
+          # 6.3.1.0.0, five parts, and the compiler cannot put that into the Win32
+          # version resource.  The resource then comes out as 0.0.0.0, the MSI takes
+          # its ProductVersion from it and the installer then refuses to run because
+          # 0.0.0.0 looks like a downgrade of the installed version.
+          $parts = @($version.Split('.'))
+          while ($parts.Count -lt 4) { $parts += '0' }
+          if ($parts.Count -gt 4) { $parts = @($parts[0..3]) }
+          $fileVersion = ($parts -join '.')
           $content = $content -replace 'AssemblyVersion\(".*?"\)', "AssemblyVersion(`"$version`")"
-          $content = $content -replace 'AssemblyFileVersion\(".*?"\)', "AssemblyFileVersion(`"$version.0.0`")"
+          $content = $content -replace 'AssemblyFileVersion\(".*?"\)', "AssemblyFileVersion(`"$fileVersion`")"
           Set-Content $file $content -NoNewline
-          Write-Host "Version set to $version"
+          Write-Host "Version set to $version (file version $fileVersion)"
 
       - name: Setup MSBuild
         uses: microsoft/setup-msbuild@v2
@@ -45,6 +55,24 @@ jobs:
         run: |
           $wixTargets = "C:/Program Files (x86)/MSBuild/Microsoft/WiX/v3.x/Wix.targets"
           msbuild "Project Files/Source/Thetis-Installer/Thetis-Installer.wixproj" -p:Configuration=Release -p:Platform=x64 "-p:WixTargetsPath=$wixTargets" -m -nologo
+
+      - name: Check the MSI version
+        shell: pwsh
+        run: |
+          # The MSI takes its ProductVersion from the version resource of Thetis.exe.
+          # If the build lost that resource the MSI comes out as 0.0.0.0 and the
+          # installer then refuses to run on a machine that has a newer version
+          # installed ("The same or newer version is already installed").
+          $msi = Get-ChildItem "Project Files/bin/Installers/SDR-VST3-v*.msi" | Select-Object -First 1
+          if (-not $msi) { Write-Error "MSI not found"; exit 1 }
+          $installer = New-Object -ComObject WindowsInstaller.Installer
+          $db = $installer.GetType().InvokeMember("OpenDatabase","InvokeMethod",$null,$installer,@($msi.FullName,0))
+          $view = $db.GetType().InvokeMember("OpenView","InvokeMethod",$null,$db,@("SELECT Value FROM Property WHERE Property='ProductVersion'"))
+          $view.GetType().InvokeMember("Execute","InvokeMethod",$null,$view,$null) | Out-Null
+          $rec = $view.GetType().InvokeMember("Fetch","InvokeMethod",$null,$view,$null)
+          $v = $rec.GetType().InvokeMember("StringData","GetProperty",$null,$rec,1)
+          Write-Host "MSI ProductVersion: $v"
+          if ($v -like "0.0.0.0*") { Write-Error "The MSI ProductVersion is 0.0.0.0 - the build lost the version resource"; exit 1 }
 
       - name: Find installer artifact
         id: msi
