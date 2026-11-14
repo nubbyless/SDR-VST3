@@ -742,17 +742,6 @@ namespace Thetis
             Splash.SetStatus("Initializing Components");        // Set progress point
             LogTool.AddLogEntry("Initialising components...", "COMP");
 
-            // .NET 10 changed the default font of a control to "Segoe UI, 9pt"; the .NET
-            // Framework build of Thetis used "Microsoft Sans Serif, 8.25pt".  The console
-            // never sets a form font, so every control that has no font of its own got the
-            // bigger one and the text no longer fitted the boxes the designer and the skin
-            // were laid out for.  Put the console back on the font it was drawn with.
-            // This has to happen BEFORE InitializeComponent(): the controls are then created
-            // with the right font and inherit it.  Setting it afterwards fires a layout pass
-            // while the console is still half built and the Andromeda button bar throws.
-            // See FONT_FIX_HANDOFF.md for how to undo this.
-            this.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
-
             InitializeComponent();								// Windows Forms Generated Code
 
             Common.DoubleBufferAll(this, true);
