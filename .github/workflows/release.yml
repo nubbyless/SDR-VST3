@@ -41,43 +41,22 @@ jobs:
       - name: Build solution
         run: msbuild "Project Files/Source/Thetis_VS2026.sln" -p:Configuration=Release -p:Platform=x64 -m -nologo
 
-      - name: Build installer
+      - name: Build installer (msi)
         run: |
           $wixTargets = "C:/Program Files (x86)/MSBuild/Microsoft/WiX/v3.x/Wix.targets"
           msbuild "Project Files/Source/Thetis-Installer/Thetis-Installer.wixproj" -p:Configuration=Release -p:Platform=x64 "-p:WixTargetsPath=$wixTargets" -m -nologo
 
-      - name: Download .NET 10 Desktop Runtime for bundling
-        shell: pwsh
-        run: |
-          $url = "https://builds.dotnet.microsoft.com/dotnet/WindowsDesktop/10.0.11/windowsdesktop-runtime-10.0.11-win-x64.exe"
-          $dest = "Project Files/Source/Thetis-Installer/redist/windowsdesktop-runtime-10.0.11-win-x64.exe"
-          New-Item -ItemType Directory -Force -Path (Split-Path $dest) | Out-Null
-          Invoke-WebRequest -Uri $url -OutFile $dest -UseBasicParsing
-          Get-Item $dest | Select-Object FullName, Length
-
-      - name: Build self-contained bootstrapper (exe)
-        run: |
-          $wixTargets = "C:/Program Files (x86)/MSBuild/Microsoft/WiX/v3.x/Wix.targets"
-          msbuild "Project Files/Source/Thetis-Installer/Thetis-Bundle.wixproj" -p:Configuration=Release -p:Platform=x64 "-p:WixTargetsPath=$wixTargets" -m -nologo
-
-      - name: Find installer artifacts
+      - name: Find installer artifact
         id: msi
         shell: pwsh
         run: |
-          $exe = Get-ChildItem "Project Files/bin/Installers/SDR-VST3-v*.exe" | Select-Object -First 1
-          if (-not $exe) {
-            Write-Error "Installer exe not found"
-            exit 1
-          }
           $msi = Get-ChildItem "Project Files/bin/Installers/SDR-VST3-v*.msi" | Select-Object -First 1
           if (-not $msi) {
             Write-Error "Standalone msi not found"
             exit 1
           }
-          Write-Host "Found installer exe: $($exe.FullName)"
           Write-Host "Found standalone msi: $($msi.FullName)"
           "path<<EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
-          $exe.FullName | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           $msi.FullName | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
           "EOF" | Out-File -FilePath $env:GITHUB_OUTPUT -Append -Encoding utf8
 
@@ -86,18 +65,13 @@ jobs:
         with:
           files: ${{ steps.msi.outputs.path }}
           body: |
-            ## Installers
+            ## Installer
 
-            Two installers are provided for each release:
+            - **`.msi`** — the SDR-VST3 product. It requires the **.NET 10 Desktop
+              Runtime** (x64) to be installed on the machine. The installer checks
+              for it and tells you where to get it if it is missing:
+              https://dotnet.microsoft.com/download/dotnet/10.0
 
-            - **`.exe` (recommended)** — self-contained bootstrapper. If the .NET 10
-              Desktop Runtime is not already installed, it is installed automatically
-              (bundled, offline) before SDR-VST3. Use this unless you have a reason to
-              install the runtime yourself.
-            - **`.msi` (standalone)** — just the SDR-VST3 product. It requires the
-              **.NET 10 Desktop Runtime** to already be installed on the machine, and is
-              intended for users/AV or browser policies that block `.exe` downloads.
-
-            Both install to the same location and are interchangeable. If you already
-            have an older SDR-VST3 installed, installing over it upgrades in place.
+              If you already have an older SDR-VST3 installed, installing over it
+              upgrades in place.
           generate_release_notes: true
