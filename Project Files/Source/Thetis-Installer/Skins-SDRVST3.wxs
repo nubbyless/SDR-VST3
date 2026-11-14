@@ -1434,6 +1434,24 @@
       <Component Id="SDRVST3_c_console_txtVFOBBand_1_png" Directory="SDRVST3ConsoleDir" Guid="*">
         <File Id="SDRVST3_f_console_txtVFOBBand_1_png" Source="Skins\SDRVST3\console\txtVFOBBand-1.png" KeyPath="yes" />
       </Component>
+      <Component Id="SDRVST3_c_console_ucQuickRecallPad_previous_0_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_ucQuickRecallPad_previous_0_png" Source="Skins\SDRVST3\console\ucQuickRecallPad_previous-0.png" KeyPath="yes" />
+      </Component>
+      <Component Id="SDRVST3_c_console_ucQuickRecallPad_previous_1_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_ucQuickRecallPad_previous_1_png" Source="Skins\SDRVST3\console\ucQuickRecallPad_previous-1.png" KeyPath="yes" />
+      </Component>
+      <Component Id="SDRVST3_c_console_ucQuickRecallPad_list_0_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_ucQuickRecallPad_list_0_png" Source="Skins\SDRVST3\console\ucQuickRecallPad_list-0.png" KeyPath="yes" />
+      </Component>
+      <Component Id="SDRVST3_c_console_ucQuickRecallPad_list_1_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_ucQuickRecallPad_list_1_png" Source="Skins\SDRVST3\console\ucQuickRecallPad_list-1.png" KeyPath="yes" />
+      </Component>
+      <Component Id="SDRVST3_c_console_ucQuickRecallPad_next_0_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_ucQuickRecallPad_next_0_png" Source="Skins\SDRVST3\console\ucQuickRecallPad_next-0.png" KeyPath="yes" />
+      </Component>
+      <Component Id="SDRVST3_c_console_ucQuickRecallPad_next_1_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_ucQuickRecallPad_next_1_png" Source="Skins\SDRVST3\console\ucQuickRecallPad_next-1.png" KeyPath="yes" />
+      </Component>
       <Component Id="SDRVST3_c_console_Base_16X20bttn_0_png" Directory="SDRVST3ConsoleBaseDir" Guid="*">
         <File Id="SDRVST3_f_console_Base_16X20bttn_0_png" Source="Skins\SDRVST3\console\Base\16X20bttn-0.png" KeyPath="yes" />
       </Component>
