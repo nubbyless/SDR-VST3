@@ -6,7 +6,7 @@
 
 ## What is SDR-VST3?
 
-SDR-VST3 is a fork of [Thetis](https://github.com/ramdor/Thetis) — the OpenHPSDR software-defined radio console used with Apache Labs radios. Where Thetis gives you the radio, SDR-VST3 adds the things you actually wanted from a DAW, a contest logger and a digital modem all in one window.
+SDR-VST3 is a fork by Freddie Herndon w4yny of [Thetis](https://github.com/ramdor/Thetis) — the OpenHPSDR software-defined radio console used with Apache Labs radios. Where Thetis gives you the radio, SDR-VST3 adds the things you actually wanted from a DAW, a contest logger and a digital modem all in one window.
 
 Three things make it different:
 
