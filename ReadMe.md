@@ -34,7 +34,7 @@ Thetis is an excellent radio console, but it is deliberately conservative: it is
 
 ### ⚙ WDSP 2.11 — the engine under it all
 
-SDR-VST3 runs the most up-to-date **WDSP (Wideband DSP) 2.11** engine — the digital signal processing core that does the heavy lifting for receiving, filtering, noise reduction, the audio equaliser/compressor, the spectrum display, and PureSignal's automatic transmit-signal correction.
+SDR-VST3 runs the most up-to-date **WDSP (Wideband DSP) 2.11** engine — the digital signal processing core that does the heavy lifting for receiving, filtering, noise reduction, the audio equalizer/compressor, the spectrum display, and PureSignal's automatic transmit-signal correction.
 
 - **Kept current, not frozen.** The engine was first jumped to WDSP 2.00 to modernise the foundation underneath features you already use, and is now on **WDSP 2.11** — the latest release, which also brought the new NR5 neural noise reduction.
 - **Integration by Yurij-eu2av**, who did the WDSP 2.00 work this fork builds on.
@@ -92,7 +92,7 @@ Transmit-signal linearisation that measures your amplifier instead of guessing.
 - **Noise stimulus** (recommended — the closest analogue to speech) or **Two-Tone** (repeatable numbers you can compare before and after a change).
 - **PS Correction** — *Strict* (default) / *Medium* / *Relaxed*, how hard it pushes the correction.
 - **AmpView** shows the measured gain curve and the correction curve, with save/restore.
-- **Console indicators** — a colour-coded *Feedback* readout (green just right, yellow close, blue too much, red too little) and a *Pure Signal / Correcting* light.
+- **Console indicators** — a color-coded *Feedback* readout (green just right, yellow close, blue too much, red too little) and a *Pure Signal / Correcting* light.
 - Couples with the **TX step attenuator**, walking the ATT to hold the feedback level at the program target so the correction stays valid.
 
 > PureSignal 3.0 is under active development — many fixes landed in v6.3.1 and more are on the way.
@@ -121,11 +121,11 @@ Ships with an **HFGCS list** — 100 military HF frequencies (the global communi
 - **3D panadapter** — a retro-future 3D waterfall-history view with proper perspective: ridges shrink and fade into the distance, hills and peaks are shaded by steepness so sharp signals catch the light and flat noise stays subdued. Adjustable perspective, depth, ridge height, speed and atmospheric haze.
 - **Floor Lift** raises the noise floor into view so weak signals just above it are visible instead of buried flat against the bottom.
 - The live trace is drawn at exactly the same scale as the 3D surface behind it, so signals no longer appear twice or jump between trace and history.
-- **Waterfall Colour Sync** — the 3D view follows your waterfall palette automatically.
-- **GPU acceleration (experimental)** in `Setup → Display`: *GPU mesh*, *GPU compute shaders* (waterfall dBm→BGRA colour lookup and spectrum normalisation moved into HLSL on the GPU) and *GPU overlay* for peak-hold lines, which used to cost roughly 7,600 separate CPU draw commands per second per receiver. Spectrum fill and waterfall scrolling are now single GPU operations instead of hundreds of CPU strokes.
+- **Waterfall Color Sync** — the 3D view follows your waterfall palette automatically.
+- **GPU acceleration (experimental)** in `Setup → Display`: *GPU mesh*, *GPU compute shaders* (waterfall dBm→BGRA color lookup and spectrum normalisation moved into HLSL on the GPU) and *GPU overlay* for peak-hold lines, which used to cost roughly 7,600 separate CPU draw commands per second per receiver. Spectrum fill and waterfall scrolling are now single GPU operations instead of hundreds of CPU strokes.
 - **Graceful fallback** — a hardware → WARP → CPU rendering chain takes over on device loss or driver errors. If anything goes wrong with the GPU path the display instantly reverts to the old drawing method; you should never see a stuck or missing display.
 - **Neon glow** on the live spectrum trace, with adjustable blur, auto-disabled on machines where it would be too slow.
-- **1024-step waterfall gradient LUT** — eliminates colour banding on custom schemes.
+- **1024-step waterfall gradient LUT** — eliminates color banding on custom schemes.
 - **Independent RX1 / RX2 pan and zoom** — separate pan sliders, zoom sliders, centre buttons, zoom-to-band presets and a recenter button for each receiver, and separate 3D display history so the two receivers never interfere with each other's trace.
 - Wider bandstack window, tidier setup layouts, a fresh **SDRVST3 skin**, and cleaner default grid lines on new installs.
 
