@@ -1,0 +1,27 @@
+SQLite License
+==============
+
+The author disclaims copyright to this source code.  In place of
+a legal notice, here is a blessing:
+
+    May you do good and not evil.
+    May you find forgiveness for yourself and forgive others.
+    May you share freely, never taking more than you give.
+
+All of the code and documentation in SQLite has been dedicated to
+the public domain by the authors.  All code authors, and representatives
+of the companies they work for, have signed affidavits dedicating
+their contributions to the public domain and originals of those signed
+affidavits are stored in a firesafe at the main offices of Hwaci.  Anyone
+is free to copy, modify, publish, use, compile, sell, or distribute the
+original SQLite code, either in source code form or as a compiled binary,
+for any purpose, commercial or non-commercial, and by any means.
+
+In order to keep SQLite completely free of undetermined restrictions, the
+developers have also dedicated the changes they make to the SQLite code to
+the public domain.  Changes to the SQLite code are made by anyone who
+submits a patch to the SQLite developers, and the patch is then incorporated
+into the SQLite source code.
+
+The SQLite amalgamation (sqlite3.c) as distributed in the "SQLite" NuGet
+package, and the e_sqlite3 native library, are covered by this dedication.

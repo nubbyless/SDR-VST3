@@ -147,6 +147,8 @@ namespace Thetis
         public DiversityForm diversityForm;
         public DxClusterForm dxClusterForm;
         public DxClusterTerminalForm dxClusterTerminalForm;
+        public SigIdForm sigIdForm;
+        public SigIdAnalyzer sigIdAnalyzer;
         // G8NJJ
         public SliderSettingsForm sliderForm;
         public ModeButtonsPopup modePopupForm;
@@ -8903,6 +8905,65 @@ namespace Thetis
             // Launch-only menu entry: no state colour (never turns green).
             // The sidecar's on/off is visible from WSJT-X itself.
             wsjtXToolStripMenuItem.ForeColor = SystemColors.ControlLightLight;
+        }
+        public void UpdateDigiIdMenuItem()
+        {
+            if (digiIdToolStripMenuItem == null) return;
+            // Launch-only menu entry.  Amber means "a newer signal database release is
+            // available" - the app never downloads it on its own, the user has to press
+            // the button in the Digi Id window.
+            bool updateAvailable = false;
+            try
+            {
+                SigIdInstallInfo info = SigIdInstaller.GetCurrentInstallInfo();
+                updateAvailable = info != null && info.UpdateAvailable;
+            }
+            catch (Exception)
+            {
+                updateAvailable = false;
+            }
+
+            digiIdToolStripMenuItem.ForeColor = updateAvailable
+                ? System.Drawing.Color.Orange
+                : SystemColors.ControlLightLight;
+        }
+
+        // [sigid] quiet check for a newer Artemis signal database release.  Like the app
+        // update check this never downloads anything - it only colours the menu entry.
+        private void initSigId()
+        {
+            Task.Run(async () =>
+            {
+                try
+                {
+                    // the GitHub API allows only 60 unauthenticated requests per hour per
+                    // IP, so a result is reused for a day before asking again
+                    SigIdInstallInfo cached = SigIdInstaller.LoadInstallInfo();
+                    if (cached != null && !cached.CheckIsStale(SigIdInstaller.CHECK_INTERVAL))
+                    {
+                        if (!IsDisposed && !Disposing) BeginInvoke(new Action(UpdateDigiIdMenuItem));
+                        return;
+                    }
+
+                    await Task.Delay(5000).ConfigureAwait(true); // let startup + network settle
+
+                    SigIdReleaseInfo release = await SigIdInstaller
+                        .FetchLatestReleaseAsync(CancellationToken.None)
+                        .ConfigureAwait(true);
+
+                    if (release == null) return;
+
+                    SigIdInstaller.RecordCheck(release);
+
+                    if (IsDisposed || Disposing) return;
+
+                    BeginInvoke(new Action(UpdateDigiIdMenuItem));
+                }
+                catch (Exception)
+                {
+                    // an unreachable GitHub is not worth reporting
+                }
+            });
         }
         private static bool _wsjtMenuHooked;
         private static bool _fldigiMenuHooked;
@@ -28427,8 +28488,25 @@ namespace Thetis
         // MW0LGE_22x roadmap #3: quiet startup query against the GitHub releases API. If a newer
         // release exists, a status-bar label appears that opens the release page when clicked.
         // Silent on any failure (offline, rate limit) so it never bothers the user.
+        //
+        // [sigid] 2026-11-15 - hardened after reports that some consoles never notified:
+        //   * The primary query now uses the plain https://github.com/<owner>/<repo>/releases/
+        //     latest redirect instead of the JSON API.  That redirect is NOT rate limited,
+        //     while api.github.com allows only 60 unauthenticated requests per hour per IP -
+        //     a shared club, hotel or CGNAT address burns through that quickly and the
+        //     403 response was swallowed by the catch, so whole groups of users never saw
+        //     the notification.  The API is kept as a fallback.
+        //   * The result is cached in the app data folder, so restarting the console does not
+        //     re-query and the label can be painted immediately.
+        //   * Failures are written to the log so "it never told me" can be diagnosed.
+        //   * The version comparison handles the 2-part -> 3-part tag change (v6.3 -> v6.3.1
+        //     -> v6.3.2): the CI writes a 4-part file version (6.3.0.0 / 6.3.1.0 / 6.3.2.0)
+        //     and both sides are padded to 4 parts before comparing.
 
         private const string c_UpdateCheckApiUrl = "https://api.github.com/repos/nubbyless/SDR-VST3/releases/latest";
+        private const string c_UpdateCheckRedirectUrl = "https://github.com/nubbyless/SDR-VST3/releases/latest";
+        private const string c_UpdateCheckCacheFile = "update_check.json";
+        private static readonly TimeSpan c_UpdateCheckInterval = TimeSpan.FromHours(6);
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel_Update;
 
         private void initUpdateCheck()
@@ -28462,42 +28540,43 @@ namespace Thetis
         {
             try
             {
+                // a cached result from a previous run is good enough for a while - it keeps
+                // repeated restarts from hammering GitHub and paints the label immediately
+                UpdateCheckCache cached = LoadUpdateCheckCache(AppDataPath);
+                if (cached != null && !cached.IsStale(c_UpdateCheckInterval))
+                {
+                    ApplyUpdateCheckResult(cached.TagName, cached.HtmlUrl);
+                    return;
+                }
+
                 await Task.Delay(5000).ConfigureAwait(true); // let startup + network settle before querying
 
-                string tag = null;
-                string htmlUrl = null;
-                using (System.Net.Http.HttpClient hc = new System.Net.Http.HttpClient())
+                // primary: the releases/latest redirect - no API, no rate limit
+                ReleaseQueryResult result = await QueryLatestReleaseViaRedirectAsync().ConfigureAwait(true);
+                if (!result.Success)
                 {
-                    hc.Timeout = TimeSpan.FromSeconds(10);
-                    hc.DefaultRequestHeaders.UserAgent.ParseAdd("SDR-VST3-Console"); // GitHub API rejects requests without a UA
-                    hc.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
-                    string json = await hc.GetStringAsync(c_UpdateCheckApiUrl).ConfigureAwait(true);
-
-                    Newtonsoft.Json.Linq.JObject o = Newtonsoft.Json.Linq.JObject.Parse(json);
-                    tag = (string)o["tag_name"];
-                    htmlUrl = (string)o["html_url"];
+                    // fallback: the JSON API
+                    result = await QueryLatestReleaseViaApiAsync().ConfigureAwait(true);
+                    if (!result.Success)
+                    {
+                        Common.LogString("[update-check] both the redirect and the API query failed");
+                        // keep showing whatever we knew before rather than nothing
+                        if (cached != null && !string.IsNullOrEmpty(cached.TagName))
+                            ApplyUpdateCheckResult(cached.TagName, cached.HtmlUrl);
+                        return;
+                    }
                 }
 
-                if (IsDisposed || Disposing || string.IsNullOrEmpty(tag)) return;
+                if (IsDisposed || Disposing || string.IsNullOrEmpty(result.TagName)) return;
 
-                Version latest = ParseLooseVersion(tag);
-                Version current = ParseLooseVersion(Application.ProductVersion);
-                if (latest != null && current != null && !string.IsNullOrEmpty(htmlUrl))
+                SaveUpdateCheckCache(AppDataPath, new UpdateCheckCache
                 {
-                    if (latest > current)
-                    {
-                        toolStripStatusLabel_Update.Text = "Update available : " + tag;
-                        toolStripStatusLabel_Update.ForeColor = System.Drawing.Color.Red;
-                    }
-                    else
-                    {
-                        toolStripStatusLabel_Update.Text = "Up to date : " + tag;
-                        toolStripStatusLabel_Update.ForeColor = System.Drawing.Color.LimeGreen;
-                    }
-                    toolStripStatusLabel_Update.ToolTipText = "Click to open " + htmlUrl;
-                    toolStripStatusLabel_Update.Tag = htmlUrl;
-                    toolStripStatusLabel_Update.Visible = true;
-                }
+                    TagName = result.TagName,
+                    HtmlUrl = result.HtmlUrl,
+                    CheckedUtc = DateTime.UtcNow.ToString("o")
+                });
+
+                ApplyUpdateCheckResult(result.TagName, result.HtmlUrl);
             }
             catch
             {
@@ -28505,8 +28584,181 @@ namespace Thetis
             }
         }
 
+        /// <summary>
+        /// Pulls the release tag out of a GitHub release URL, e.g.
+        /// https://github.com/owner/repo/releases/tag/v6.3.2 -&gt; "v6.3.2".
+        /// Returns an empty string when the URL does not carry a tag.
+        /// </summary>
+        internal static string ExtractReleaseTagFromUrl(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return string.Empty;
+
+            string path = url;
+            int query = path.IndexOfAny(new[] { '?', '#' });
+            if (query >= 0) path = path.Substring(0, query);
+
+            int index = path.LastIndexOf('/');
+            if (index < 0 || index + 1 >= path.Length) return string.Empty;
+
+            string tag = path.Substring(index + 1);
+            return tag.Length == 0 ? string.Empty : tag;
+        }
+
+        /// <summary>Result of a release lookup.</summary>
+        private sealed class ReleaseQueryResult
+        {
+            public string TagName = "";
+            public string HtmlUrl = "";
+
+            public bool Success { get { return !string.IsNullOrEmpty(TagName); } }
+        }
+
+        /// <summary>
+        /// Resolves the newest release tag from the plain GitHub redirect.  Unlike the JSON
+        /// API this endpoint is not rate limited, which is what made the notification
+        /// unreliable for users behind a shared IP address.
+        /// </summary>
+        private static async Task<ReleaseQueryResult> QueryLatestReleaseViaRedirectAsync()
+        {
+            ReleaseQueryResult result = new ReleaseQueryResult();
+
+            try
+            {
+                using (System.Net.Http.HttpClientHandler handler = new System.Net.Http.HttpClientHandler())
+                {
+                    handler.AllowAutoRedirect = false;
+                    using (System.Net.Http.HttpClient hc = new System.Net.Http.HttpClient(handler))
+                    {
+                        hc.Timeout = TimeSpan.FromSeconds(15);
+                        hc.DefaultRequestHeaders.UserAgent.ParseAdd("SDR-VST3-HL2-Console");
+
+                        using (System.Net.Http.HttpRequestMessage request =
+                            new System.Net.Http.HttpRequestMessage(System.Net.Http.HttpMethod.Get, c_UpdateCheckRedirectUrl))
+                        using (System.Net.Http.HttpResponseMessage response =
+                            await hc.SendAsync(request).ConfigureAwait(false))
+                        {
+                            Uri location = response.Headers.Location;
+                            if (location == null) return result;
+
+                            result.HtmlUrl = location.AbsoluteUri;
+
+                            // .../releases/tag/v6.3.1
+                            result.TagName = ExtractReleaseTagFromUrl(location.AbsoluteUri);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Common.LogString("[update-check] redirect query failed: " + ex.Message);
+            }
+
+            return result;
+        }
+
+        /// <summary>Resolves the newest release tag from the GitHub JSON API (fallback path).</summary>
+        private static async Task<ReleaseQueryResult> QueryLatestReleaseViaApiAsync()
+        {
+            ReleaseQueryResult result = new ReleaseQueryResult();
+
+            try
+            {
+                using (System.Net.Http.HttpClient hc = new System.Net.Http.HttpClient())
+                {
+                    hc.Timeout = TimeSpan.FromSeconds(15);
+                    hc.DefaultRequestHeaders.UserAgent.ParseAdd("SDR-VST3-HL2-Console"); // GitHub API rejects requests without a UA
+                    hc.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
+                    string json = await hc.GetStringAsync(c_UpdateCheckApiUrl).ConfigureAwait(false);
+
+                    Newtonsoft.Json.Linq.JObject o = Newtonsoft.Json.Linq.JObject.Parse(json);
+                    result.TagName = (string)o["tag_name"];
+                    result.HtmlUrl = (string)o["html_url"];
+                }
+            }
+            catch (Exception ex)
+            {
+                Common.LogString("[update-check] api query failed: " + ex.Message);
+            }
+
+            return result;
+        }
+
+        /// <summary>Compares the newest release against the running build and paints the label.</summary>
+        private void ApplyUpdateCheckResult(string tag, string htmlUrl)
+        {
+            if (IsDisposed || Disposing || string.IsNullOrEmpty(tag)) return;
+            if (toolStripStatusLabel_Update == null) return;
+
+            Version latest = ParseLooseVersion(tag);
+            Version current = ParseLooseVersion(Application.ProductVersion);
+            if (latest == null || current == null || string.IsNullOrEmpty(htmlUrl)) return;
+
+            if (latest > current)
+            {
+                toolStripStatusLabel_Update.Text = "Update available : " + tag;
+                toolStripStatusLabel_Update.ForeColor = System.Drawing.Color.Red;
+            }
+            else
+            {
+                toolStripStatusLabel_Update.Text = "Up to date : " + tag;
+                toolStripStatusLabel_Update.ForeColor = System.Drawing.Color.LimeGreen;
+            }
+            toolStripStatusLabel_Update.ToolTipText = "Click to open " + htmlUrl;
+            toolStripStatusLabel_Update.Tag = htmlUrl;
+            toolStripStatusLabel_Update.Visible = true;
+
+            Common.LogString("[update-check] tag='" + tag + "' product='" + Application.ProductVersion +
+                             "' latest=" + latest + " current=" + current + " -> " +
+                             (latest > current ? "UPDATE AVAILABLE" : "up to date"));
+        }
+
+        /// <summary>Cached result of the last successful release check.</summary>
+        private sealed class UpdateCheckCache
+        {
+            public string TagName = "";
+            public string HtmlUrl = "";
+            public string CheckedUtc = "";
+
+            public bool IsStale(TimeSpan interval)
+            {
+                DateTime checkedUtc;
+                if (!DateTime.TryParse(CheckedUtc, out checkedUtc)) return true;
+                return (DateTime.UtcNow - checkedUtc.ToUniversalTime()) > interval;
+            }
+        }
+
+        private static UpdateCheckCache LoadUpdateCheckCache(string appDataPath)
+        {
+            try
+            {
+                string path = Path.Combine(appDataPath, c_UpdateCheckCacheFile);
+                if (!File.Exists(path)) return null;
+                string json = File.ReadAllText(path);
+                if (string.IsNullOrWhiteSpace(json)) return null;
+                return Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateCheckCache>(json);
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        private static void SaveUpdateCheckCache(string appDataPath, UpdateCheckCache cache)
+        {
+            try
+            {
+                if (cache == null) return;
+                string path = Path.Combine(appDataPath, c_UpdateCheckCacheFile);
+                File.WriteAllText(path, Newtonsoft.Json.JsonConvert.SerializeObject(cache, Newtonsoft.Json.Formatting.Indented));
+            }
+            catch (Exception)
+            {
+                // the cache is a convenience, never fatal
+            }
+        }
+
         /// <summary>Parses a loose version like "v4.6", "4.6.0.0" or "v4.6.0.1-beta2"; returns null when no digits found.</summary>
-        private static Version ParseLooseVersion(string s)
+        internal static Version ParseLooseVersion(string s)
         {
             if (string.IsNullOrEmpty(s)) return null;
 
@@ -44077,6 +44329,57 @@ namespace Thetis
             UpdateWsjtMenuItem();
         }
 
+        private void digiIdToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            showSigIdForm();
+        }
+
+        private void showSigIdForm()
+        {
+            if (sigIdForm == null || sigIdForm.IsDisposed)
+                sigIdForm = new SigIdForm(this);
+
+            // the analyzer needs the database; without it identification stays off
+            if (sigIdAnalyzer == null)
+            {
+                sigIdAnalyzer = new SigIdAnalyzer();
+                if (sigIdAnalyzer.Load())
+                {
+                    sigIdAnalyzer.Start();
+                }
+                else
+                {
+                    sigIdAnalyzer = null;
+                }
+            }
+
+            sigIdForm.AttachAnalyzer(sigIdAnalyzer);
+
+            if (sigIdForm.InvokeRequired)
+            {
+                sigIdForm.Invoke(new MethodInvoker(() =>
+                {
+                    sigIdForm.Show();
+                    sigIdForm.BringToFront();
+                    sigIdForm.Focus();
+                }));
+            }
+            else
+            {
+                sigIdForm.Show();
+                sigIdForm.BringToFront();
+                sigIdForm.Focus();
+            }
+
+            // the release check never downloads anything; it only reports what it found
+            Task.Run(async () =>
+            {
+                await sigIdForm.CheckForUpdateAsync(false).ConfigureAwait(false);
+                if (!IsDisposed && !Disposing)
+                    BeginInvoke(new Action(UpdateDigiIdMenuItem));
+            });
+        }
+
         private void showHideDiversity(bool show, bool starting_up = false)
         {
             if (!RX2PreampPresent) return;
@@ -46069,6 +46372,9 @@ namespace Thetis
 
             // DX Cluster - load saved nodes and auto-connect any flagged for auto-connect
             initDxCluster();
+
+            // [sigid] check for a newer Artemis signal database release - notification only
+            initSigId();
 
             // set the multifunction setting to the status bar
             DataTable multitable = AndromedaSet.Tables["Multifunction Settings"];

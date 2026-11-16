@@ -147,6 +147,7 @@
     <ClInclude Include="radae_micdsp.h" />
     <ClInclude Include="fldigi_mod.h" />
     <ClInclude Include="wsjtx_mod.h" />
+    <ClInclude Include="sigid_mod.h" />
     <ClInclude Include="r8brain_wrap.h" />
   </ItemGroup>
   <ItemGroup>
@@ -183,6 +184,7 @@
     <ClCompile Include="radae_micdsp.c" />
     <ClCompile Include="fldigi_mod.c" />
     <ClCompile Include="wsjtx_mod.c" />
+    <ClCompile Include="sigid_mod.c" />
     <ClCompile Include="r8brain_wrap.cpp">
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">CompileAsCpp</CompileAs>
       <CompileAs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">CompileAsCpp</CompileAs>

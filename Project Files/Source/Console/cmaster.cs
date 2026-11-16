@@ -1,4 +1,4 @@
-﻿/*  cmaster.cs
+/*  cmaster.cs
 
 This file is part of a program that implements a Software-Defined Radio.
 
@@ -335,6 +335,45 @@ namespace Thetis
         [DllImport("ChannelMaster.dll", EntryPoint = "WsjtPushTx", CallingConvention = CallingConvention.Cdecl)]
         public static extern void WsjtPushTx([In, Out] float[] in8k, int count);
         // end wsjtx
+        // Digi Id (signal identification) RX audio tap.
+        //
+        // The tap lives in the WDSP pipe next to the fldigi / WSJT-X taps, so the
+        // audio it carries has NOT been through the VST3 RX chain (that is applied
+        // later in the ChannelMaster mixer).  A VST equaliser or limiter would
+        // otherwise change the signal that the analyser measures.
+        //
+        // `rx` is 0 for RX1 and 1 for RX2.  The drained samples are mono float at
+        // the rate reported by SigidRxRate().
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidSetRxEnable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SigidSetRxEnable(int rx, int enable);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidGetRxEnable", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SigidGetRxEnable(int rx);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidDrainRx", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SigidDrainRx(int rx, [In, Out] float[] out_, int maxCount);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidFlushRx", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SigidFlushRx(int rx);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidRxFifoLevel", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SigidRxFifoLevel(int rx);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidRxOverrunCount", CallingConvention = CallingConvention.Cdecl)]
+        public static extern long SigidRxOverrunCount(int rx);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidRxRate", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SigidRxRate();
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidRxBlockCount", CallingConvention = CallingConvention.Cdecl)]
+        public static extern long SigidRxBlockCount(int rx);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidRxSampleCount", CallingConvention = CallingConvention.Cdecl)]
+        public static extern long SigidRxSampleCount(int rx);
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidRxZeroCount", CallingConvention = CallingConvention.Cdecl)]
+        public static extern long SigidRxZeroCount(int rx);
+
+        // Self test path - pushes a synthetic signal through the same
+        // de-interleave -> resample -> FIFO chain the live tap uses.
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidCreate", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SigidCreate();
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidDestroy", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SigidDestroy();
+        [DllImport("ChannelMaster.dll", EntryPoint = "SigidProcessRxBlock", CallingConvention = CallingConvention.Cdecl)]
+        public static extern int SigidProcessRxBlock(int rx, [In] double[] interleaved, int frames, int inRate);
+        // end sigid
 
         // router
         [DllImport("ChannelMaster.dll", EntryPoint = "LoadRouterAll", CallingConvention = CallingConvention.Cdecl)]

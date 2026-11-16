@@ -115,6 +115,12 @@
               KeyPath="yes"
               />
       </Component>
+      <Component Id="LibESqlite3X64Cmp" Guid="*" Directory="RtNativeDir">
+        <File Id="LibESqlite3X64"
+              Source="$(var.FilesPath)runtimes\win-x64\native\e_sqlite3.dll"
+              KeyPath="yes"
+              />
+      </Component>
       <Component Id="LibSkiaSharpX64Cmp" Guid="*" Directory="RtNativeDir">
         <File Id="LibSkiaSharpX64"
               Source="$(var.FilesPath)runtimes\win-x64\native\libSkiaSharp.dll"
@@ -122,6 +128,18 @@
               />
       </Component>
     </ComponentGroup>
+
+      <Component Guid="*" Directory="LicensesDir"><File Id="LicSQLite" Source="$(var.LicensesPath)LICENSE-SQLite.txt" KeyPath="yes"/></Component>
+      <!-- [sigid] the trained modulation classifier, built from the W1HKJ "Sights and
+           Sounds" collection.  The signal database itself is NOT installed - the user
+           downloads it from the Digi Id window. -->
+      <Component Guid="*">
+        <File Id="SigIdClassifierJSON"
+              Source="$(var.FilesPath)sigid_classifier.json"
+              KeyPath="yes"
+              Checksum="yes"
+              />
+      </Component>
 
     <!-- [4.6] third-party license texts shipped with every install (see lib\licenses) -->
     <ComponentGroup Id="LicensesComponents">

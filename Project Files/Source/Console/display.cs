@@ -13711,7 +13711,9 @@ namespace Thetis
                 if (highLightedSpot.distance >= 0) bubble_text += "\nDistance: " + highLightedSpot.distance.ToString();
                 if (!string.IsNullOrEmpty(highLightedSpot.continent)) bubble_text += "\nContinent: " + highLightedSpot.continent;
                 if (!string.IsNullOrEmpty(highLightedSpot.country)) bubble_text += "\nCountry: " + highLightedSpot.country;
-                // age
+                // age - the age of a spot means nothing for the identification tag
+                if (!isSigIdSpot(highLightedSpot))
+                {
                 TimeSpan age = DateTime.UtcNow - highLightedSpot.utc_spot_time;
                 string ageText;
                 if (age.TotalDays > 2)
@@ -13739,6 +13741,7 @@ namespace Thetis
                     ageText = seconds + " second" + (seconds == 1 ? "" : "s");
                 }
                 bubble_text += "\nAge: " + ageText;
+                }
                 //
 
                 bubble_text = bubble_text.Trim();
@@ -13841,15 +13844,24 @@ namespace Thetis
             {
                 return _showTCISpots
                     || SpotManager2.HasSpotsFromPrefix("dxcluster:")
-                    || SpotManager2.HasSpotsFromPrefix("swl:");
+                    || SpotManager2.HasSpotsFromPrefix("swl:")
+                    || SpotManager2.HasSpotsFromPrefix(SigIdSpotPublisher.SOURCE);
             }
+        }
+
+        /// <summary>True for the spot that carries the Digi Id identification.</summary>
+        private static bool isSigIdSpot(SpotManager2.smSpot spot)
+        {
+            return spot != null && spot.source != null &&
+                   spot.source.StartsWith(SigIdSpotPublisher.SOURCE, StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool isClusterSpot(SpotManager2.smSpot spot)
         {
             return spot != null && spot.source != null &&
                    (spot.source.StartsWith("dxcluster:", StringComparison.OrdinalIgnoreCase) ||
-                    spot.source.StartsWith("swl:", StringComparison.OrdinalIgnoreCase));
+                    spot.source.StartsWith("swl:", StringComparison.OrdinalIgnoreCase) ||
+                    spot.source.StartsWith(SigIdSpotPublisher.SOURCE, StringComparison.OrdinalIgnoreCase));
         }
         private static bool _flashNewTCISpots = false;
         public static bool FlashNewTCISpots

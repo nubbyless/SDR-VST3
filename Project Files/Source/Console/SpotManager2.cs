@@ -531,8 +531,13 @@ namespace Thetis
 
             if (!string.IsNullOrEmpty(callsign) && !callsign.StartsWith("CQ_", StringComparison.OrdinalIgnoreCase))
             {
+                // The identification tag carries a signal name, not a callsign, so the
+                // callsign prefix lookup must not be applied to it - it would attach the
+                // flag of a random country to every signal name.
+                bool callsignLookup = source == null || !source.StartsWith("sigid:", StringComparison.OrdinalIgnoreCase);
+
                 string temp_country = null;
-                if (!string.IsNullOrEmpty(callsign) && flag_image == null)
+                if (callsignLookup && !string.IsNullOrEmpty(callsign) && flag_image == null)
                 {
                     flag_image = getFlagImageFromCallsign(callsign, out temp_country);
                 }
@@ -540,7 +545,7 @@ namespace Thetis
 
                 string spotter_tmp = string.IsNullOrEmpty(spotter) ? callsign : spotter;
 
-                if (!string.IsNullOrEmpty(spotter_tmp) && flag_spotter_image == null)
+                if (callsignLookup && !string.IsNullOrEmpty(spotter_tmp) && flag_spotter_image == null)
                     flag_spotter_image = getFlagImageFromCallsign(spotter_tmp, out _);
             }
 

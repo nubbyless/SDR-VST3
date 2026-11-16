@@ -27,6 +27,7 @@ warren@wpratt.com
 #include "cmcomm.h"
 #include "fldigi_mod.h"
 #include "wsjtx_mod.h"
+#include "sigid_mod.h"
 
 pipe pip  = {0};
 PIPE ppip = &pip;
@@ -118,6 +119,7 @@ void create_pipe()
 	create_radae();
 	create_fldigi();
 	create_wsjtx();
+	create_sigid();
 	create_spc0();
 }
 
@@ -128,6 +130,7 @@ void destroy_pipe()
 	destroy_radae();
 	destroy_fldigi();
 	destroy_wsjtx();
+	destroy_sigid();
 	destroy_tci();
 	for (i = 0; i < pcm->cmRCVR; i++)
 	{
@@ -194,6 +197,7 @@ void xpipe (int stream, int pos, double** buffs)
 																								// the VAC/TCI/scope/recorder branches below see the decoded speech.
 			xfldigi_rx(rx, buffs[0]);														// [fldigi] send post-DSP RX audio to the fldigi sidecar (8k tap, no-op when disabled)
 			xwsjtx_rx(rx, buffs[0]);														// [wsjtx] send post-DSP RX audio to the WSJT-X sidecar (8k tap, no-op when disabled)
+			xsigid_rx(rx, buffs[0]);														// [sigid] send post-DSP RX audio to the Digi Id analyser (24k tap, no-op when disabled)
 			/* RX1 AF post-decode multiply.  When RADE RX is on, the C#
 			 * RXOutputGain setter forces WDSP xpanel.gain1 to 1.0 so the
 			 * decoder input is unscaled, and pushes the slider value into
@@ -238,6 +242,7 @@ void xpipe (int stream, int pos, double** buffs)
 			xradae_rx(rx, buffs[0]);															// [v2.10.3.16] FreeDV RADEV1 RX splice -- same as RX1 path above
 			xfldigi_rx(rx, buffs[0]);														// [fldigi] send post-DSP RX audio to the fldigi sidecar (8k tap, no-op when disabled)
 			xwsjtx_rx(rx, buffs[0]);														// [wsjtx] send post-DSP RX audio to the WSJT-X sidecar (8k tap, no-op when disabled)
+			xsigid_rx(rx, buffs[0]);														// [sigid] send post-DSP RX audio to the Digi Id analyser (24k tap, no-op when disabled)
 			if (GetRadaeRxEnabled(rx) != 0)
 			{
 				const float g_rx_af = GetRadaeRxAFGain(rx);

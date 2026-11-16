@@ -352,6 +352,7 @@
         private ToolStripMenuItem cWXToolStripMenuItem;
         private ToolStripMenuItem fldigiToolStripMenuItem;
         private ToolStripMenuItem wsjtXToolStripMenuItem;
+        private ToolStripMenuItem digiIdToolStripMenuItem;
         private ToolStripMenuItem dxClusterToolStripMenuItem;
         private ToolStripMenuItem eSCToolStripMenuItem;
         private ToolStripMenuItem collapseToolStripMenuItem;
@@ -782,6 +783,7 @@
             this.cWXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.fldigiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.wsjtXToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.digiIdToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.dxClusterToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.eSCToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.collapseToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -4304,6 +4306,7 @@
             this.cWXToolStripMenuItem,
             this.fldigiToolStripMenuItem,
             this.wsjtXToolStripMenuItem,
+            this.digiIdToolStripMenuItem,
             this.dxClusterToolStripMenuItem,
             this.eSCToolStripMenuItem,
             this.collapseToolStripMenuItem,
@@ -4405,7 +4408,14 @@
             this.wsjtXToolStripMenuItem.Name = "wsjtXToolStripMenuItem";
             this.wsjtXToolStripMenuItem.Text = "WSJT-X";
             this.wsjtXToolStripMenuItem.Click += new System.EventHandler(this.wsjtXToolStripMenuItem_Click);
-            // 
+            //
+            // digiIdToolStripMenuItem
+            //
+            this.digiIdToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.digiIdToolStripMenuItem.Name = "digiIdToolStripMenuItem";
+            this.digiIdToolStripMenuItem.Text = "Digi Id";
+            this.digiIdToolStripMenuItem.Click += new System.EventHandler(this.digiIdToolStripMenuItem_Click);
+            //
             // dxClusterToolStripMenuItem
             // 
             this.dxClusterToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlLightLight;
