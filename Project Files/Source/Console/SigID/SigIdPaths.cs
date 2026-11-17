@@ -25,11 +25,12 @@
 //                                                                                              //
 // Resolution order (SIGID_HANDOFF.md section 4.1):                                             //
 //   1. %SDRVST3_SIGID_PATH%   - explicit developer override, wins over everything.              //
-//   2. <exeDir>\SigId         - used ONLY when that folder already exists.  A Program Files     //
-//                               install can never satisfy this, so end users always fall      //
-//                               through to (3).  Developers can drop an unpacked database next  //
-//                               to Thetis.exe for local testing.                                //
-//   3. %AppData%\...\SigId    - shipping default.                                              //
+//   2. <exeDir>\SigId         - development mode only: a DEBUG build uses an unpacked database   //
+//                               sitting next to Thetis.exe.  A Release build (the installed      //
+//                               application) never looks there, so it always lands in (3).       //
+//   3. <AppDataPath>\SigId    - shipping default.  The root comes from the console's            //
+//                               AppDataPath, so the product name, the DEBUG sub-folder and the   //
+//                               -datapath: option are all honoured automatically.                //
 //============================================================================================//
 
 using System;
@@ -78,6 +79,8 @@ namespace Thetis
                     return _cachedRoot;
                 }
 
+#if DEBUG
+                // development mode: an unpacked database next to Thetis.exe wins
                 string local = Path.Combine(AppContext.BaseDirectory, SIGID_FOLDER);
                 if (Directory.Exists(local))
                 {
@@ -85,11 +88,20 @@ namespace Thetis
                     _cachedIsLocal = true;
                     return _cachedRoot;
                 }
+#endif
 
-                _cachedRoot = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                    APP_DATA_SUBPATH,
-                    SIGID_FOLDER);
+                string appData = AppDataFolder();
+                if (appData == null)
+                {
+                    // the console has not been constructed yet - do not cache, the next
+                    // access resolves against the real AppDataPath
+                    return Path.Combine(
+                        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                        APP_DATA_SUBPATH,
+                        SIGID_FOLDER);
+                }
+
+                _cachedRoot = Path.Combine(appData, SIGID_FOLDER);
                 _cachedIsLocal = false;
                 return _cachedRoot;
             }
@@ -165,6 +177,24 @@ namespace Thetis
         {
             try { return Environment.GetEnvironmentVariable(name); }
             catch { return null; }
+        }
+
+        /// <summary>
+        /// The console's AppData folder, or null when the console is not up yet (very early
+        /// startup).  Using the console property keeps the product name, the DEBUG sub-folder
+        /// and the -datapath: option in one place.
+        /// </summary>
+        private static string AppDataFolder()
+        {
+            try
+            {
+                Thetis.Console console = Thetis.Console.getConsole();
+                if (console != null && !string.IsNullOrWhiteSpace(console.AppDataPath))
+                    return console.AppDataPath;
+            }
+            catch { }
+
+            return null;
         }
     }
 }

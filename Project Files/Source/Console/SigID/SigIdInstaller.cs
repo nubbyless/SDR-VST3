@@ -308,7 +308,9 @@ namespace Thetis
         /// Extracts a downloaded archive and swaps it into place.  The previous installation is
         /// only removed once the new one has been extracted successfully.
         /// </summary>
-        public static void Install(string archivePath, SigIdReleaseInfo release)
+        public static void Install(string archivePath, SigIdReleaseInfo release,
+                                   Action<string> indexProgress = null,
+                                   Action<int> indexCompleted = null)
         {
             if (!File.Exists(archivePath))
                 throw new FileNotFoundException("The downloaded database archive is missing.", archivePath);
@@ -377,7 +379,7 @@ namespace Thetis
                 // every signal a repetition interval, a bandwidth and a symbol rate,
                 // even the ones the wiki documents none of - and the matcher needs
                 // that to tell the signals apart.
-                StartIndexBuild();
+                StartIndexBuild(indexProgress, indexCompleted);
             }
             finally
             {
@@ -388,8 +390,11 @@ namespace Thetis
         /// <summary>
         /// Builds the feature index in the background.  It decodes and analyses 489
         /// reference recordings, which takes a while, so it must not block the UI.
+        /// <paramref name="onCompleted"/> receives the number of profiles that were
+        /// measured, 0 when nothing could be measured and -1 when the build failed.
         /// </summary>
-        public static void StartIndexBuild()
+        public static void StartIndexBuild(Action<string> onProgress = null,
+                                           Action<int> onCompleted = null)
         {
             try
             {
@@ -398,22 +403,33 @@ namespace Thetis
                     try
                     {
                         SigIdDatabase database = SigIdDatabase.Open();
-                        if (database == null || !database.HasSignals) return;
+                        if (database == null || !database.HasSignals)
+                        {
+                            if (onCompleted != null) onCompleted(0);
+                            return;
+                        }
 
-                        SigIdFeatureIndex index = SigIdFeatureIndex.Build(database, SigIdPaths.MediaDirectory, null);
-                        if (index.Count == 0) return;
+                        SigIdFeatureIndex index = SigIdFeatureIndex.Build(database, SigIdPaths.MediaDirectory, onProgress);
+                        if (index.Count == 0)
+                        {
+                            if (onCompleted != null) onCompleted(0);
+                            return;
+                        }
 
                         index.Save();
+                        if (onCompleted != null) onCompleted(index.Count);
                     }
                     catch (Exception)
                     {
-                        // the index is a cache, never fatal
+                        // the index is a cache, never fatal - but tell the user it is missing
+                        if (onCompleted != null) onCompleted(-1);
                     }
                 });
             }
             catch (Exception)
             {
                 // never let this break the install
+                if (onCompleted != null) onCompleted(-1);
             }
         }
 

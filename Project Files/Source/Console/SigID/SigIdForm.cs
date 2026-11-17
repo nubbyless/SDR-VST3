@@ -465,6 +465,23 @@ namespace Thetis
 
             lblInstalled.Text = "Folder: " + SigIdPaths.Root;
 
+            // the matcher is only as good as the measured reference data, so say when it is
+            // missing - the user has to press "Rebuild reference data" in that case
+            if (_database != null && _database.HasSignals)
+            {
+                SigIdFeatureIndex index = SigIdFeatureIndex.Load();
+                int profiles = index != null ? index.Count : 0;
+                if (profiles == 0)
+                {
+                    lblInstalled.Text += "     Reference data not built - click Rebuild reference data.";
+                    lblInstalled.ForeColor = SigIdTheme.Warning;
+                }
+                else
+                {
+                    lblInstalled.Text += "     Reference data: " + profiles + " signals.";
+                }
+            }
+
             if (_latestRelease != null && _database != null && _latestRelease.Version > _database.Version)
             {
                 lblInstalled.Text += "     Update available: v" + _latestRelease.Version;
@@ -551,7 +568,10 @@ namespace Thetis
 
             try
             {
-                if (_latestRelease == null)
+                // the check that ran earlier may have been restored from install.json, which
+                // only keeps the version and the tag - no asset URL - so a cached release is
+                // not installable.  Fetch the full release description in that case.
+                if (_latestRelease == null || !_latestRelease.IsValid)
                 {
                     lblStatus.Text = "Looking for the newest database release...";
                     _latestRelease = await SigIdInstaller
@@ -578,7 +598,9 @@ namespace Thetis
                 btnCancel.Enabled = false;
                 lblStatus.Text = "Extracting...";
 
-                SigIdInstaller.Install(archive, _latestRelease);
+                // the reference data is measured in the background: the matcher cannot use
+                // the new database until that has finished, so say so and report the end
+                SigIdInstaller.Install(archive, _latestRelease, OnIndexProgress, OnIndexDone);
 
                 lblStatus.Text = "Database installed.";
                 lblStatus.ForeColor = SigIdTheme.Ok;
@@ -651,6 +673,69 @@ namespace Thetis
                 }
                 catch (Exception) { }
             });
+        }
+
+        /// <summary>
+        /// Called from the background index build while it measures the reference
+        /// recordings, so the user can see that the job after the download is still running.
+        /// </summary>
+        private void OnIndexProgress(string message)
+        {
+            if (IsDisposed) return;
+
+            try
+            {
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action(() => OnIndexProgress(message)));
+                    return;
+                }
+
+                lblStatus.Text = "Building reference data...  " + message;
+                lblStatus.ForeColor = SigIdTheme.Warning;
+            }
+            catch (Exception)
+            {
+                // the window may have gone away mid-update
+            }
+        }
+
+        /// <summary>
+        /// Called when the background index build finished.  A positive count is the number
+        /// of measured profiles, 0 means nothing could be measured and -1 means it failed.
+        /// </summary>
+        private void OnIndexDone(int count)
+        {
+            if (IsDisposed) return;
+
+            try
+            {
+                if (InvokeRequired)
+                {
+                    BeginInvoke(new Action(() => OnIndexDone(count)));
+                    return;
+                }
+
+                if (count > 0)
+                {
+                    lblStatus.Text = "Reference data ready (" + count + " signals measured).";
+                    lblStatus.ForeColor = SigIdTheme.Ok;
+                }
+                else if (count == 0)
+                {
+                    lblStatus.Text = "Reference data was not built - use \"Rebuild reference data\".";
+                    lblStatus.ForeColor = SigIdTheme.Warning;
+                }
+                else
+                {
+                    lblStatus.Text = "Reference data build failed - see the log, then rebuild.";
+                    lblStatus.ForeColor = SigIdTheme.Error;
+                }
+            }
+            catch (Exception)
+            {
+                // the window may have gone away mid-update
+            }
         }
 
         private void btnCancel_Click(object sender, EventArgs e)
