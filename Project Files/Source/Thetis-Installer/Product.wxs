@@ -133,9 +133,9 @@
       <!-- [sigid] the trained modulation classifier, built from the W1HKJ "Sights and
            Sounds" collection.  The signal database itself is NOT installed - the user
            downloads it from the Digi Id window. -->
-      <Component Guid="*">
+      <Component Guid="*" Directory="INSTALLFOLDER">
         <File Id="SigIdClassifierJSON"
-              Source="$(var.FilesPath)sigid_classifier.json"
+              Source="$(var.FilesPath)classifier.json"
               KeyPath="yes"
               Checksum="yes"
               />
@@ -700,6 +700,34 @@
 		<Component Guid="*">
 			<File Id="MarkdigDLL"
 				  Source="$(var.FilesPath)Markdig.dll"
+				  KeyPath="yes"
+              />
+		</Component>
+
+		<!-- [sigid] the Digi Id feature reads the Artemis database through
+		     Microsoft.Data.Sqlite.  The managed side of SQLitePCLRaw has to be in
+		     the install folder, the native e_sqlite3.dll is in RtNativeDir. -->
+		<Component Guid="*">
+			<File Id="Microsoft.Data.SqliteDLL"
+				  Source="$(var.FilesPath)Microsoft.Data.Sqlite.dll"
+				  KeyPath="yes"
+              />
+		</Component>
+		<Component Guid="*">
+			<File Id="SQLitePCLRawCoreDLL"
+				  Source="$(var.FilesPath)SQLitePCLRaw.core.dll"
+				  KeyPath="yes"
+              />
+		</Component>
+		<Component Guid="*">
+			<File Id="SQLitePCLRawBatteriesDLL"
+				  Source="$(var.FilesPath)SQLitePCLRaw.batteries_v2.dll"
+				  KeyPath="yes"
+              />
+		</Component>
+		<Component Guid="*">
+			<File Id="SQLitePCLRawProviderDLL"
+				  Source="$(var.FilesPath)SQLitePCLRaw.provider.e_sqlite3.dll"
 				  KeyPath="yes"
               />
 		</Component>

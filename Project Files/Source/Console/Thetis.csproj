@@ -1048,7 +1048,10 @@ echo } &gt;&gt; "$(ProjectDir)VersionInfo.cs"
     <Copy SourceFiles="$(ProjectDir)..\..\lib\NR_Algorithms_$(PlatformName)\rnnoise.dll" DestinationFolder="$(ProjectDir)$(OutDir)" />
     <Copy SourceFiles="$(ProjectDir)..\..\lib\NR_Algorithms_$(PlatformName)\rnnoise_avx2.dll" DestinationFolder="$(ProjectDir)$(OutDir)" />
     <Copy SourceFiles="$(ProjectDir)..\..\lib\NR_Algorithms_$(PlatformName)\specbleach.dll" DestinationFolder="$(ProjectDir)$(OutDir)" />
-    <Copy SourceFiles="$(ProjectDir)SigID\sigid_classifier.json" DestinationFolder="$(ProjectDir)$(OutDir)" />
+    <!-- [sigid] the trained modulation classifier - the signal database itself is
+         downloaded by the user from the Digi Id window.  It is copied under the name
+         the loader looks for (SigIdClassifier.FILE_NAME), not under its repo name. -->
+    <Copy SourceFiles="$(ProjectDir)SigID\sigid_classifier.json" DestinationFiles="$(ProjectDir)$(OutDir)classifier.json" />
     <Copy SourceFiles="$(ProjectDir)CAT\CATStructs.xml" DestinationFolder="$(ProjectDir)$(OutDir)" />
     <Copy SourceFiles="$(ProjectDir)courtesy_tone_default.wav" DestinationFolder="$(ProjectDir)$(OutDir)" />
     <Copy SourceFiles="$(ProjectDir)..\..\lib\Thetis-resources\calculus" DestinationFolder="$(ProjectDir)$(OutDir)" />

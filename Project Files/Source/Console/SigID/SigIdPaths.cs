@@ -55,7 +55,7 @@ namespace Thetis
         public const string PATH_ENV_VAR = "SDRVST3_SIGID_PATH";
 
         // mirrors console.cs AppDataPath for the x64 build
-        private const string APP_DATA_SUBPATH = @"OpenHPSDR\SDR-VST3-HL2-x64";
+        private const string APP_DATA_SUBPATH = @"OpenHPSDR\SDR-VST3-x64";
 
         private static string _cachedRoot;
         private static bool _cachedIsLocal;
