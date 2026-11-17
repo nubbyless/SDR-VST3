@@ -28559,7 +28559,6 @@ namespace Thetis
                     result = await QueryLatestReleaseViaApiAsync().ConfigureAwait(true);
                     if (!result.Success)
                     {
-                        Common.LogString("[update-check] both the redirect and the API query failed");
                         // keep showing whatever we knew before rather than nothing
                         if (cached != null && !string.IsNullOrEmpty(cached.TagName))
                             ApplyUpdateCheckResult(cached.TagName, cached.HtmlUrl);
@@ -28648,9 +28647,9 @@ namespace Thetis
                     }
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Common.LogString("[update-check] redirect query failed: " + ex.Message);
+                // offline or blocked - the update check is cosmetic, do not log it
             }
 
             return result;
@@ -28675,9 +28674,9 @@ namespace Thetis
                     result.HtmlUrl = (string)o["html_url"];
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                Common.LogString("[update-check] api query failed: " + ex.Message);
+                // offline or blocked - the update check is cosmetic, do not log it
             }
 
             return result;
@@ -28706,10 +28705,6 @@ namespace Thetis
             toolStripStatusLabel_Update.ToolTipText = "Click to open " + htmlUrl;
             toolStripStatusLabel_Update.Tag = htmlUrl;
             toolStripStatusLabel_Update.Visible = true;
-
-            Common.LogString("[update-check] tag='" + tag + "' product='" + Application.ProductVersion +
-                             "' latest=" + latest + " current=" + current + " -> " +
-                             (latest > current ? "UPDATE AVAILABLE" : "up to date"));
         }
 
         /// <summary>Cached result of the last successful release check.</summary>

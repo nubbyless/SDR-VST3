@@ -803,13 +803,31 @@ namespace Thetis
         // completes leaves no trace on the screen.  This log shows the engine state and the
         // internal flags while it runs, so a failed calibration can be analysed afterwards.
         // It is written to <appdata>\PureSignal\PS_debug.log
+        //
+        // The log is OFF by default.  It grows for as long as PureSignal is running and must
+        // not fill a user's disk with diagnostics.  Set the environment variable
+        // PS_DEBUG_LOG=1 to switch it on when a calibration has to be investigated.
+        private static readonly bool _ps_log_enabled = PsLogRequested();
+        private const long PS_LOG_MAX_BYTES = 4 * 1024 * 1024;
         private string _ps_log_path = null;
         private StreamWriter _ps_log = null;
         private DateTime _ps_log_last = DateTime.MinValue;
         private int _ps_log_last_state = -1;
 
+        private static bool PsLogRequested()
+        {
+            try
+            {
+                string value = Environment.GetEnvironmentVariable("PS_DEBUG_LOG");
+                return !string.IsNullOrEmpty(value) && value != "0";
+            }
+            catch { return false; }
+        }
+
         private void psLog(string msg)
         {
+            if (!_ps_log_enabled) return;
+
             try
             {
                 if (_ps_log == null)
@@ -819,6 +837,15 @@ namespace Thetis
                         System.IO.Directory.CreateDirectory(console.AppDataPath + "PureSignal\\");
                         _ps_log_path = console.AppDataPath + "PureSignal\\PS_debug.log";
                     }
+                    // keep one previous file so even a forgotten diagnostic run cannot grow
+                    // without bound
+                    try
+                    {
+                        FileInfo existing = new FileInfo(_ps_log_path);
+                        if (existing.Exists && existing.Length > PS_LOG_MAX_BYTES)
+                            File.Move(_ps_log_path, _ps_log_path + ".old", true);
+                    }
+                    catch { }
                     _ps_log = new StreamWriter(_ps_log_path, true);
                 }
                 _ps_log.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff") + " " + msg);
@@ -829,6 +856,8 @@ namespace Thetis
 
         private void psLogState()
         {
+            if (!_ps_log_enabled) return;
+
             try
             {
                 int state = puresignal.Info[15];
