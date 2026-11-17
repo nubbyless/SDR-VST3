@@ -1495,7 +1495,7 @@ namespace Thetis
         // MW0LGE: the old threshold was a fixed 90.  That was 0.6 of the old target (152).
         // PureSignal 3 measures the feedback against a different reference, so a fixed number
         // can never be reached and the "correcting" light stayed yellow for ever.  Scale it
-        // with the target.
+        // with the target, which is 152 for every radio.
         get { return FeedbackLevel > (int)(TargetFeedbackLevel * 0.6); }
         }
         public static bool NeedToRecalibrate(int nCurrentATTonTX) {

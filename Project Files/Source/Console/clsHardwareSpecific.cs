@@ -334,27 +334,25 @@ namespace Thetis
         // a different radio.  The operator must not be able to change it - a wrong value is
         // how an amplifier ends up in the wrong operating point.
         //
-        // Orion MK2 based rigs (ANAN-7000/8000/Anvelina PRO3) share the same feedback
-        // coupling levels.  Target ~22 keeps the ADC2208 and codec well inside their linear
-        // range while giving enough feedback for PureSignal correction.
+        // The target is the same for every radio: 152, the value upstream Thetis (MW0LGE)
+        // uses for all radios.
+        //
+        // During development the Orion MK2 based rigs (ANAN-7000D, ANAN-8000D, Anvelina
+        // PRO3) ran with a target of 22, because their feedback coupling reads lower and
+        // 22 keeps the ADC2208 and the codec well inside their linear range while still
+        // giving enough feedback for the PureSignal correction.  That per-radio override
+        // has been removed (2026-11-16): the auto-attenuator now lands in the same
+        // operating point on every radio, exactly as it does with MW0LGE's Thetis.
+        //
+        // The property is kept as the one place the target lives, so a radio that ever needs
+        // a value of its own again only has to be added here.
         //
         // Verified on an ANAN-10E (peak reference 0.2899) on 2026-11-13: with the target at
         // 152 the auto-attenuator walks the TX attenuator from 31 dB to 18 dB and the
         // feedback lands at 149..156 - exactly where it landed with PureSignal 2 (WDSP 1.29).
         public static int PSTargetFeedbackLevel
         {
-            get
-            {
-                switch (_model)
-                {
-                    case HPSDRModel.ANAN7000D:
-                    case HPSDRModel.ANAN8000D:
-                    case HPSDRModel.ANVELINAPRO3:
-                        return 22;
-                    default:
-                        return 152;
-                }
-            }
+            get { return 152; }
         }
 
         #region STRING_CONVERSION
