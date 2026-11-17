@@ -1,5 +1,8 @@
 # SDR-VST3
 
+https://www.sdr-vst3.com/
+
+
 **The OpenHPSDR Thetis console for Apache Labs radios — with built-in VST3 audio plugin hosting, embedded WSJT-X / fldigi / RADE digital modems, a DX Cluster and scanner, the latest WDSP 2.11 DSP engine, and a modernised .NET 10 + Vortice graphics pipeline.**
 
 ---
