@@ -38019,6 +38019,15 @@ namespace Thetis
                 string file = !string.IsNullOrWhiteSpace(_quickRecLastFile) && File.Exists(_quickRecLastFile)
                     ? _quickRecLastFile
                     : Path.Combine(ARP.AudioFolder, "quickrecord", "SDRQuickAudio.wav");
+                if (!File.Exists(file) && !string.IsNullOrWhiteSpace(_quickRecLastFile))
+                {
+                    string dir = Path.GetDirectoryName(_quickRecLastFile) ?? "";
+                    string baseName = Path.GetFileNameWithoutExtension(_quickRecLastFile);
+                    string altMp3 = Path.Combine(dir, "mp3", baseName + ".mp3");
+                    string altWav = Path.Combine(dir, baseName + ".wav");
+                    if (File.Exists(altMp3)) file = altMp3;
+                    else if (File.Exists(altWav)) file = altWav;
+                }
                 bool ok = ARP.PlayFileViaWDSP("quick", file, 0, out string error);
                 if (!ok)
                 {
@@ -38026,6 +38035,7 @@ namespace Thetis
                     ckQuickPlay.Checked = false;
                     ckQuickPlay.CheckedChanged += ckQuickPlay_CheckedChanged;
                     ckQuickRec.Enabled = true;
+                    MessageBox.Show(this, "Quick Play failed:\n" + (string.IsNullOrWhiteSpace(error) ? "Unknown error" : error) + "\n\nFile: " + file, "Quick Play", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
             else
