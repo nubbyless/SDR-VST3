@@ -1,4 +1,4 @@
-﻿/*  clsAudioRecordPlayback.cs
+/*  clsAudioRecordPlayback.cs
 
 This file is part of a program that implements a Software-Defined Radio.
 
@@ -1253,7 +1253,7 @@ namespace Thetis
                     _active_record_details = d;
                     _active_record_sample_rate = SampleRate;
                     _active_record_generate_mp3 = generateMp3File;
-                    _active_record_delete_json_after_record = deleteJsonAfterRecord && !generateMp3File;
+                    _active_record_delete_json_after_record = deleteJsonAfterRecord;
 
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
@@ -1436,7 +1436,7 @@ namespace Thetis
                     _active_record_details = d;
                     _active_record_sample_rate = SampleRate;
                     _active_record_generate_mp3 = generateMp3File;
-                    _active_record_delete_json_after_record = deleteJsonAfterRecord && !generateMp3File;
+                    _active_record_delete_json_after_record = deleteJsonAfterRecord;
 
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
@@ -2545,6 +2545,7 @@ namespace Thetis
                 string mp3Path = null;
 
                 bool generateMp3 = generateMp3ForRecord || GenerateMP3File;
+                bool deleteWavAfterMp3 = false;
                 if (recordSucceeded && generateMp3 && details != null && !string.IsNullOrWhiteSpace(wav) && File.Exists(wav))
                 {
                     string mp3Dir = deleteJsonAfterRecord ? Path.Combine(Path.GetDirectoryName(wav) ?? "", "mp3") : (Path.GetDirectoryName(wav) ?? "");
@@ -2577,6 +2578,7 @@ namespace Thetis
                         {
                             details.Mp3FileSizeBytes = null;
                         }
+                        deleteWavAfterMp3 = deleteJsonAfterRecord;
                     }
                 }
 
@@ -2596,6 +2598,11 @@ namespace Thetis
                 else if (!recordSucceeded && !string.IsNullOrWhiteSpace(failureMessage))
                 {
                     raiseRecordError(unique_id, wav, failureMessage);
+                }
+
+                if (recordSucceeded && deleteWavAfterMp3 && !string.IsNullOrWhiteSpace(wav))
+                {
+                    try { if (File.Exists(wav)) File.Delete(wav); } catch { }
                 }
 
                 completeRecordStateIfCurrent(unique_id, wav);

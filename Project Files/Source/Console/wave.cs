@@ -89,7 +89,7 @@ namespace Thetis
                 }
             }
             catch { }
-            try { if (console != null) { chkQuickRecMp3.Checked = console.QuickRecGenerateMp3; } } catch { }
+            try { if (console != null) { console.QuickRecGenerateMp3 = chkQuickRecMp3.Checked; } } catch { }
             _restoring_controls = false;
 
             this.FormClosing += WaveControl_FormClosing;
