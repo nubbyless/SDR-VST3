@@ -354,22 +354,20 @@ namespace Thetis
                 if (!File.Exists(wavPath)) return;
 
                 string jsonPath = Path.ChangeExtension(wavPath, ".json");
+                if (!File.Exists(jsonPath)) return;
 
                 DateTime wavLast = DateTime.SpecifyKind(File.GetLastWriteTimeUtc(wavPath), DateTimeKind.Utc);
                 string wavStamp = wavLast.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
 
                 RecordingJsonModel existing = null;
-                if (File.Exists(jsonPath))
+                try
                 {
-                    try
-                    {
-                        string existingText = File.ReadAllText(jsonPath, Encoding.UTF8);
-                        existing = JsonConvert.DeserializeObject<RecordingJsonModel>(existingText);
-                    }
-                    catch
-                    {
-                        existing = null;
-                    }
+                    string existingText = File.ReadAllText(jsonPath, Encoding.UTF8);
+                    existing = JsonConvert.DeserializeObject<RecordingJsonModel>(existingText);
+                }
+                catch
+                {
+                    existing = null;
                 }
 
                 string existingStamp = existing != null ? existing.wav_file_last_write_utc : null;
@@ -2630,11 +2628,12 @@ namespace Thetis
                     }
                 }
 
-                if (recordSucceeded && GenerateJSON && details != null && !string.IsNullOrWhiteSpace(json))
+                if (recordSucceeded && GenerateJSON && details != null && (!string.IsNullOrWhiteSpace(json) || !string.IsNullOrWhiteSpace(wav)))
                 {
                     if (deleteJsonAfterRecord)
                     {
-                        try { if (File.Exists(json)) File.Delete(json); } catch { }
+                        string jsonToDelete = !string.IsNullOrWhiteSpace(json) ? json : Path.ChangeExtension(wav, ".json");
+                        try { if (File.Exists(jsonToDelete)) File.Delete(jsonToDelete); } catch { }
                     }
                     else
                     {
