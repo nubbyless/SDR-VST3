@@ -15,7 +15,7 @@ namespace Thetis
         private WaveOptions waveOptionsForm;
         private readonly ArrayList file_list = new ArrayList();
 
-        private readonly string wave_folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "Thetis");
+        private readonly string wave_folder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "SDR-VST3");
 
         private OpenFileDialog openFileDialog1;
         private ButtonTS btnPlay;
@@ -1124,7 +1124,7 @@ namespace Thetis
             {
                 string folder = console != null && console.ARP != null
                     ? Path.Combine(console.ARP.AudioFolder, "quickrecord")
-                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "Thetis", "quickrecord");
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "SDR-VST3", "quickrecord");
                 if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
                 System.Diagnostics.Process.Start("explorer.exe", folder);
             }
