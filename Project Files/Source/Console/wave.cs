@@ -43,6 +43,7 @@ namespace Thetis
         private PictureBox picLogo;
         private MenuStrip menuStripOptions;
         private ToolStripMenuItem optionsToolStripMenuItem;
+        private CheckBoxTS chkAlwaysOnTop;
         private IContainer components;
         private bool _restoring_controls;
 
@@ -132,6 +133,7 @@ namespace Thetis
             this.btnPlay = new ButtonTS();
             this.menuStripOptions = new MenuStrip();
             this.optionsToolStripMenuItem = new ToolStripMenuItem();
+            this.chkAlwaysOnTop = new CheckBoxTS();
             this.grpPlaylist.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.grpTxGain.SuspendLayout();
@@ -398,6 +400,18 @@ namespace Thetis
             this.optionsToolStripMenuItem.Text = "Options";
             this.optionsToolStripMenuItem.Click += new EventHandler(this.optionsToolStripMenuItem_Click);
             // 
+            // chkAlwaysOnTop
+            // 
+            this.chkAlwaysOnTop.AutoSize = true;
+            this.chkAlwaysOnTop.Image = null;
+            this.chkAlwaysOnTop.Location = new Point(380, 2);
+            this.chkAlwaysOnTop.Name = "chkAlwaysOnTop";
+            this.chkAlwaysOnTop.Size = new Size(95, 20);
+            this.chkAlwaysOnTop.TabIndex = 69;
+            this.chkAlwaysOnTop.Text = "Always On Top";
+            this.chkAlwaysOnTop.UseVisualStyleBackColor = true;
+            this.chkAlwaysOnTop.CheckedChanged += new EventHandler(this.chkAlwaysOnTop_CheckedChanged);
+            // 
             // txtNotes
             // 
             this.txtNotes.Location = new Point(12, 340);
@@ -435,7 +449,9 @@ namespace Thetis
             this.Controls.Add(this.grpTxGain);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.grpPlayback);
+            this.Controls.Add(this.chkAlwaysOnTop);
             this.Controls.Add(this.menuStripOptions);
+            this.chkAlwaysOnTop.BringToFront();
             try
             {
                 if (console != null && console.Icon != null) this.Icon = console.Icon;
@@ -1056,6 +1072,11 @@ namespace Thetis
                 waveOptionsForm = new WaveOptions(console);
             try { waveOptionsForm.Show(this); } catch { waveOptionsForm.Show(); }
             waveOptionsForm.Focus();
+        }
+
+        private void chkAlwaysOnTop_CheckedChanged(object sender, EventArgs e)
+        {
+            this.TopMost = chkAlwaysOnTop.Checked;
         }
     }
 }
