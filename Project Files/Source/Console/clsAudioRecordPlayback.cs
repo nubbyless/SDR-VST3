@@ -2148,6 +2148,7 @@ namespace Thetis
             RecordingDetails details = null;
             string unique_id = null;
             string failure = null;
+            bool generateMp3 = false;
             bool completeNow = false;
 
             lock (_sync)
@@ -2193,7 +2194,7 @@ namespace Thetis
                         details = _active_record_details;
                         unique_id = _active_record_id;
                         failure = _active_record_failure_message;
-                        bool generateMp3 = _active_record_generate_mp3;
+                        generateMp3 = _active_record_generate_mp3;
 
                         cleanupPcRecording();
                         completeNow = true;
@@ -2395,7 +2396,7 @@ namespace Thetis
                 unique_id = _active_record_id;
                 success = !_active_record_failed;
                 failure = _active_record_failure_message;
-                bool generateMp3 = _active_record_generate_mp3;
+                generateMp3 = _active_record_generate_mp3;
 
                 cleanupPcRecording();
             }
