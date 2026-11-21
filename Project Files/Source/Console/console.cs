@@ -38074,7 +38074,7 @@ namespace Thetis
                 ckQuickPlay.Enabled = false;
                 ckQuickRec.BackColor = button_selected_color;
                 //string file = Path.Combine(AppDataPath, "SDRQuickAudio.wav");
-                string file = !string.IsNullOrWhiteSpace(_quickRecNextFile) ? _quickRecNextFile : ARP.AudioFolder; // quickrecord subfolder + timestamped filename handled by ARP
+                string file = !string.IsNullOrWhiteSpace(_quickRecNextFile) ? _quickRecNextFile : Path.Combine(ARP.AudioFolder, "quickrecord");
                 bool removeIfExists = !string.IsNullOrWhiteSpace(_quickRecNextFile);
                 _quickRecNextFile = null;
                 RecordingDetails details = new RecordingDetails()
