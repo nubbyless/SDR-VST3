@@ -38117,10 +38117,15 @@ namespace Thetis
                 }
                 string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, removeIfExists, details, false, _quickRecGenerateMp3, true);
                 _quickRecLastFile = filename;
-                if (!string.IsNullOrEmpty(filename) && _quickRecGenerateMp3)
+                if (!string.IsNullOrEmpty(filename))
                 {
-                    string mp3 = Path.Combine(Path.GetDirectoryName(filename) ?? "", "mp3", Path.GetFileNameWithoutExtension(filename) + ".mp3");
-                    if (File.Exists(mp3)) _quickRecLastFile = mp3;
+                    string json = Path.ChangeExtension(filename, ".json");
+                    try { if (File.Exists(json)) File.Delete(json); } catch { }
+                    if (_quickRecGenerateMp3)
+                    {
+                        string mp3 = Path.Combine(Path.GetDirectoryName(filename) ?? "", "mp3", Path.GetFileNameWithoutExtension(filename) + ".mp3");
+                        if (File.Exists(mp3)) _quickRecLastFile = mp3;
+                    }
                 }
                 if(string.IsNullOrEmpty(filename))
                 {
