@@ -1123,8 +1123,8 @@ namespace Thetis
             try
             {
                 string folder = console != null && console.ARP != null
-                    ? Path.Combine(console.ARP.AudioFolder, "quickrecord")
-                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "SDR-VST3", "quickrecord");
+                    ? Path.Combine(console.ARP.AudioFolder, "quickrecord", "mp3")
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "SDR-VST3", "quickrecord", "mp3");
                 if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
                 System.Diagnostics.Process.Start("explorer.exe", folder);
             }
