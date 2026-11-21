@@ -45,6 +45,7 @@ namespace Thetis
         private ToolStripMenuItem optionsToolStripMenuItem;
         private CheckBoxTS chkAlwaysOnTop;
         private CheckBoxTS chkQuickRecMp3;
+        private ButtonTS btnQuickRecMp3Folder;
         private IContainer components;
         private bool _restoring_controls;
 
@@ -137,6 +138,7 @@ namespace Thetis
             this.optionsToolStripMenuItem = new ToolStripMenuItem();
             this.chkAlwaysOnTop = new CheckBoxTS();
             this.chkQuickRecMp3 = new CheckBoxTS();
+            this.btnQuickRecMp3Folder = new ButtonTS();
             this.grpPlaylist.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.grpTxGain.SuspendLayout();
@@ -421,11 +423,23 @@ namespace Thetis
             this.chkQuickRecMp3.Image = null;
             this.chkQuickRecMp3.Location = new Point(130, 408);
             this.chkQuickRecMp3.Name = "chkQuickRecMp3";
-            this.chkQuickRecMp3.Size = new Size(130, 20);
+            this.chkQuickRecMp3.Size = new Size(165, 20);
             this.chkQuickRecMp3.TabIndex = 70;
-            this.chkQuickRecMp3.Text = "Quick Rec MP3";
+            this.chkQuickRecMp3.Text = "Frontpanel Quick Rec As MP3";
             this.chkQuickRecMp3.UseVisualStyleBackColor = true;
             this.chkQuickRecMp3.CheckedChanged += new EventHandler(this.chkQuickRecMp3_CheckedChanged);
+            // 
+            // btnQuickRecMp3Folder
+            // 
+            this.btnQuickRecMp3Folder.Image = null;
+            this.btnQuickRecMp3Folder.Location = new Point(320, 405);
+            this.btnQuickRecMp3Folder.Name = "btnQuickRecMp3Folder";
+            this.btnQuickRecMp3Folder.Selectable = true;
+            this.btnQuickRecMp3Folder.Size = new Size(80, 25);
+            this.btnQuickRecMp3Folder.TabIndex = 71;
+            this.btnQuickRecMp3Folder.Text = "MP3 Folder";
+            this.btnQuickRecMp3Folder.UseVisualStyleBackColor = true;
+            this.btnQuickRecMp3Folder.Click += new EventHandler(this.btnQuickRecMp3Folder_Click);
             // 
             // txtNotes
             // 
@@ -464,11 +478,13 @@ namespace Thetis
             this.Controls.Add(this.grpTxGain);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.grpPlayback);
+            this.Controls.Add(this.btnQuickRecMp3Folder);
             this.Controls.Add(this.chkQuickRecMp3);
             this.Controls.Add(this.chkAlwaysOnTop);
             this.Controls.Add(this.menuStripOptions);
             this.chkAlwaysOnTop.BringToFront();
             this.chkQuickRecMp3.BringToFront();
+            this.btnQuickRecMp3Folder.BringToFront();
             try
             {
                 if (console != null && console.Icon != null) this.Icon = console.Icon;
@@ -1100,6 +1116,19 @@ namespace Thetis
         {
             if (_restoring_controls) return;
             try { if (console != null) console.QuickRecGenerateMp3 = chkQuickRecMp3.Checked; } catch { }
+        }
+
+        private void btnQuickRecMp3Folder_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string folder = console != null && console.ARP != null
+                    ? Path.Combine(console.ARP.AudioFolder, "quickrecord")
+                    : Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyMusic), "Thetis", "quickrecord");
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                System.Diagnostics.Process.Start("explorer.exe", folder);
+            }
+            catch { }
         }
     }
 }
