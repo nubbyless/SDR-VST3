@@ -2381,6 +2381,7 @@ namespace Thetis
             string unique_id;
             bool success;
             string failure;
+            bool generateMp3;
 
             lock (_sync)
             {
