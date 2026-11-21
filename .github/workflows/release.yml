@@ -45,6 +45,9 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
+      - name: Build rade.lib
+        run: msbuild "Project Files/lib/radae_c/msvc/radae_c.vcxproj" -p:Configuration=Release -p:Platform=x64 -p:PlatformToolset=v143 -m -nologo
+
       - name: Restore NuGet packages
         run: msbuild "Project Files/Source/Thetis_VS2026.sln" -t:Restore -p:Configuration=Release -p:Platform=x64 -m -nologo
 
