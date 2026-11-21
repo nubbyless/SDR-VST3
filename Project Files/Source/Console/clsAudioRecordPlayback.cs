@@ -184,6 +184,7 @@ namespace Thetis
         private int _active_record_sample_rate;
         private bool _active_record_failed;
         private string _active_record_failure_message;
+        private bool _active_record_generate_mp3;
 
         private string _active_play_id;
         private string _active_play_filename;
@@ -1152,7 +1153,7 @@ namespace Thetis
             }
         }
 
-        public string RecordToFileFromWDSP(string record_id, string full_path, int wfw_id, out string error, bool remove_if_file_exists = false, RecordingDetails details = null, bool ignore_temp_changes = false)
+        public string RecordToFileFromWDSP(string record_id, string full_path, int wfw_id, out string error, bool remove_if_file_exists = false, RecordingDetails details = null, bool ignore_temp_changes = false, bool? generateMp3 = null)
         {
             error = null;
             string full_target = null;
@@ -1226,7 +1227,8 @@ namespace Thetis
                             break;
                     }
 
-                    bool needDetails = GenerateJSON || GenerateMP3File;
+                    bool generateMp3File = generateMp3 ?? GenerateMP3File;
+                    bool needDetails = GenerateJSON || generateMp3File;
                     RecordingDetails d = ensureDetails(details, needDetails);
 
                     if (d != null)
@@ -1249,6 +1251,7 @@ namespace Thetis
                     _active_record_filename = full_target;
                     _active_record_details = d;
                     _active_record_sample_rate = SampleRate;
+                    _active_record_generate_mp3 = generateMp3File;
 
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
@@ -1258,7 +1261,7 @@ namespace Thetis
                         _active_record_json_filename = Path.ChangeExtension(full_target, ".json");
                     }
 
-                    if (GenerateMP3File && _active_record_details != null)
+                    if (generateMp3File && _active_record_details != null)
                     {
                         _active_record_mp3_filename = Path.ChangeExtension(full_target, ".mp3");
                     }
@@ -1332,7 +1335,7 @@ namespace Thetis
             }
         }
 
-        public string RecordToFileFromPCAudio(string record_id, string full_path, int pcAudioDeviceInputId, out string error, bool remove_if_file_exists = false, RecordingDetails details = null)
+        public string RecordToFileFromPCAudio(string record_id, string full_path, int pcAudioDeviceInputId, out string error, bool remove_if_file_exists = false, RecordingDetails details = null, bool? generateMp3 = null)
         {
             error = null;
             string full_target = null;
@@ -1406,7 +1409,8 @@ namespace Thetis
                             break;
                     }
 
-                    bool needDetails = GenerateJSON || GenerateMP3File;
+                    bool generateMp3File = generateMp3 ?? GenerateMP3File;
+                    bool needDetails = GenerateJSON || generateMp3File;
                     RecordingDetails d = ensureDetails(details, needDetails);
 
                     if (d != null)
@@ -1429,6 +1433,7 @@ namespace Thetis
                     _active_record_filename = full_target;
                     _active_record_details = d;
                     _active_record_sample_rate = SampleRate;
+                    _active_record_generate_mp3 = generateMp3File;
 
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
@@ -1438,7 +1443,7 @@ namespace Thetis
                         _active_record_json_filename = Path.ChangeExtension(full_target, ".json");
                     }
 
-                    if (GenerateMP3File && _active_record_details != null)
+                    if (generateMp3File && _active_record_details != null)
                     {
                         _active_record_mp3_filename = Path.ChangeExtension(full_target, ".mp3");
                     }
@@ -2188,6 +2193,7 @@ namespace Thetis
                         details = _active_record_details;
                         unique_id = _active_record_id;
                         failure = _active_record_failure_message;
+                        bool generateMp3 = _active_record_generate_mp3;
 
                         cleanupPcRecording();
                         completeNow = true;
@@ -2197,7 +2203,7 @@ namespace Thetis
 
             if (completeNow)
             {
-                recordCompleted(unique_id, wav, json, mp3, details, false, failure);
+                recordCompleted(unique_id, wav, json, mp3, details, false, failure, generateMp3);
             }
         }
 
@@ -2389,11 +2395,12 @@ namespace Thetis
                 unique_id = _active_record_id;
                 success = !_active_record_failed;
                 failure = _active_record_failure_message;
+                bool generateMp3 = _active_record_generate_mp3;
 
                 cleanupPcRecording();
             }
 
-            recordCompleted(unique_id, wav, json, mp3, details, success, failure);
+            recordCompleted(unique_id, wav, json, mp3, details, success, failure, generateMp3);
         }
 
         private void cleanupPcRecording()
@@ -2449,6 +2456,7 @@ namespace Thetis
             string unique_id;
             bool success;
             string failure;
+            bool generateMp3;
 
             if (ex != null)
             {
@@ -2484,12 +2492,13 @@ namespace Thetis
                 unique_id = _active_record_id;
                 success = !_active_record_failed;
                 failure = _active_record_failure_message;
+                generateMp3 = _active_record_generate_mp3;
             }
 
-            recordCompleted(unique_id, wav, json, mp3, details, success, failure);
+            recordCompleted(unique_id, wav, json, mp3, details, success, failure, generateMp3);
         }
 
-        private void recordCompleted(string unique_id, string wav, string json, string mp3, RecordingDetails details, bool recordSucceeded, string failureMessage)
+        private void recordCompleted(string unique_id, string wav, string json, string mp3, RecordingDetails details, bool recordSucceeded, string failureMessage, bool generateMp3ForRecord = false)
         {
             Action a = delegate
             {
@@ -2524,7 +2533,8 @@ namespace Thetis
 
                 string mp3Path = null;
 
-                if (recordSucceeded && GenerateMP3File && details != null && !string.IsNullOrWhiteSpace(wav) && File.Exists(wav))
+                bool generateMp3 = generateMp3ForRecord || GenerateMP3File;
+                if (recordSucceeded && generateMp3 && details != null && !string.IsNullOrWhiteSpace(wav) && File.Exists(wav))
                 {
                     mp3Path = Path.ChangeExtension(wav, ".mp3");
                     try { if (File.Exists(mp3Path)) File.Delete(mp3Path); } catch { }
@@ -2767,6 +2777,7 @@ namespace Thetis
             _active_record_sample_rate = 0;
             _active_record_failed = false;
             _active_record_failure_message = null;
+            _active_record_generate_mp3 = false;
         }
 
         private bool isActiveRecordMatchLocked(string unique_id, string wav)

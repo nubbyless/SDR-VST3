@@ -44,6 +44,7 @@ namespace Thetis
         private MenuStrip menuStripOptions;
         private ToolStripMenuItem optionsToolStripMenuItem;
         private CheckBoxTS chkAlwaysOnTop;
+        private CheckBoxTS chkQuickRecMp3;
         private IContainer components;
         private bool _restoring_controls;
 
@@ -87,6 +88,7 @@ namespace Thetis
                 }
             }
             catch { }
+            try { if (console != null) { chkQuickRecMp3.Checked = console.QuickRecGenerateMp3; } } catch { }
             _restoring_controls = false;
 
             this.FormClosing += WaveControl_FormClosing;
@@ -134,6 +136,7 @@ namespace Thetis
             this.menuStripOptions = new MenuStrip();
             this.optionsToolStripMenuItem = new ToolStripMenuItem();
             this.chkAlwaysOnTop = new CheckBoxTS();
+            this.chkQuickRecMp3 = new CheckBoxTS();
             this.grpPlaylist.SuspendLayout();
             this.groupBox2.SuspendLayout();
             this.grpTxGain.SuspendLayout();
@@ -404,13 +407,25 @@ namespace Thetis
             // 
             this.chkAlwaysOnTop.AutoSize = true;
             this.chkAlwaysOnTop.Image = null;
-            this.chkAlwaysOnTop.Location = new Point(380, 2);
+            this.chkAlwaysOnTop.Location = new Point(12, 408);
             this.chkAlwaysOnTop.Name = "chkAlwaysOnTop";
             this.chkAlwaysOnTop.Size = new Size(95, 20);
             this.chkAlwaysOnTop.TabIndex = 69;
             this.chkAlwaysOnTop.Text = "Always On Top";
             this.chkAlwaysOnTop.UseVisualStyleBackColor = true;
             this.chkAlwaysOnTop.CheckedChanged += new EventHandler(this.chkAlwaysOnTop_CheckedChanged);
+            // 
+            // chkQuickRecMp3
+            // 
+            this.chkQuickRecMp3.AutoSize = true;
+            this.chkQuickRecMp3.Image = null;
+            this.chkQuickRecMp3.Location = new Point(130, 408);
+            this.chkQuickRecMp3.Name = "chkQuickRecMp3";
+            this.chkQuickRecMp3.Size = new Size(130, 20);
+            this.chkQuickRecMp3.TabIndex = 70;
+            this.chkQuickRecMp3.Text = "Quick Rec MP3";
+            this.chkQuickRecMp3.UseVisualStyleBackColor = true;
+            this.chkQuickRecMp3.CheckedChanged += new EventHandler(this.chkQuickRecMp3_CheckedChanged);
             // 
             // txtNotes
             // 
@@ -424,7 +439,7 @@ namespace Thetis
             // lblNote
             // 
             this.lblNote.AutoSize = false;
-            this.lblNote.Location = new Point(12, 408);
+            this.lblNote.Location = new Point(12, 432);
             this.lblNote.Name = "lblNote";
             this.lblNote.Size = new Size(457, 32);
             this.lblNote.TabIndex = 68;
@@ -441,7 +456,7 @@ namespace Thetis
             // 
             // WaveControl
             // 
-            this.ClientSize = new Size(481, 448);
+            this.ClientSize = new Size(481, 472);
             this.Controls.Add(this.picLogo);
             this.Controls.Add(this.lblNote);
             this.Controls.Add(this.txtNotes);
@@ -449,9 +464,11 @@ namespace Thetis
             this.Controls.Add(this.grpTxGain);
             this.Controls.Add(this.groupBox2);
             this.Controls.Add(this.grpPlayback);
+            this.Controls.Add(this.chkQuickRecMp3);
             this.Controls.Add(this.chkAlwaysOnTop);
             this.Controls.Add(this.menuStripOptions);
             this.chkAlwaysOnTop.BringToFront();
+            this.chkQuickRecMp3.BringToFront();
             try
             {
                 if (console != null && console.Icon != null) this.Icon = console.Icon;
@@ -1077,6 +1094,12 @@ namespace Thetis
         private void chkAlwaysOnTop_CheckedChanged(object sender, EventArgs e)
         {
             this.TopMost = chkAlwaysOnTop.Checked;
+        }
+
+        private void chkQuickRecMp3_CheckedChanged(object sender, EventArgs e)
+        {
+            if (_restoring_controls) return;
+            try { if (console != null) console.QuickRecGenerateMp3 = chkQuickRecMp3.Checked; } catch { }
         }
     }
 }

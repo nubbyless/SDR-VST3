@@ -38041,6 +38041,12 @@ namespace Thetis
         private string _quickRecNextFile = null;
         private bool _suppressQuickPlayToggle = false;
         private bool _suppressQuickRecToggle = false;
+        private bool _quickRecGenerateMp3 = false;
+        public bool QuickRecGenerateMp3
+        {
+            get { return _quickRecGenerateMp3; }
+            set { _quickRecGenerateMp3 = value; }
+        }
         //public bool UpdatedFromWaveForm
         //{
         //    // prevent wave form changes causing loop
@@ -38079,7 +38085,7 @@ namespace Thetis
                     UtcTime = DateTime.UtcNow,
                     //DDCFrequency = CentreFrequency.ToString("F6", System.Globalization.CultureInfo.InvariantCulture),
                 };
-                string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, removeIfExists, details);
+                string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, removeIfExists, details, false, _quickRecGenerateMp3);
                 _quickRecLastFile = filename;
                 if(string.IsNullOrEmpty(filename))
                 {
