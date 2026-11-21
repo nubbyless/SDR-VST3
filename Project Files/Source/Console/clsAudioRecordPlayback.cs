@@ -2632,15 +2632,18 @@ namespace Thetis
 
                 if (recordSucceeded && GenerateJSON && details != null && !string.IsNullOrWhiteSpace(json))
                 {
-                    try { if (File.Exists(json)) File.Delete(json); } catch { }
-                    bool ok = writeRecordingJson(unique_id, json, details);
-                    if (!ok)
+                    if (deleteJsonAfterRecord)
                     {
                         try { if (File.Exists(json)) File.Delete(json); } catch { }
                     }
-                    else if (deleteJsonAfterRecord)
+                    else
                     {
                         try { if (File.Exists(json)) File.Delete(json); } catch { }
+                        bool ok = writeRecordingJson(unique_id, json, details);
+                        if (!ok)
+                        {
+                            try { if (File.Exists(json)) File.Delete(json); } catch { }
+                        }
                     }
                 }
                 else if (!recordSucceeded && !string.IsNullOrWhiteSpace(failureMessage))
