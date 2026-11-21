@@ -1,4 +1,4 @@
-//=================================================================
+﻿//=================================================================
 // console.cs
 //=================================================================
 // Thetis is a C# implementation of a Software Defined Radio.
@@ -164,7 +164,7 @@ namespace Thetis
         public MemoryForm memoryForm;
         public MemoryList MemoryList { get; private set; }
         public ScanControl ScanForm; // ke9ns add Scanner
-        //public WaveControl WaveForm;
+        public WaveControl WaveForm;
 
         //====================================================================================
 
@@ -2079,7 +2079,7 @@ namespace Thetis
             Display.RestorePan3DPersisted();
 
             XVTRForm = new XVTRForm(this);
-            //WaveForm = new WaveControl(this) { StartPosition = FormStartPosition.Manual };	// create Wave form
+            WaveForm = new WaveControl(this);	// create Wave form
 
             MemoryList = MemoryList.Restore();
             MemoryList.CheckVersion();
@@ -41864,21 +41864,21 @@ namespace Thetis
 
         private void waveToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //if (WaveForm.IsDisposed)
-            //    WaveForm = new WaveControl(this);
-            //if (WaveForm.InvokeRequired)
-            //{
-            //    WaveForm.Invoke(new MethodInvoker(() =>
-            //    {
-            //        WaveForm.Show();
-            //        WaveForm.Focus();
-            //    }));
-            //}
-            //else
-            //{
-            //    WaveForm.Show();
-            //    WaveForm.Focus();
-            //}
+            if (WaveForm == null || WaveForm.IsDisposed)
+                WaveForm = new WaveControl(this);
+            if (WaveForm.InvokeRequired)
+            {
+                WaveForm.Invoke(new MethodInvoker(() =>
+                {
+                    WaveForm.Show();
+                    WaveForm.Focus();
+                }));
+            }
+            else
+            {
+                WaveForm.Show();
+                WaveForm.Focus();
+            }
         }
 
         private void CollapseToolStripMenuItem_Click(object sender, EventArgs e)

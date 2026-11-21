@@ -346,6 +346,7 @@
         private MenuStrip menuStrip1;
         private ToolStripMenuItem setupToolStripMenuItem;
         private ToolStripMenuItem memoryToolStripMenuItem;
+        private ToolStripMenuItem waveToolStripMenuItem;
         private ToolStripMenuItem scanToolStripMenuItem; // ke9ns add Scanner
         private ToolStripMenuItem equalizerToolStripMenuItem;
         private ToolStripMenuItem xVTRsToolStripMenuItem;
@@ -776,6 +777,7 @@
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.databaseManagerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.memoryToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.waveToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.scanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem(); // ke9ns add Scanner
             this.equalizerToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.vstToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -4299,6 +4301,7 @@
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.setupToolStripMenuItem,
             this.memoryToolStripMenuItem,
+            this.waveToolStripMenuItem,
             this.scanToolStripMenuItem,
             this.equalizerToolStripMenuItem,
             this.vstToolStripMenuItem,
@@ -4359,6 +4362,13 @@
             this.memoryToolStripMenuItem.Name = "memoryToolStripMenuItem";
             resources.ApplyResources(this.memoryToolStripMenuItem, "memoryToolStripMenuItem");
             this.memoryToolStripMenuItem.Click += new System.EventHandler(this.memoryToolStripMenuItem_Click);
+            // 
+            // waveToolStripMenuItem
+            // 
+            this.waveToolStripMenuItem.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.waveToolStripMenuItem.Name = "waveToolStripMenuItem";
+            resources.ApplyResources(this.waveToolStripMenuItem, "waveToolStripMenuItem");
+            this.waveToolStripMenuItem.Click += new System.EventHandler(this.waveToolStripMenuItem_Click);
             // 
             // scanToolStripMenuItem
             // 
@@ -8290,3 +8300,4 @@
         private ToolStripStatusLabel toolStripStatus_RecordPlay_spacer;
     }
 }
+

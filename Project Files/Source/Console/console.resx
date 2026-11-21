@@ -9069,6 +9069,12 @@ Ctrl + Left Click on any Band Button adds to Stack</value>
   <data name="memoryToolStripMenuItem.Text" xml:space="preserve">
     <value>Memory</value>
   </data>
+  <data name="waveToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
+    <value>48, 20</value>
+  </data>
+  <data name="waveToolStripMenuItem.Text" xml:space="preserve">
+    <value>Wave</value>
+  </data>
   <data name="equalizerToolStripMenuItem.Size" type="System.Drawing.Size, System.Drawing">
     <value>66, 20</value>
   </data>
@@ -22022,6 +22028,12 @@ Ctrl + Left Click on any Band Button adds to Stack</value>
     <value>memoryToolStripMenuItem</value>
   </data>
   <data name="&gt;&gt;memoryToolStripMenuItem.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;waveToolStripMenuItem.Name" xml:space="preserve">
+    <value>waveToolStripMenuItem</value>
+  </data>
+  <data name="&gt;&gt;waveToolStripMenuItem.Type" xml:space="preserve">
     <value>System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="&gt;&gt;equalizerToolStripMenuItem.Name" xml:space="preserve">
