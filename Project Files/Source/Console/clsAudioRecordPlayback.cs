@@ -185,6 +185,7 @@ namespace Thetis
         private bool _active_record_failed;
         private string _active_record_failure_message;
         private bool _active_record_generate_mp3;
+        private bool _active_record_delete_json_after_record;
 
         private string _active_play_id;
         private string _active_play_filename;
@@ -1153,7 +1154,7 @@ namespace Thetis
             }
         }
 
-        public string RecordToFileFromWDSP(string record_id, string full_path, int wfw_id, out string error, bool remove_if_file_exists = false, RecordingDetails details = null, bool ignore_temp_changes = false, bool? generateMp3 = null)
+        public string RecordToFileFromWDSP(string record_id, string full_path, int wfw_id, out string error, bool remove_if_file_exists = false, RecordingDetails details = null, bool ignore_temp_changes = false, bool? generateMp3 = null, bool deleteJsonAfterRecord = false)
         {
             error = null;
             string full_target = null;
@@ -1252,6 +1253,7 @@ namespace Thetis
                     _active_record_details = d;
                     _active_record_sample_rate = SampleRate;
                     _active_record_generate_mp3 = generateMp3File;
+                    _active_record_delete_json_after_record = deleteJsonAfterRecord && !generateMp3File;
 
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
@@ -1335,7 +1337,7 @@ namespace Thetis
             }
         }
 
-        public string RecordToFileFromPCAudio(string record_id, string full_path, int pcAudioDeviceInputId, out string error, bool remove_if_file_exists = false, RecordingDetails details = null, bool? generateMp3 = null)
+        public string RecordToFileFromPCAudio(string record_id, string full_path, int pcAudioDeviceInputId, out string error, bool remove_if_file_exists = false, RecordingDetails details = null, bool? generateMp3 = null, bool deleteJsonAfterRecord = false)
         {
             error = null;
             string full_target = null;
@@ -1434,6 +1436,7 @@ namespace Thetis
                     _active_record_details = d;
                     _active_record_sample_rate = SampleRate;
                     _active_record_generate_mp3 = generateMp3File;
+                    _active_record_delete_json_after_record = deleteJsonAfterRecord && !generateMp3File;
 
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
@@ -2195,6 +2198,7 @@ namespace Thetis
                         unique_id = _active_record_id;
                         failure = _active_record_failure_message;
                         generateMp3 = _active_record_generate_mp3;
+                        bool deleteJsonAfterRecord = _active_record_delete_json_after_record;
 
                         cleanupPcRecording();
                         completeNow = true;
@@ -2204,7 +2208,7 @@ namespace Thetis
 
             if (completeNow)
             {
-                recordCompleted(unique_id, wav, json, mp3, details, false, failure, generateMp3);
+                recordCompleted(unique_id, wav, json, mp3, details, false, failure, generateMp3, deleteJsonAfterRecord);
             }
         }
 
@@ -2398,11 +2402,12 @@ namespace Thetis
                 success = !_active_record_failed;
                 failure = _active_record_failure_message;
                 generateMp3 = _active_record_generate_mp3;
+                bool deleteJsonAfterRecord = _active_record_delete_json_after_record;
 
                 cleanupPcRecording();
             }
 
-            recordCompleted(unique_id, wav, json, mp3, details, success, failure, generateMp3);
+            recordCompleted(unique_id, wav, json, mp3, details, success, failure, generateMp3, deleteJsonAfterRecord);
         }
 
         private void cleanupPcRecording()
@@ -2495,12 +2500,13 @@ namespace Thetis
                 success = !_active_record_failed;
                 failure = _active_record_failure_message;
                 generateMp3 = _active_record_generate_mp3;
+                deleteJsonAfterRecord = _active_record_delete_json_after_record;
             }
 
-            recordCompleted(unique_id, wav, json, mp3, details, success, failure, generateMp3);
+            recordCompleted(unique_id, wav, json, mp3, details, success, failure, generateMp3, deleteJsonAfterRecord);
         }
 
-        private void recordCompleted(string unique_id, string wav, string json, string mp3, RecordingDetails details, bool recordSucceeded, string failureMessage, bool generateMp3ForRecord = false)
+        private void recordCompleted(string unique_id, string wav, string json, string mp3, RecordingDetails details, bool recordSucceeded, string failureMessage, bool generateMp3ForRecord = false, bool deleteJsonAfterRecord = false)
         {
             Action a = delegate
             {
@@ -2538,7 +2544,9 @@ namespace Thetis
                 bool generateMp3 = generateMp3ForRecord || GenerateMP3File;
                 if (recordSucceeded && generateMp3 && details != null && !string.IsNullOrWhiteSpace(wav) && File.Exists(wav))
                 {
-                    mp3Path = Path.ChangeExtension(wav, ".mp3");
+                    string mp3Dir = deleteJsonAfterRecord ? Path.Combine(Path.GetDirectoryName(wav) ?? "", "mp3") : (Path.GetDirectoryName(wav) ?? "");
+                    try { if (!Directory.Exists(mp3Dir)) Directory.CreateDirectory(mp3Dir); } catch { }
+                    mp3Path = Path.Combine(mp3Dir, Path.GetFileNameWithoutExtension(wav) + ".mp3");
                     try { if (File.Exists(mp3Path)) File.Delete(mp3Path); } catch { }
 
                     bool mp3Ok = generateMp3FromWav(wav, mp3Path);
@@ -2574,6 +2582,10 @@ namespace Thetis
                     try { if (File.Exists(json)) File.Delete(json); } catch { }
                     bool ok = writeRecordingJson(unique_id, json, details);
                     if (!ok)
+                    {
+                        try { if (File.Exists(json)) File.Delete(json); } catch { }
+                    }
+                    else if (deleteJsonAfterRecord)
                     {
                         try { if (File.Exists(json)) File.Delete(json); } catch { }
                     }
@@ -2780,6 +2792,7 @@ namespace Thetis
             _active_record_failed = false;
             _active_record_failure_message = null;
             _active_record_generate_mp3 = false;
+            _active_record_delete_json_after_record = false;
         }
 
         private bool isActiveRecordMatchLocked(string unique_id, string wav)

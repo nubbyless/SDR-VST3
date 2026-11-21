@@ -38105,7 +38105,7 @@ namespace Thetis
                     file = Path.Combine(quickRecFolder, recName);
                     removeIfExists = true;
                 }
-                string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, removeIfExists, details, false, _quickRecGenerateMp3);
+                string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, removeIfExists, details, false, _quickRecGenerateMp3, true);
                 _quickRecLastFile = filename;
                 if(string.IsNullOrEmpty(filename))
                 {
