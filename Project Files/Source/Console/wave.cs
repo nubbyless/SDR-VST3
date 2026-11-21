@@ -409,7 +409,7 @@ namespace Thetis
             // 
             this.chkAlwaysOnTop.AutoSize = true;
             this.chkAlwaysOnTop.Image = null;
-            this.chkAlwaysOnTop.Location = new Point(12, 408);
+            this.chkAlwaysOnTop.Location = new Point(360, 438);
             this.chkAlwaysOnTop.Name = "chkAlwaysOnTop";
             this.chkAlwaysOnTop.Size = new Size(95, 20);
             this.chkAlwaysOnTop.TabIndex = 69;
@@ -455,7 +455,7 @@ namespace Thetis
             this.lblNote.AutoSize = false;
             this.lblNote.Location = new Point(12, 432);
             this.lblNote.Name = "lblNote";
-            this.lblNote.Size = new Size(457, 32);
+            this.lblNote.Size = new Size(340, 32);
             this.lblNote.TabIndex = 68;
             this.lblNote.Text = "NOTE: In Receive, playback goes to the input of the receiver.\r\nIn Transmit, playback goes to the input of the transmitter.";
             // 
