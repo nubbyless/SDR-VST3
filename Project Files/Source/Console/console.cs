@@ -34164,7 +34164,10 @@ namespace Thetis
             else
                 dspMode = _rx2_dsp_mode;
 
-            return (dspMode == DSPMode.AM || dspMode == DSPMode.DSB || dspMode == DSPMode.FM || dspMode == DSPMode.SAM || dspMode == DSPMode.SPEC || dspMode == DSPMode.DRM);
+            if (tx && (dspMode == DSPMode.AM || dspMode == DSPMode.SAM))
+                return true;
+
+            return (dspMode == DSPMode.DSB || dspMode == DSPMode.FM || dspMode == DSPMode.SPEC || dspMode == DSPMode.DRM);
         }
         private float agcCalOffset(int rx)
         {
@@ -37924,8 +37927,78 @@ namespace Thetis
         }
 
 
+        private void ckQuickPlay_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right) return;
+            _suppressQuickPlayToggle = true;
+            bool wasChecked = ckQuickPlay.Checked;
+            BeginInvoke((Action)(() =>
+            {
+                try
+                {
+                    using (OpenFileDialog dlg = new OpenFileDialog())
+                    {
+                        string folder = Path.Combine(ARP.AudioFolder, "quickrecord");
+                        try { if (!Directory.Exists(folder)) Directory.CreateDirectory(folder); } catch { }
+                        dlg.InitialDirectory = folder;
+                        dlg.Filter = "WAV files (*.wav)|*.wav|All files (*.*)|*.*";
+                        dlg.Title = "Select Quick Play File";
+                        dlg.CheckFileExists = true;
+                        dlg.Multiselect = false;
+                    if (dlg.ShowDialog(this) == DialogResult.OK)
+                    {
+                        _quickRecLastFile = dlg.FileName;
+                        ckQuickPlay.Enabled = true;
+                    }
+                    }
+                }
+                finally
+                {
+                    ckQuickPlay.CheckedChanged -= ckQuickPlay_CheckedChanged;
+                    ckQuickPlay.Checked = wasChecked;
+                    ckQuickPlay.CheckedChanged += ckQuickPlay_CheckedChanged;
+                    _suppressQuickPlayToggle = false;
+                }
+            }));
+        }
+
+        private void ckQuickRec_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (e.Button != MouseButtons.Right) return;
+            _suppressQuickRecToggle = true;
+            bool wasChecked = ckQuickRec.Checked;
+            BeginInvoke((Action)(() =>
+            {
+                try
+                {
+                    using (SaveFileDialog dlg = new SaveFileDialog())
+                    {
+                        string folder = Path.Combine(ARP.AudioFolder, "quickrecord");
+                        try { if (!Directory.Exists(folder)) Directory.CreateDirectory(folder); } catch { }
+                        dlg.InitialDirectory = folder;
+                        dlg.Filter = "WAV files (*.wav)|*.wav|All files (*.*)|*.*";
+                        dlg.Title = "Select Quick Record File (next recording only)";
+                        dlg.OverwritePrompt = true;
+                        dlg.AddExtension = true;
+                        dlg.DefaultExt = "wav";
+                        dlg.FileName = "QuickRecord.wav";
+                        if (dlg.ShowDialog(this) == DialogResult.OK)
+                            _quickRecNextFile = dlg.FileName;
+                    }
+                }
+                finally
+                {
+                    ckQuickRec.CheckedChanged -= ckQuickRec_CheckedChanged;
+                    ckQuickRec.Checked = wasChecked;
+                    ckQuickRec.CheckedChanged += ckQuickRec_CheckedChanged;
+                    _suppressQuickRecToggle = false;
+                }
+            }));
+        }
+
         private async void ckQuickPlay_CheckedChanged(object sender, System.EventArgs e)
         {
+            if (_suppressQuickPlayToggle) return;
             //if (ckQuickPlay.Checked)
             //{
             //    WaveForm.QuickPlay = true;
@@ -37943,7 +38016,9 @@ namespace Thetis
                 ckQuickRec.Enabled = false;
                 ckQuickPlay.BackColor = button_selected_color;
                 //string file = Path.Combine(AppDataPath, "SDRQuickAudio.wav");
-                string file = Path.Combine(ARP.AudioFolder, "quickrecord", "SDRQuickAudio.wav");
+                string file = !string.IsNullOrWhiteSpace(_quickRecLastFile) && File.Exists(_quickRecLastFile)
+                    ? _quickRecLastFile
+                    : Path.Combine(ARP.AudioFolder, "quickrecord", "SDRQuickAudio.wav");
                 bool ok = ARP.PlayFileViaWDSP("quick", file, 0, out string error);
                 if (!ok)
                 {
@@ -37961,7 +38036,11 @@ namespace Thetis
             }
         }
 
-        //private bool _updated_from_wave_form = false;
+        //        private bool _updated_from_wave_form = false;
+        private string _quickRecLastFile = null;
+        private string _quickRecNextFile = null;
+        private bool _suppressQuickPlayToggle = false;
+        private bool _suppressQuickRecToggle = false;
         //public bool UpdatedFromWaveForm
         //{
         //    // prevent wave form changes causing loop
@@ -37970,6 +38049,7 @@ namespace Thetis
         //}
         private void ckQuickRec_CheckedChanged(object sender, System.EventArgs e)
         {
+            if (_suppressQuickRecToggle) return;
             //if (ckQuickRec.Checked)
             //{
             //    if(!_updated_from_wave_form) WaveForm.QuickRec = true;
@@ -37988,7 +38068,9 @@ namespace Thetis
                 ckQuickPlay.Enabled = false;
                 ckQuickRec.BackColor = button_selected_color;
                 //string file = Path.Combine(AppDataPath, "SDRQuickAudio.wav");
-                string file = Path.Combine(ARP.AudioFolder, "quickrecord", "SDRQuickAudio.wav");
+                string file = !string.IsNullOrWhiteSpace(_quickRecNextFile) ? _quickRecNextFile : ARP.AudioFolder; // quickrecord subfolder + timestamped filename handled by ARP
+                bool removeIfExists = !string.IsNullOrWhiteSpace(_quickRecNextFile);
+                _quickRecNextFile = null;
                 RecordingDetails details = new RecordingDetails()
                 {
                     Band = BandStackManager.BandToString(RX1Band),
@@ -37997,7 +38079,8 @@ namespace Thetis
                     UtcTime = DateTime.UtcNow,
                     //DDCFrequency = CentreFrequency.ToString("F6", System.Globalization.CultureInfo.InvariantCulture),
                 };
-                string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, true, details);
+                string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, removeIfExists, details);
+                _quickRecLastFile = filename;
                 if(string.IsNullOrEmpty(filename))
                 {
                     ckQuickRec.CheckedChanged -= ckQuickRec_CheckedChanged;
@@ -50965,7 +51048,7 @@ namespace Thetis
                     }
                     //
 
-                    if (Display.HightlightFilterEdgeRX1 == 0 && Display.HightlightFilterEdgeRX2 == 0 &&
+                    if (Display.HightlightFilterEdgeRX1 == 0 && Display.HightlightFilterEdgeRX2 == 0 && Display.HightlightFilterEdgeTX == 0 &&
                         !agc_knee_drag &&
                         !agc_hang_drag &&
                         !gridminmaxadjust &&
@@ -51490,6 +51573,7 @@ namespace Thetis
 
             Display.HightlightFilterEdgeRX1 = 0;
             Display.HightlightFilterEdgeRX2 = 0;
+            Display.HightlightFilterEdgeTX = 0;
 
             infoBar.Left1(0, "");
             infoBar.Left2(0, "");
@@ -52224,26 +52308,41 @@ namespace Thetis
 
                         bool bOkToChangeRX1 = bOverRX1 && rx1_enabled && !rx1_click_tune_drag && !rx1_spectrum_drag && (_rx1_dsp_mode != DSPMode.DRM && _rx1_dsp_mode != DSPMode.SPEC && _rx1_dsp_mode != DSPMode.FM) && !(_mox && (VFOATX || (RX2Enabled && VFOSplit))); //[2.10.1.0] MW0LGE prevent highlight when MOX
                         bool bOkToChangeRX2 = bOverRX2 && rx2_enabled && !rx2_click_tune_drag && !rx2_spectrum_drag && (_rx2_dsp_mode != DSPMode.DRM && _rx2_dsp_mode != DSPMode.SPEC && _rx2_dsp_mode != DSPMode.FM) && !(_mox && RX2Enabled && VFOBTX);
+                        bool bOkToChangeTX1 = bOverRX1 && rx1_enabled && !rx1_click_tune_drag && !rx1_spectrum_drag && !_click_tune_display &&
+                                              _mox && (!chkSplitDisplay.Checked || chkVFOATX.Checked) && _rx1_dsp_mode != DSPMode.DRM && _rx1_dsp_mode != DSPMode.SPEC && _rx1_dsp_mode != DSPMode.FM;
+                        bool bOkToChangeTX2 = bOverRX2 && rx2_enabled && !rx2_click_tune_drag && !rx2_spectrum_drag && !_click_tune_rx2_display &&
+                                              _mox && chkVFOBTX.Checked && _rx2_dsp_mode != DSPMode.DRM && _rx2_dsp_mode != DSPMode.SPEC && _rx2_dsp_mode != DSPMode.FM;
 
-                        if (bOkToChangeRX1 || bOkToChangeRX2)
+                        if (bOkToChangeRX1 || bOkToChangeRX2 || bOkToChangeTX1 || bOkToChangeTX2)
                         {
                             if (!rx1_spectrum_tune_drag && !rx2_spectrum_tune_drag && current_click_tune_mode == ClickTuneMode.Off)
                             {
-                                bool bLowEdge = (bOkToChangeRX1 && (!rx1_whole_filter_drag && (Math.Abs(e.X - filt_low_x) < 3 || rx1_low_filter_drag))) ||
-                                                (bOkToChangeRX2 && (!rx2_whole_filter_drag && (Math.Abs(e.X - vfob_low_x) < 3 || rx2_low_filter_drag)));
+                                bool bTX = bOkToChangeTX1 || bOkToChangeTX2;
 
-                                bool bHighEdge = (bOkToChangeRX1 && (!rx1_whole_filter_drag && (Math.Abs(e.X - filt_high_x) < 3 || rx1_high_filter_drag))) ||
-                                                 (bOkToChangeRX2 && (!rx2_whole_filter_drag && (Math.Abs(e.X - vfob_high_x) < 3 || rx2_high_filter_drag)));
+                                bool bLowEdge = bTX
+                                    ? (!tx_whole_filter_drag && (Math.Abs(e.X - filt_low_x) < 3 || tx_low_filter_drag))
+                                    : ((bOkToChangeRX1 && (!rx1_whole_filter_drag && (Math.Abs(e.X - filt_low_x) < 3 || rx1_low_filter_drag))) ||
+                                       (bOkToChangeRX2 && (!rx2_whole_filter_drag && (Math.Abs(e.X - vfob_low_x) < 3 || rx2_low_filter_drag))));
+
+                                bool bHighEdge = bTX
+                                    ? (!tx_whole_filter_drag && (Math.Abs(e.X - filt_high_x) < 3 || tx_high_filter_drag))
+                                    : ((bOkToChangeRX1 && (!rx1_whole_filter_drag && (Math.Abs(e.X - filt_high_x) < 3 || rx1_high_filter_drag))) ||
+                                       (bOkToChangeRX2 && (!rx2_whole_filter_drag && (Math.Abs(e.X - vfob_high_x) < 3 || rx2_high_filter_drag))));
 
                                 int highlightRX1 = 0;
                                 int highlightRX2 = 0;
+                                int highlightTX = 0;
 
                                 if (bLowEdge || bHighEdge)
                                 {
                                     next_cursor = Cursors.SizeWE;
 
-                                    //MW0LGE_21h
-                                    if (bOkToChangeRX1)
+                                    if (bTX)
+                                    {
+                                        if (bLowEdge && !bHighEdge) highlightTX = -1;
+                                        else if (!bLowEdge && bHighEdge) highlightTX = 1;
+                                    }
+                                    else if (bOkToChangeRX1)
                                     {
                                         if (bLowEdge && !bHighEdge) highlightRX1 = -1;
                                         else if (!bLowEdge && bHighEdge) highlightRX1 = 1;
@@ -52254,38 +52353,44 @@ namespace Thetis
                                         else if (!bLowEdge && bHighEdge) highlightRX2 = 1;
                                     }
                                 }
-                                else if (bOverRX1 && e.X > filt_low_x && e.X < filt_high_x)
+                                else if (!bTX && bOverRX1 && e.X > filt_low_x && e.X < filt_high_x)
                                 {
                                     // middle of the filter, but only when in CTUN on, or holding shift
                                     if ((_click_tune_display || Common.ShiftKeyDown) && _highlightedSpot == null)
                                         next_cursor = Cursors.NoMoveHoriz;
                                 }
-                                else if (bOverRX2 && e.X > vfob_low_x && e.X < vfob_high_x)
+                                else if (!bTX && bOverRX2 && e.X > vfob_low_x && e.X < vfob_high_x)
                                 {
                                     // middle of the filter, but only when in CTUN on, or holding shift
                                     if ((_click_tune_rx2_display || Common.ShiftKeyDown) && _highlightedSpot == null)
                                         next_cursor = Cursors.NoMoveHoriz;
                                 }
+                                else if (bTX && ((bOkToChangeTX1 && e.X > filt_low_x && e.X < filt_high_x) || (bOkToChangeTX2 && e.X > vfob_low_x && e.X < vfob_high_x)))
+                                {
+                                    if (Common.ShiftKeyDown && _highlightedSpot == null)
+                                        next_cursor = Cursors.NoMoveHoriz;
+                                }
 
-                                if (e.Y < 15) highlightRX1 = 0; // ignore it if we up top
-                                if (e.Y < ((pnlDisplay.Height / 2) + 15)) highlightRX2 = 0;
+                                if (e.Y < 15) { highlightRX1 = 0; if (bOkToChangeTX1) highlightTX = 0; }
+                                if (e.Y < ((pnlDisplay.Height / 2) + 15)) { highlightRX2 = 0; if (bOkToChangeTX2) highlightTX = 0; }
 
-                                //MW0LGE_21k9 added the filter info onto the cursor info, also done below on the filter drags
-                                if (highlightRX1 == -1)
+                                if (highlightTX == -1)
+                                    Display.OtherData2CursorDisplay = SetupForm.TXFilterLow.ToString();
+                                else if (highlightTX == 1)
+                                    Display.OtherData2CursorDisplay = SetupForm.TXFilterHigh.ToString();
+                                else if (highlightRX1 == -1)
                                     Display.OtherData2CursorDisplay = radio.GetDSPRX(0, 0).RXFilterLow.ToString();
                                 else if (highlightRX1 == 1)
                                     Display.OtherData2CursorDisplay = radio.GetDSPRX(0, 0).RXFilterHigh.ToString();
-
-                                if (highlightRX2 == -1)
+                                else if (highlightRX2 == -1)
                                     Display.OtherData2CursorDisplay = radio.GetDSPRX(1, 0).RXFilterLow.ToString();
                                 else if (highlightRX2 == 1)
                                     Display.OtherData2CursorDisplay = radio.GetDSPRX(1, 0).RXFilterHigh.ToString();
-
-                                if (highlightRX1 == 0 && highlightRX2 == 0) Display.OtherData2CursorDisplay = "";
-                                //
+                                else Display.OtherData2CursorDisplay = "";
 
                                 Display.HightlightFilterEdgeRX1 = highlightRX1;
                                 Display.HightlightFilterEdgeRX2 = highlightRX2;
+                                Display.HightlightFilterEdgeTX = highlightTX;
                             }
 
                             if (rx1_high_filter_drag)
@@ -52436,17 +52541,25 @@ namespace Thetis
                             else if (tx_high_filter_drag)
                             {
                                 int new_high = (int)Math.Max(Math.Abs(PixelToHz(e.X)), tx_filter_low + 10);
+                                if (chkVFOBTX.Checked && rx2_enabled)
+                                    new_high = (int)Math.Max(Math.Abs(PixelToHz(e.X, 2)), tx_filter_low + 10);
                                 SetupForm.TXFilterHigh = new_high;
                             }
                             else if (tx_low_filter_drag)
                             {
                                 int new_low = (int)(Math.Min(Math.Abs(PixelToHz(e.X)), tx_filter_high - 10));
+                                if (chkVFOBTX.Checked && rx2_enabled)
+                                    new_low = (int)(Math.Min(Math.Abs(PixelToHz(e.X, 2)), tx_filter_high - 10));
                                 SetupForm.TXFilterLow = new_low;
                             }
                             else if (tx_whole_filter_drag)
                             {
                                 int diff = (int)(PixelToHz(e.X) - PixelToHz(whole_filter_start_x));
-                                switch (_rx1_dsp_mode)
+                                if (chkVFOBTX.Checked && rx2_enabled)
+                                    diff = (int)(PixelToHz(e.X, 2) - PixelToHz(whole_filter_start_x, 2));
+
+                                DSPMode txMode = _rx1_dsp_mode;
+                                switch (txMode)
                                 {
                                     case DSPMode.LSB:
                                     case DSPMode.DIGL:
@@ -52785,6 +52898,7 @@ namespace Thetis
                         //MW0LGE_21i
                         Display.HightlightFilterEdgeRX1 = 0;
                         Display.HightlightFilterEdgeRX2 = 0;
+                        Display.HightlightFilterEdgeTX = 0;
 
                         break;
                 }

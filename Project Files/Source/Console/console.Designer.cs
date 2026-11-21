@@ -2034,6 +2034,7 @@
             this.toolTip1.SetToolTip(this.ckQuickPlay, resources.GetString("ckQuickPlay.ToolTip"));
             this.ckQuickPlay.UseVisualStyleBackColor = false;
             this.ckQuickPlay.CheckedChanged += new System.EventHandler(this.ckQuickPlay_CheckedChanged);
+            this.ckQuickPlay.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ckQuickPlay_MouseUp);
             // 
             // chkMON
             // 
@@ -2054,6 +2055,7 @@
             this.toolTip1.SetToolTip(this.ckQuickRec, resources.GetString("ckQuickRec.ToolTip"));
             this.ckQuickRec.UseVisualStyleBackColor = false;
             this.ckQuickRec.CheckedChanged += new System.EventHandler(this.ckQuickRec_CheckedChanged);
+            this.ckQuickRec.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ckQuickRec_MouseUp);
             // 
             // chkRX2SR
             // 

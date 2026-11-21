@@ -1912,7 +1912,7 @@
     <value>Button</value>
   </data>
   <data name="ckQuickPlay.Enabled" type="System.Boolean, mscorlib">
-    <value>False</value>
+    <value>True</value>
   </data>
   <data name="ckQuickPlay.FlatStyle" type="System.Windows.Forms.FlatStyle, System.Windows.Forms">
     <value>Flat</value>

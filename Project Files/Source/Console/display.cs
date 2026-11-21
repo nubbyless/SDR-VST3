@@ -10813,6 +10813,18 @@ namespace Thetis
                     if (local_mox)
                     {
                         drawFilterOverlayDX2D(m_bDX2_tx_filter_brush, filter_left_x, filter_right_x, W, H, rx, top, bottom, nVerticalShift);
+
+                        if (!bIsWaterfall && m_nHightlightFilterEdgeTX != 0)
+                        {
+                            bool bTxOnThisRx = (rx == 2 && _tx_on_vfob) || (rx == 1 && !(_tx_on_vfob && _rx2_enabled));
+                            if (bTxOnThisRx)
+                            {
+                                if (m_nHightlightFilterEdgeTX == -1)
+                                    drawLineDX2D(m_bDX2_cw_zero_pen, filter_left_x, nVerticalShift + top, filter_left_x, nVerticalShift + H, 2);
+                                else if (m_nHightlightFilterEdgeTX == 1)
+                                    drawLineDX2D(m_bDX2_cw_zero_pen, filter_right_x, nVerticalShift + top, filter_right_x, nVerticalShift + H, 2);
+                            }
+                        }
                     }
                     else if (draw_tx_filter)
                     {
