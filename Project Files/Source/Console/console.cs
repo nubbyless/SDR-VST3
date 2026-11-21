@@ -38074,8 +38074,9 @@ namespace Thetis
                 ckQuickPlay.Enabled = false;
                 ckQuickRec.BackColor = button_selected_color;
                 //string file = Path.Combine(AppDataPath, "SDRQuickAudio.wav");
-                string file = !string.IsNullOrWhiteSpace(_quickRecNextFile) ? _quickRecNextFile : Path.Combine(ARP.AudioFolder, "quickrecord");
+                string quickRecFolder = Path.Combine(ARP.AudioFolder, "quickrecord");
                 bool removeIfExists = !string.IsNullOrWhiteSpace(_quickRecNextFile);
+                string file = _quickRecNextFile;
                 _quickRecNextFile = null;
                 RecordingDetails details = new RecordingDetails()
                 {
@@ -38085,6 +38086,25 @@ namespace Thetis
                     UtcTime = DateTime.UtcNow,
                     //DDCFrequency = CentreFrequency.ToString("F6", System.Globalization.CultureInfo.InvariantCulture),
                 };
+                if (string.IsNullOrWhiteSpace(file))
+                {
+                    int bitdepth;
+                    switch (ARP.BitDepthMode)
+                    {
+                        case AudioBitDepthMode.Pcm8: bitdepth = 8; break;
+                        case AudioBitDepthMode.Pcm16: bitdepth = 16; break;
+                        case AudioBitDepthMode.Pcm24: bitdepth = 24; break;
+                        case AudioBitDepthMode.Pcm32:
+                        case AudioBitDepthMode.IeeeFloat32: bitdepth = 32; break;
+                        default: bitdepth = 0; break;
+                    }
+                    string datetime = details.UtcTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+                    string recName = $"{details.Mode}_{details.Frequency}MHz_[{bitdepth}bits_{ARP.SampleRate}Hz]_{datetime}.wav";
+                    string invalid = new string(Path.GetInvalidFileNameChars());
+                    foreach (char c in invalid) recName = recName.Replace(c, '_');
+                    file = Path.Combine(quickRecFolder, recName);
+                    removeIfExists = true;
+                }
                 string filename = ARP.RecordToFileFromWDSP("quick", file, 0, out string error, removeIfExists, details, false, _quickRecGenerateMp3);
                 _quickRecLastFile = filename;
                 if(string.IsNullOrEmpty(filename))
