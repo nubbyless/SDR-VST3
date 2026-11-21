@@ -189,6 +189,7 @@ namespace Thetis
 
         private string _active_play_id;
         private string _active_play_filename;
+        private string _active_play_temp_filename;
 
         private IWavePlayer _pc_wave_out;
         private AudioFileReader _pc_audio_reader;
@@ -1735,6 +1736,8 @@ namespace Thetis
                     }
                 }
 
+                if (ext == ".mp3") return File.Exists(fullPath);
+
                 return false;
             }
             catch
@@ -1776,14 +1779,48 @@ namespace Thetis
                         return false;
                     }
 
+                    string playbackPath = fullPath;
+                    string ext = (Path.GetExtension(fullPath) ?? string.Empty).ToLowerInvariant();
+                    if (ext != ".wav")
+                    {
+                        try
+                        {
+                            ensureMediaFoundation();
+                            if (!_mf_started)
+                            {
+                                error = "Media Foundation unavailable for non-WAV playback.";
+                                return false;
+                            }
+
+                            string tempWav = Path.Combine(Path.GetTempPath(), "thetis_quickplay_" + Guid.NewGuid().ToString("N") + ".wav");
+                            using (AudioFileReader afr = new AudioFileReader(fullPath))
+                            {
+                                WaveFileWriter.CreateWaveFile(tempWav, afr);
+                            }
+                            playbackPath = tempWav;
+                            _active_play_temp_filename = tempWav;
+                        }
+                        catch (Exception ex)
+                        {
+                            error = ex.Message;
+                            raisePlaybackError(play_id, fullPath, error);
+                            return false;
+                        }
+                    }
+
                     BinaryReader reader = null;
                     try
                     {
-                        reader = new BinaryReader(File.Open(fullPath, FileMode.Open, FileAccess.Read, FileShare.Read));
+                        reader = new BinaryReader(File.Open(playbackPath, FileMode.Open, FileAccess.Read, FileShare.Read));
                     }
                     catch (Exception ex)
                     {
                         error = ex.Message;
+                        if (!string.IsNullOrWhiteSpace(_active_play_temp_filename))
+                        {
+                            try { if (File.Exists(_active_play_temp_filename)) File.Delete(_active_play_temp_filename); } catch { }
+                            _active_play_temp_filename = null;
+                        }
                         raisePlaybackError(play_id, fullPath, error);
                         return false;
                     }
@@ -1791,6 +1828,11 @@ namespace Thetis
                     if (!tryParseWaveHeader(reader, out int formatTag, out int sampleRate, out int channels, out int bitsPerSample, out long dataStart, out long dataLengthBytes, out string headerError))
                     {
                         try { reader.Close(); } catch { }
+                        if (!string.IsNullOrWhiteSpace(_active_play_temp_filename))
+                        {
+                            try { if (File.Exists(_active_play_temp_filename)) File.Delete(_active_play_temp_filename); } catch { }
+                            _active_play_temp_filename = null;
+                        }
                         error = headerError;
                         return false;
                     }
@@ -2007,6 +2049,12 @@ namespace Thetis
             {
                 try { _pc_audio_reader.Dispose(); } catch { }
                 _pc_audio_reader = null;
+            }
+
+            if (!string.IsNullOrWhiteSpace(_active_play_temp_filename))
+            {
+                try { if (File.Exists(_active_play_temp_filename)) File.Delete(_active_play_temp_filename); } catch { }
+                _active_play_temp_filename = null;
             }
         }
 
@@ -2912,6 +2960,11 @@ namespace Thetis
                         _active_play_filename = null;
                         _is_wdsp_playing = false;
                         _active_playback_wfw_id = -1;
+                        if (!string.IsNullOrWhiteSpace(_active_play_temp_filename))
+                        {
+                            try { if (File.Exists(_active_play_temp_filename)) File.Delete(_active_play_temp_filename); } catch { }
+                            _active_play_temp_filename = null;
+                        }
                     }
                 }
             }
