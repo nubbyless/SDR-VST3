@@ -55596,6 +55596,20 @@ namespace Thetis
                     ckQuickRec.Enabled = true;
 
                     if (ckQuickRec.Checked) ckQuickRec.Checked = false;
+
+                    if (!string.IsNullOrWhiteSpace(filename))
+                    {
+                        if (_quickRecGenerateMp3)
+                        {
+                            string mp3 = Path.Combine(Path.GetDirectoryName(filename) ?? "", "mp3", Path.GetFileNameWithoutExtension(filename) + ".mp3");
+                            if (File.Exists(mp3)) _quickRecLastFile = mp3;
+                            else if (File.Exists(filename)) _quickRecLastFile = filename;
+                        }
+                        else if (File.Exists(filename))
+                        {
+                            _quickRecLastFile = filename;
+                        }
+                    }
                 }
 
                 QuickRecordChangedHandlers?.Invoke(1, !recording, recording);
