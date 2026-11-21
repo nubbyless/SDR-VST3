@@ -1794,8 +1794,10 @@ namespace Thetis
 
                             string tempWav = Path.Combine(Path.GetTempPath(), "thetis_quickplay_" + Guid.NewGuid().ToString("N") + ".wav");
                             using (AudioFileReader afr = new AudioFileReader(fullPath))
+                            using (WaveStream pcm = WaveFormatConversionStream.CreatePcmStream(afr))
+                            using (NAudio.Wave.WaveFileWriter wfw = new NAudio.Wave.WaveFileWriter(tempWav, pcm.WaveFormat))
                             {
-                                WaveFileWriter.CreateWaveFile(tempWav, afr);
+                                pcm.CopyTo(wfw);
                             }
                             playbackPath = tempWav;
                             _active_play_temp_filename = tempWav;
