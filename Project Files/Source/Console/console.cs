@@ -37941,7 +37941,7 @@ namespace Thetis
                         string folder = Path.Combine(ARP.AudioFolder, "quickrecord");
                         try { if (!Directory.Exists(folder)) Directory.CreateDirectory(folder); } catch { }
                         dlg.InitialDirectory = folder;
-                        dlg.Filter = "WAV files (*.wav)|*.wav|All files (*.*)|*.*";
+                        dlg.Filter = "Audio files (*.wav;*.mp3)|*.wav;*.mp3|WAV files (*.wav)|*.wav|MP3 files (*.mp3)|*.mp3|All files (*.*)|*.*";
                         dlg.Title = "Select Quick Play File";
                         dlg.CheckFileExists = true;
                         dlg.Multiselect = false;
