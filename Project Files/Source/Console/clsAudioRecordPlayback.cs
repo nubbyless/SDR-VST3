@@ -1259,7 +1259,7 @@ namespace Thetis
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
 
-                    if (GenerateJSON && _active_record_details != null)
+                    if (GenerateJSON && _active_record_details != null && !deleteJsonAfterRecord)
                     {
                         _active_record_json_filename = Path.ChangeExtension(full_target, ".json");
                     }
@@ -1442,7 +1442,7 @@ namespace Thetis
                     _active_record_json_filename = null;
                     _active_record_mp3_filename = null;
 
-                    if (GenerateJSON && _active_record_details != null)
+                    if (GenerateJSON && _active_record_details != null && !deleteJsonAfterRecord)
                     {
                         _active_record_json_filename = Path.ChangeExtension(full_target, ".json");
                     }
