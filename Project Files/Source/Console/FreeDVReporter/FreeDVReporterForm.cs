@@ -35,9 +35,8 @@ namespace Thetis.FreeDVReporter
         private MenuStrip menu;
         private ToolStripMenuItem mnuShow;
         private ToolStripMenuItem mnuFilter;
-        private ToolStripMenuItem mnuView;
-        private ToolStripMenuItem chkAlwaysOnTop;
         private ToolStrip toolbar;
+        private CheckBox chkAlwaysOnTop;
         private ToolStripLabel lblBand;
         private ToolStripComboBox cmbBand;
         private ToolStripLabel lblTrack;
@@ -357,12 +356,6 @@ namespace Thetis.FreeDVReporter
             idleRoot.DropDownItems.Add(custom);
             mnuFilter.DropDownItems.Add(idleRoot);
             menu.Items.Add(mnuFilter);
-
-            mnuView = new ToolStripMenuItem("View");
-            chkAlwaysOnTop = new ToolStripMenuItem("Always On Top") { CheckOnClick = true };
-            chkAlwaysOnTop.CheckedChanged += (s, e) => { try { TopMost = chkAlwaysOnTop.Checked; } catch { } };
-            mnuView.DropDownItems.Add(chkAlwaysOnTop);
-            menu.Items.Add(mnuView);
         }
 
         private static void UpdateIdleChecks(ToolStripMenuItem idleRoot)
@@ -485,6 +478,17 @@ namespace Thetis.FreeDVReporter
             toolbar.Items.Add(btnTrackBandMode);
             toolbar.Items.Add(new ToolStripSeparator());
             toolbar.Items.Add(btnRequestQsy);
+
+            chkAlwaysOnTop = new CheckBox
+            {
+                Text = "Always On Top",
+                AutoSize = true,
+                Checked = TopMost,
+                BackColor = System.Drawing.Color.Transparent
+            };
+            chkAlwaysOnTop.CheckedChanged += (s, e) => { try { TopMost = chkAlwaysOnTop.Checked; } catch { } };
+            var hostAlwaysOnTop = new ToolStripControlHost(chkAlwaysOnTop) { Alignment = ToolStripItemAlignment.Right, Margin = new Padding(0, 3, 4, 0) };
+            toolbar.Items.Add(hostAlwaysOnTop);
 
             /* Clicking the toolbar background (empty space between or
              * around items) also clears the grid selection.  Item Click
