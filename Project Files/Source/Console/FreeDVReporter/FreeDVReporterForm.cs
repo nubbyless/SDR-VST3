@@ -35,6 +35,8 @@ namespace Thetis.FreeDVReporter
         private MenuStrip menu;
         private ToolStripMenuItem mnuShow;
         private ToolStripMenuItem mnuFilter;
+        private ToolStripMenuItem mnuView;
+        private ToolStripMenuItem chkAlwaysOnTop;
         private ToolStrip toolbar;
         private ToolStripLabel lblBand;
         private ToolStripComboBox cmbBand;
@@ -260,6 +262,14 @@ namespace Thetis.FreeDVReporter
             {
                 try { Thetis.Common.SaveForm(this, "FreeDVReporterForm"); }
                 catch { }
+                try
+                {
+                    var vars = Thetis.DB.GetVars("FreeDVReporterForm")?.OfType<string>().ToList() ?? new System.Collections.Generic.List<string>();
+                    vars.RemoveAll(v => v.StartsWith("AlwaysOnTop/"));
+                    vars.Add("AlwaysOnTop/" + chkAlwaysOnTop.Checked);
+                    Thetis.DB.SaveVars("FreeDVReporterForm", vars, true);
+                }
+                catch { }
             };
 
             BuildMenu();
@@ -285,6 +295,17 @@ namespace Thetis.FreeDVReporter
              * call must come after the controls have been added so
              * MinimumSize / layout is settled. */
             try { Thetis.Common.RestoreForm(this, "FreeDVReporterForm", true); }
+            catch { }
+            try
+            {
+                var vars = Thetis.DB.GetVars("FreeDVReporterForm")?.OfType<string>().ToList();
+                string topMost = vars?.FirstOrDefault(s => s.StartsWith("AlwaysOnTop/"));
+                if (topMost != null && bool.TryParse(topMost.Split(new[] { '/' }, 2)[1], out bool onTop))
+                {
+                    chkAlwaysOnTop.Checked = onTop;
+                    TopMost = onTop;
+                }
+            }
             catch { }
         }
 
@@ -336,6 +357,12 @@ namespace Thetis.FreeDVReporter
             idleRoot.DropDownItems.Add(custom);
             mnuFilter.DropDownItems.Add(idleRoot);
             menu.Items.Add(mnuFilter);
+
+            mnuView = new ToolStripMenuItem("View");
+            chkAlwaysOnTop = new ToolStripMenuItem("Always On Top") { CheckOnClick = true };
+            chkAlwaysOnTop.CheckedChanged += (s, e) => { try { TopMost = chkAlwaysOnTop.Checked; } catch { } };
+            mnuView.DropDownItems.Add(chkAlwaysOnTop);
+            menu.Items.Add(mnuView);
         }
 
         private static void UpdateIdleChecks(ToolStripMenuItem idleRoot)
