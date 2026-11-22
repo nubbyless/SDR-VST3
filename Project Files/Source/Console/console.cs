@@ -38015,10 +38015,20 @@ namespace Thetis
             {
                 ckQuickRec.Enabled = false;
                 ckQuickPlay.BackColor = button_selected_color;
-                //string file = Path.Combine(AppDataPath, "SDRQuickAudio.wav");
                 string file = !string.IsNullOrWhiteSpace(_quickRecLastFile) && File.Exists(_quickRecLastFile)
                     ? _quickRecLastFile
-                    : Path.Combine(ARP.AudioFolder, "quickrecord", "SDRQuickAudio.wav");
+                    : null;
+                if (string.IsNullOrWhiteSpace(file))
+                {
+                    string quickDir = Path.Combine(ARP.AudioFolder, "quickrecord");
+                    string ext = _quickRecGenerateMp3 ? ".mp3" : ".wav";
+                    string altExt = _quickRecGenerateMp3 ? ".wav" : ".mp3";
+                    string newest = GetNewestQuickRecFile(quickDir, ext) ?? GetNewestQuickRecFile(quickDir, altExt);
+                    if (!string.IsNullOrWhiteSpace(newest) && File.Exists(newest))
+                        file = newest;
+                }
+                if (string.IsNullOrWhiteSpace(file))
+                    file = Path.Combine(ARP.AudioFolder, "quickrecord", "SDRQuickAudio.wav");
                 if (!File.Exists(file) && !string.IsNullOrWhiteSpace(_quickRecLastFile))
                 {
                     string dir = Path.GetDirectoryName(_quickRecLastFile) ?? "";
@@ -38052,6 +38062,35 @@ namespace Thetis
         private bool _suppressQuickPlayToggle = false;
         private bool _suppressQuickRecToggle = false;
         private bool _quickRecGenerateMp3 = false;
+
+        private string GetNewestQuickRecFile(string quickDir, string extension)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(quickDir) || !Directory.Exists(quickDir)) return null;
+                string searchExt = (extension ?? "").Trim();
+                if (string.IsNullOrWhiteSpace(searchExt)) return null;
+                if (!searchExt.StartsWith(".")) searchExt = "." + searchExt;
+                var dirs = new List<string> { quickDir };
+                string mp3Dir = Path.Combine(quickDir, "mp3");
+                if (Directory.Exists(mp3Dir)) dirs.Add(mp3Dir);
+                FileInfo newest = null;
+                foreach (string dir in dirs)
+                {
+                    foreach (string f in Directory.EnumerateFiles(dir, "*" + searchExt, SearchOption.TopDirectoryOnly))
+                    {
+                        try
+                        {
+                            FileInfo fi = new FileInfo(f);
+                            if (newest == null || fi.LastWriteTimeUtc > newest.LastWriteTimeUtc) newest = fi;
+                        }
+                        catch { }
+                    }
+                }
+                return newest?.FullName;
+            }
+            catch { return null; }
+        }
         public bool QuickRecGenerateMp3
         {
             get { return _quickRecGenerateMp3; }
