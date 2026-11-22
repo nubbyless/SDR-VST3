@@ -814,6 +814,9 @@ namespace Thetis
                     case "btnRX2DisplayPanCenter": // MW0LGE_22x rx2 twin of the pan centre button
                         donors = new string[] { "btnDisplayPanCenter" };
                         break;
+                    case "btnRX2FilterShiftReset": // MW0LGE_22x rx2 twin of the filter shift reset button
+                        donors = new string[] { "btnFilterShiftReset" };
+                        break;
                     default:
                         donors = new string[0];
                         break;
@@ -1838,6 +1841,8 @@ namespace Thetis
             {
                 case "ptbRX2DisplayZoom": return "ptbDisplayZoom";
                 case "ptbRX2DisplayPan": return "ptbDisplayPan";
+                case "ptbRX2FilterShift": return "ptbFilterShift";
+                case "ptbRX2FilterWidth": return "ptbFilterWidth";
                 case "radRX2DisplayZoom05": return "radDisplayZoom05";
                 case "radRX2DisplayZoom1x": return "radDisplayZoom1x";
                 case "radRX2DisplayZoom2x": return "radDisplayZoom2x";

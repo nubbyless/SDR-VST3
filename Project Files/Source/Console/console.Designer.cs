@@ -189,6 +189,11 @@
         private System.Windows.Forms.NumericUpDownTS udRX2FilterHigh;
         private System.Windows.Forms.LabelTS lblRX2FilterLow;
         private System.Windows.Forms.LabelTS lblRX2FilterHigh;
+        private PrettyTrackBar ptbRX2FilterShift;
+        private PrettyTrackBar ptbRX2FilterWidth;
+        private System.Windows.Forms.LabelTS lblRX2FilterShift;
+        private System.Windows.Forms.LabelTS lblRX2FilterWidth;
+        private System.Windows.Forms.ButtonTS btnRX2FilterShiftReset;
         private System.Windows.Forms.CheckBoxTS chkRX2NB2;
         private System.Windows.Forms.CheckBoxTS chkRX2NB;
         private System.Windows.Forms.CheckBoxTS chkRX2ANF;
@@ -1081,6 +1086,11 @@
             this.radRX2Filter7 = new System.Windows.Forms.RadioButtonTS();
             this.radRX2Filter5 = new System.Windows.Forms.RadioButtonTS();
             this.radRX2Filter6 = new System.Windows.Forms.RadioButtonTS();
+            this.ptbRX2FilterShift = new Thetis.PrettyTrackBar();
+            this.ptbRX2FilterWidth = new Thetis.PrettyTrackBar();
+            this.lblRX2FilterShift = new System.Windows.Forms.LabelTS();
+            this.lblRX2FilterWidth = new System.Windows.Forms.LabelTS();
+            this.btnRX2FilterShiftReset = new System.Windows.Forms.ButtonTS();
             this.panelRX2Mode = new System.Windows.Forms.PanelTS();
             this.panelRX2Display = new System.Windows.Forms.PanelTS();
             this.panelRX2Mixer = new System.Windows.Forms.PanelTS();
@@ -1192,6 +1202,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.ptbDisplayPan)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ptbFilterShift)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ptbFilterWidth)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ptbRX2FilterShift)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ptbRX2FilterWidth)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFilterHigh)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFilterLow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.ptbRX2RF)).BeginInit();
@@ -6774,6 +6786,96 @@
             resources.ApplyResources(this.lblRX2FilterLow, "lblRX2FilterLow");
             this.lblRX2FilterLow.Name = "lblRX2FilterLow";
             // 
+            // lblRX2FilterWidth
+            // 
+            this.lblRX2FilterWidth.BackColor = System.Drawing.Color.Transparent;
+            this.lblRX2FilterWidth.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lblRX2FilterWidth.Location = new System.Drawing.Point(846, 603);
+            this.lblRX2FilterWidth.Name = "lblRX2FilterWidth";
+            this.lblRX2FilterWidth.Size = new System.Drawing.Size(39, 16);
+            this.lblRX2FilterWidth.TabIndex = 50;
+            this.lblRX2FilterWidth.Text = "Width:";
+            this.toolTip1.SetToolTip(this.lblRX2FilterWidth, "RX2 filter width");
+            // 
+            // ptbRX2FilterWidth
+            // 
+            this.ptbRX2FilterWidth.BackColor = System.Drawing.Color.Transparent;
+            this.ptbRX2FilterWidth.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ptbRX2FilterWidth.GreenThumb = false;
+            this.ptbRX2FilterWidth.HeadImage = null;
+            this.ptbRX2FilterWidth.ImeMode = System.Windows.Forms.ImeMode.Off;
+            this.ptbRX2FilterWidth.LargeChange = 1;
+            this.ptbRX2FilterWidth.LimitBarColor = System.Drawing.Color.Red;
+            this.ptbRX2FilterWidth.LimitEnabled = false;
+            this.ptbRX2FilterWidth.LimitValue = 0;
+            this.ptbRX2FilterWidth.Location = new System.Drawing.Point(885, 598);
+            this.ptbRX2FilterWidth.Margin = new System.Windows.Forms.Padding(2);
+            this.ptbRX2FilterWidth.Maximum = 15000;
+            this.ptbRX2FilterWidth.Minimum = 0;
+            this.ptbRX2FilterWidth.Name = "ptbRX2FilterWidth";
+            this.ptbRX2FilterWidth.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.ptbRX2FilterWidth.Padding = new System.Windows.Forms.Padding(2);
+            this.ptbRX2FilterWidth.SmallChange = 1;
+            this.ptbRX2FilterWidth.Size = new System.Drawing.Size(112, 24);
+            this.ptbRX2FilterWidth.TabIndex = 51;
+            this.ptbRX2FilterWidth.TabStop = false;
+            this.toolTip1.SetToolTip(this.ptbRX2FilterWidth, "Extends/Contracts the RX2 filter width with the slider.");
+            this.ptbRX2FilterWidth.Value = 10;
+            this.ptbRX2FilterWidth.Scroll += new Thetis.PrettyTrackBar.ScrollHandler(this.ptbRX2FilterWidth_Scroll);
+            // 
+            // lblRX2FilterShift
+            // 
+            this.lblRX2FilterShift.BackColor = System.Drawing.Color.Transparent;
+            this.lblRX2FilterShift.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.lblRX2FilterShift.Location = new System.Drawing.Point(846, 633);
+            this.lblRX2FilterShift.Name = "lblRX2FilterShift";
+            this.lblRX2FilterShift.Size = new System.Drawing.Size(39, 16);
+            this.lblRX2FilterShift.TabIndex = 52;
+            this.lblRX2FilterShift.Text = "Shift:";
+            this.toolTip1.SetToolTip(this.lblRX2FilterShift, "RX2 filter shift");
+            // 
+            // ptbRX2FilterShift
+            // 
+            this.ptbRX2FilterShift.BackColor = System.Drawing.Color.Transparent;
+            this.ptbRX2FilterShift.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ptbRX2FilterShift.GreenThumb = false;
+            this.ptbRX2FilterShift.HeadImage = null;
+            this.ptbRX2FilterShift.ImeMode = System.Windows.Forms.ImeMode.Off;
+            this.ptbRX2FilterShift.LargeChange = 1;
+            this.ptbRX2FilterShift.LimitBarColor = System.Drawing.Color.Red;
+            this.ptbRX2FilterShift.LimitEnabled = false;
+            this.ptbRX2FilterShift.LimitValue = 0;
+            this.ptbRX2FilterShift.Location = new System.Drawing.Point(885, 628);
+            this.ptbRX2FilterShift.Margin = new System.Windows.Forms.Padding(2);
+            this.ptbRX2FilterShift.Maximum = 1000;
+            this.ptbRX2FilterShift.Minimum = -1000;
+            this.ptbRX2FilterShift.Name = "ptbRX2FilterShift";
+            this.ptbRX2FilterShift.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            this.ptbRX2FilterShift.Padding = new System.Windows.Forms.Padding(2);
+            this.ptbRX2FilterShift.SmallChange = 1;
+            this.ptbRX2FilterShift.Size = new System.Drawing.Size(80, 24);
+            this.ptbRX2FilterShift.TabIndex = 53;
+            this.ptbRX2FilterShift.TabStop = false;
+            this.toolTip1.SetToolTip(this.ptbRX2FilterShift, "Shifts the RX2 filter up or down the band with the slider.");
+            this.ptbRX2FilterShift.Value = 0;
+            this.ptbRX2FilterShift.Scroll += new Thetis.PrettyTrackBar.ScrollHandler(this.ptbRX2FilterShift_Scroll);
+            // 
+            // btnRX2FilterShiftReset
+            // 
+            this.btnRX2FilterShiftReset.FlatAppearance.BorderSize = 0;
+            this.btnRX2FilterShiftReset.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnRX2FilterShiftReset.ForeColor = System.Drawing.SystemColors.ControlLightLight;
+            this.btnRX2FilterShiftReset.ImeMode = System.Windows.Forms.ImeMode.Off;
+            this.btnRX2FilterShiftReset.Location = new System.Drawing.Point(964, 630);
+            this.btnRX2FilterShiftReset.Name = "btnRX2FilterShiftReset";
+            this.btnRX2FilterShiftReset.Selectable = true;
+            this.btnRX2FilterShiftReset.Size = new System.Drawing.Size(43, 20);
+            this.btnRX2FilterShiftReset.TabIndex = 54;
+            this.btnRX2FilterShiftReset.Tag = "Reset Filter Shift";
+            this.btnRX2FilterShiftReset.Text = "Reset";
+            this.toolTip1.SetToolTip(this.btnRX2FilterShiftReset, "Reset IF Shift to center (0) position.");
+            this.btnRX2FilterShiftReset.Click += new System.EventHandler(this.btnRX2FilterShiftReset_Click);
+            // 
             // radRX2Filter2
             // 
             resources.ApplyResources(this.radRX2Filter2, "radRX2Filter2");
@@ -7975,6 +8077,11 @@
             this.Controls.Add(this.btnHidden);
             this.Controls.Add(this.panelOptions);
             this.Controls.Add(this.panelRX2Filter);
+            this.Controls.Add(this.lblRX2FilterWidth);
+            this.Controls.Add(this.ptbRX2FilterWidth);
+            this.Controls.Add(this.lblRX2FilterShift);
+            this.Controls.Add(this.ptbRX2FilterShift);
+            this.Controls.Add(this.btnRX2FilterShiftReset);
             this.Controls.Add(this.panelRX2Mode);
             this.Controls.Add(this.panelRX2Display);
             this.Controls.Add(this.panelRX2Mixer);
@@ -8034,6 +8141,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.ptbDisplayPan)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ptbFilterShift)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ptbFilterWidth)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ptbRX2FilterShift)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.ptbRX2FilterWidth)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFilterHigh)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.udFilterLow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.ptbRX2RF)).EndInit();
