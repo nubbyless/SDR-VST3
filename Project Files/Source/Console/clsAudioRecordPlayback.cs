@@ -2217,6 +2217,8 @@ namespace Thetis
                     details = _active_record_details;
                     unique_id = _active_record_id;
                     failure = _active_record_failure_message;
+                    generateMp3 = _active_record_generate_mp3;
+                    deleteJsonAfterRecord = _active_record_delete_json_after_record;
 
                     cleanupPcRecording();
                     completeNow = true;
@@ -2590,7 +2592,7 @@ namespace Thetis
 
                 string mp3Path = null;
 
-                bool generateMp3 = generateMp3ForRecord || GenerateMP3File;
+                bool generateMp3 = generateMp3ForRecord;
                 bool deleteWavAfterMp3 = false;
                 if (recordSucceeded && generateMp3 && details != null && !string.IsNullOrWhiteSpace(wav) && File.Exists(wav))
                 {
