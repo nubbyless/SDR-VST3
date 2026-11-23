@@ -100,8 +100,9 @@ namespace Thetis
 	{
 		#region Static Properties and Routines
 
-		public static void CreateDSP()
-		{
+        public static void CreateDSP()
+        {
+            Audio.DSPDestroyed = false;
             // WDSP creates/uses wdspWisdom01 - [2.10.3.9]MW0LGE
             const string wisdomFileName = "wdspWisdom01";
             const string oldWisdomFileName = "wdspWisdom00";
@@ -179,8 +180,9 @@ namespace Thetis
             cmaster.CMCreateCMaster();            
 		}
 
-		public static void DestroyDSP()
-		{
+        public static void DestroyDSP()
+        {
+            Audio.DSPDestroyed = true;
             if (_cache_impulse && _cache_impulse_save_restore)
             {
                 WDSP.save_impulse_cache(Path.Combine(app_data_path, "impulse_cache.dat"));

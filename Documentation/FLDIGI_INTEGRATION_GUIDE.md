@@ -215,8 +215,6 @@ New dir `Project Files/Source/Console/FLDIGI/`:
 - Typical payload after static linking ≈ a few MB to ~10 MB.
 
 Reference structure (existing):
-- `Thetis-Installer/Bundle.wxs` — the Burn bootstrapper; `.NET 10` `ExePackage`
-  (models the EXE-installer path we are deliberately NOT using).
 - `Thetis-Installer/Product.wxs:81-149` — Feature/ComponentGroupRef layout to copy.
 
 ## 8. Phases, effort, and gates

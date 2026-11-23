@@ -93,11 +93,9 @@
 	<Target Name="AfterBuild">
 	</Target>
 	-->
-  <!-- [4.7] The MSI is now also wrapped by Thetis-Bundle.wixproj, which produces the
-       versioned, self-contained setup.exe. Keep the MSI named SDR-VST3.msi so the bundle
-       MsiPath reference is stable, and copy a versioned .msi for anyone who prefers the
-       standalone MSI over the .exe bootstrapper. Version is read from the managed
-       Thetis.dll (project-wide version lives in Console\AssemblyInfo.cs). -->
+  <!-- [4.7] Keep the MSI named SDR-VST3.msi so the version-copy target below is stable.
+       Version is read from the managed Thetis.dll (project-wide version lives in
+       Console\AssemblyInfo.cs). -->
   <Target Name="AfterBuild">
     <GetAssemblyIdentity AssemblyFiles="..\..\Bin\$(Platform)\$(Configuration)\Thetis.dll">
       <Output TaskParameter="Assemblies" ItemName="AssemblyInfo" />

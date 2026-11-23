@@ -286,12 +286,19 @@ namespace Thetis
         }
 
         private static volatile bool wave_playback = false;
+        private static volatile bool dsp_destroyed = false;
+        public static bool DSPDestroyed
+        {
+            get { return dsp_destroyed; }
+            set { dsp_destroyed = value; }
+        }
         public static bool WavePlayback
         {
             get { return wave_playback; }
             set
             {
                 wave_playback = value;
+                if (dsp_destroyed) return;
                 cmaster.CMSetSRXWavePlayRun(0);
                 cmaster.CMSetSRXWavePlayRun(1);
                 cmaster.CMSetTXAPanelGain1(WDSP.id(1, 0));
@@ -305,6 +312,7 @@ namespace Thetis
             set
             {
                 wave_record = value;
+                if (dsp_destroyed) return;
                 cmaster.CMSetSRXWaveRecordRun(0);
                 cmaster.CMSetSRXWaveRecordRun(1);
             }

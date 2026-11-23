@@ -15459,6 +15459,7 @@ namespace Thetis
             if (id < 0 || id > _wave_playback.Length - 1) return;
 
             _wave_playback[id] = enabled;
+            if (Audio.DSPDestroyed) return;
             switch(id)
             {
                 case 0:
@@ -38237,6 +38238,79 @@ namespace Thetis
         }
 
 
+
+
+        private const int SWP_NOSIZE = 0x0001;
+        private const int SWP_NOZORDER = 0x0004;
+        private const int SWP_NOACTIVATE = 0x0010;
+        private static Point? _quickDialogLastPos;
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
+
+        [DllImport("user32.dll")]
+        private static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
+
+        [DllImport("user32.dll")]
+        private static extern bool EnumThreadWindows(uint dwThreadId, EnumWindowsProc lpfn, IntPtr lParam);
+
+        [DllImport("user32.dll", CharSet = CharSet.Unicode)]
+        private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+        [DllImport("kernel32.dll")]
+        private static extern uint GetCurrentThreadId();
+
+        private static DialogResult ShowDialogRememberPos(CommonDialog dialog, IWin32Window owner, string title)
+        {
+            bool placed = _quickDialogLastPos == null;
+            IntPtr dialogHwnd = IntPtr.Zero;
+            DialogResult result = DialogResult.Cancel;
+            using (System.Windows.Forms.Timer t = new System.Windows.Forms.Timer { Interval = 50 })
+            {
+                t.Tick += (s, e) =>
+                {
+                    try
+                    {
+                        IntPtr hwnd = FindDialogWindow(GetCurrentThreadId(), title);
+                        if (hwnd == IntPtr.Zero) return;
+                        dialogHwnd = hwnd;
+                        if (!placed && _quickDialogLastPos != null)
+                        {
+                            Point p = _quickDialogLastPos.Value;
+                            Win32.SetWindowPos(hwnd.ToInt32(), 0, p.X, p.Y, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE);
+                            placed = true;
+                        }
+                        if (GetWindowRect(hwnd, out RECT r))
+                            _quickDialogLastPos = new Point(r.Left, r.Top);
+                    }
+                    catch { }
+                };
+                t.Start();
+                try { result = dialog.ShowDialog(owner); }
+                finally
+                {
+                    t.Stop();
+                    if (dialogHwnd != IntPtr.Zero && GetWindowRect(dialogHwnd, out RECT r))
+                        _quickDialogLastPos = new Point(r.Left, r.Top);
+                }
+            }
+            return result;
+        }
+
+        private static IntPtr FindDialogWindow(uint threadId, string title)
+        {
+            IntPtr found = IntPtr.Zero;
+            EnumThreadWindows(threadId, (hWnd, lParam) =>
+            {
+                StringBuilder text = new StringBuilder(256);
+                if (Win32.GetWindowTextW(hWnd, text, text.Capacity) <= 0 || text.ToString() != title) return true;
+                StringBuilder cls = new StringBuilder(64);
+                if (GetClassName(hWnd, cls, cls.Capacity) > 0 && cls.ToString() == "#32770") { found = hWnd; return false; }
+                return true;
+            }, IntPtr.Zero);
+            return found;
+        }
+
         private void ckQuickPlay_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button != MouseButtons.Right) return;
@@ -38248,6 +38322,7 @@ namespace Thetis
                 {
                     using (OpenFileDialog dlg = new OpenFileDialog())
                     {
+                        dlg.AutoUpgradeEnabled = false;
                         string folder = Path.Combine(ARP.AudioFolder, "quickrecord");
                         try { if (!Directory.Exists(folder)) Directory.CreateDirectory(folder); } catch { }
                         dlg.InitialDirectory = folder;
@@ -38255,12 +38330,16 @@ namespace Thetis
                         dlg.Title = "Select Quick Play File";
                         dlg.CheckFileExists = true;
                         dlg.Multiselect = false;
-                    if (dlg.ShowDialog(this) == DialogResult.OK)
+                    if (ShowDialogRememberPos(dlg, this, dlg.Title) == DialogResult.OK)
                     {
                         _quickRecLastFile = dlg.FileName;
                         ckQuickPlay.Enabled = true;
                     }
                     }
+                }
+                catch (Exception ex)
+                {
+                    Common.LogException(ex);
                 }
                 finally
                 {
@@ -38283,6 +38362,7 @@ namespace Thetis
                 {
                     using (SaveFileDialog dlg = new SaveFileDialog())
                     {
+                        dlg.AutoUpgradeEnabled = false;
                         string folder = Path.Combine(ARP.AudioFolder, "quickrecord");
                         try { if (!Directory.Exists(folder)) Directory.CreateDirectory(folder); } catch { }
                         dlg.InitialDirectory = folder;
@@ -38292,9 +38372,13 @@ namespace Thetis
                         dlg.AddExtension = true;
                         dlg.DefaultExt = "wav";
                         dlg.FileName = "QuickRecord.wav";
-                        if (dlg.ShowDialog(this) == DialogResult.OK)
+                        if (ShowDialogRememberPos(dlg, this, dlg.Title) == DialogResult.OK)
                             _quickRecNextFile = dlg.FileName;
                     }
+                }
+                catch (Exception ex)
+                {
+                    Common.LogException(ex);
                 }
                 finally
                 {
