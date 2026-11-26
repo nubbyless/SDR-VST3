@@ -1803,9 +1803,9 @@ void __cdecl doPSCorrChange(void* arg)
 				ns_free(a->util.s_spline_save); a->util.s_spline_save = NULL;
 				if (error)
 				{
-					a->binfo[12] = 0b0001;
+					a->binfo[12] |= 0b0001;
 					EnterCriticalSection(&txa[a->channel].calcc.cs_update);
-					a->info[12]  = 0b0001;
+					a->info[12]  |= 0b0001;
 					LeaveCriticalSection(&txa[a->channel].calcc.cs_update);
 				}
 				break;
@@ -1839,12 +1839,16 @@ void __cdecl doPSCorrChange(void* arg)
 					a->util.m_spline_restore = NULL;
 					a->util.c_spline_restore = NULL;
 					a->util.s_spline_restore = NULL;
+					EnterCriticalSection(&txa[a->channel].calcc.cs_update);
+					a->ctrl.turnon = 1;
+					a->info[12] |= 0b0100;
+					LeaveCriticalSection(&txa[a->channel].calcc.cs_update);
 				}
 				else
 				{
-					a->binfo[12] = 0b0010;
+					a->binfo[12] |= 0b0010;
 					EnterCriticalSection(&txa[a->channel].calcc.cs_update);
-					a->info[12]  = 0b0010;
+					a->info[12]  |= 0b0010;
 					LeaveCriticalSection(&txa[a->channel].calcc.cs_update);
 				}
 				break;
@@ -2136,6 +2140,7 @@ void PSSaveCorr (int channel, char* filename)
 	if (i == sizeof(((CALCC)0)->util.save_file)) return;
 	EnterCriticalSection (&txa[channel].calcc.cs_update);
 	a = txa[channel].calcc.p;
+	a->info[12] &= ~0b0001;
 	memcpy(a->util.save_file, filename, i + 1);
 	ReleaseSemaphore(a->SemsPSCorr[1], 1, 0);
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
@@ -2150,12 +2155,16 @@ void PSRestoreCorr (int channel, char* filename)
 	/* Reject oversized names before modifying the shared buffer. */
 	for (i = 0; i < sizeof(((CALCC)0)->util.restore_file); ++i)
 		if (filename[i] == '\0') break;
-	if (i == sizeof(((CALCC)0)->util.restore_file)) return;
 	EnterCriticalSection (&txa[channel].calcc.cs_update);
 	a = txa[channel].calcc.p;
-	memcpy(a->util.restore_file, filename, i + 1);
-	a->ctrl.turnon = 1;
-	ReleaseSemaphore(a->SemsPSCorr[2], 1, 0);
+	a->info[12] &= ~0b0110;
+	if (i < sizeof(((CALCC)0)->util.restore_file))
+	{
+		memcpy(a->util.restore_file, filename, i + 1);
+		ReleaseSemaphore(a->SemsPSCorr[2], 1, 0);
+	}
+	else
+		a->info[12] |= 0b0010;
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
 }
 

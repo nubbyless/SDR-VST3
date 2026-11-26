@@ -133,6 +133,8 @@ namespace Thetis
         private static bool _autoON = false;
         private static bool _singlecalON = false;
         private static bool _restoreON = false;
+        private string _pendingRestoreFile;
+        private bool _restoreSubmitted;
         private static bool _OFF = true;
         //private int oldCalCount = 0;
         //private int red, green, blue;
@@ -789,8 +791,10 @@ namespace Thetis
             {
                 console.ForcePureSignalAutoCalDisable();
                 _OFF = false;
-                puresignal.PSRestoreCorr(_txachannel, openfile1.FileName);
+                _pendingRestoreFile = openfile1.FileName;
+                _restoreSubmitted = false;
                 _restoreON = true;
+                btnPSRestore.Enabled = false;
             }
         }
         public void SetDefaultPeaks()
@@ -1145,12 +1149,29 @@ namespace Thetis
                     break;
                 case eCMDState.IntiateRestoredCorrection://7:     // Initiate Restored Correction
                     _autoON = false;
-                    puresignal.SetPSControl(_txachannel, 0, 0, 0, 1);
                     if (!PSEnabled) PSEnabled = true;
                     btnPSCalibrate.BackColor = SystemColors.Control;
-                    _restoreON = false;
-                    if (puresignal.State == puresignal.EngineState.LSTAYON)
-                        _cmdstate = eCMDState.StayON;//5;
+                    if (!_restoreSubmitted)
+                    {
+                        puresignal.SetPSControl(_txachannel, 0, 0, 0, 0);
+                        puresignal.PSRestoreCorr(_txachannel, _pendingRestoreFile);
+                        _pendingRestoreFile = null;
+                        _restoreSubmitted = true;
+                    }
+                    else if (puresignal.CorrectionRestoreFailed)
+                    {
+                        _restoreON = false;
+                        btnPSRestore.Enabled = true;
+                        _cmdstate = puresignal.CorrectionsBeingApplied ? eCMDState.StayON : eCMDState.TurnOFF;
+                        MessageBox.Show(this, "WDSP could not restore this correction. Select a valid PureSignal 3.0 correction file or run a new calibration.",
+                            "PureSignal Restore", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
+                    else if (puresignal.CorrectionRestoreReady && puresignal.State == puresignal.EngineState.LSTAYON)
+                    {
+                        _restoreON = false;
+                        btnPSRestore.Enabled = true;
+                        _cmdstate = eCMDState.StayON;
+                    }
                     break;
             }
 
@@ -1180,7 +1201,11 @@ namespace Thetis
             switch (_autoAttenuateState)
             {
                 case eAAState.Monitor:// 0: // monitor
-                    if (_autoattenuate && puresignal.CalibrationAttemptsChanged
+                    bool successChanged = puresignal.CalibrationSuccessChanged;
+                    bool singlePath = _cmdstate == eCMDState.SingleCalibrate || _performing_single_cal;
+                    bool calibrationChanged = successChanged ||
+                        (singlePath && puresignal.CalibrationFailedAttemptChanged);
+                    if (_autoattenuate && calibrationChanged
                         && puresignal.NeedToRecalibrate(console.SetupForm.ATTOnTX))
                     {
                         if (!console.ATTOnTX) AutoAttenuate = true; //MW0LGE
@@ -1202,7 +1227,7 @@ namespace Thetis
                         _deltadB = (int)Math.Round(ddB, MidpointRounding.AwayFromZero); //[2.10.3.12]MW0LGE use rounding, to fix Banker's rounding issue
 
                         _save_autoON = (_cmdstate == eCMDState.AutoCalibrate) ? 1 : 0; // (2)
-                        _save_singlecalON = (_cmdstate == eCMDState.SingleCalibrate) ? 1 : 0; // (4)
+                        _save_singlecalON = (_cmdstate == eCMDState.SingleCalibrate || _performing_single_cal) ? 1 : 0; // (4)
 
                         // everything off and reset
                         puresignal.SetPSControl(_txachannel, 1, 0, 0, 0);
@@ -1514,6 +1539,17 @@ namespace Thetis
         public static bool CalibrationAttemptsChanged {
             get { return _info[5] != _oldInfo[5]; }
         }
+        public static bool CalibrationSuccessChanged {
+            get { return _info[5] != _oldInfo[5]; }
+        }
+        public static bool CalibrationAttemptedChanged {
+            get { return _info[7] != _oldInfo[7]; }
+        }
+        public static bool CalibrationFailedAttemptChanged {
+            get { return CalibrationAttemptedChanged && !CalibrationSuccessChanged; }
+        }
+        internal static bool CorrectionRestoreFailed => (_info[12] & 0b0010) != 0;
+        internal static bool CorrectionRestoreReady => (_info[12] & 0b0100) != 0;
         public static bool CorrectionsBeingApplied {
             get { return _info[14] == 1; }
         }
