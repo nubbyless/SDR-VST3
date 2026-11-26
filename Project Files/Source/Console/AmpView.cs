@@ -101,13 +101,6 @@ namespace Thetis
             //hcm = GCHandle.Alloc(cm, GCHandleType.Pinned);
             //hcc = GCHandle.Alloc(cc, GCHandleType.Pinned);
             //hcs = GCHandle.Alloc(cs, GCHandleType.Pinned);
-            // WDSP 2.00 PureSignal 3.0 bucket configuration from PSForm.
-            int ints = _psform.Ints;
-            if (ints < 1) ints = 16;
-            double delta = 1.0 / (double)ints;
-            t[0] = 0.0;
-            for (int i = 1; i <= ints; i++)
-                t[i] = t[i - 1] + delta;
             EventArgs ex = EventArgs.Empty;
             chkAVShowGain_CheckedChanged(this, ex);
             chkAVLowRes_CheckedChanged(this, ex);
@@ -130,7 +123,7 @@ namespace Thetis
         }
 
         // MW0LGE [2.9.0.8] re-factored to use fixed set of chart points, which get adjusted, these poins are re-init under certain conditions
-        private void init_data(int ints, int spi)
+        private void init_data(int nsamps, int cpts)
         {
             chart1.Series["Ref"].Points.Clear();
             chart1.Series["MagCorr"].Points.Clear();
@@ -149,32 +142,30 @@ namespace Thetis
                 chart1.Series["Ref"].Points.AddXY(0.0, 1.0);
                 chart1.Series["Ref"].Points.AddXY(1.0, 1.0);
             }
+            int chartPts = Math.Min(np, cpts);
+            if (chartPts < 2) chartPts = 2;
             chart1.Series["MagCorr"].Points.AddXY(0.0, 0.0);
-            for (int i = 1; i <= np; i++)
+            for (int i = 1; i <= chartPts; i++)
             {
                 chart1.Series["MagCorr"].Points.AddXY(0.0, 0.0);                
                 chart1.Series["PhsCorr"].Points.AddXY(0.0, 0.0); // note: not always np number of entries, disp_data_Update handles this
             }
 
-            for (int i = 0; i < ints * spi; i++) // += skip)
+            for (int i = 0; i < nsamps; i++) // += skip)
             {
                 chart1.Series["MagAmp"].Points.AddXY(0.0, 0.0);
                 chart1.Series["PhsAmp"].Points.AddXY(0.0, 0.0); // note: low res will skip every 4
             }
         }
 
-        private void disp_data_Update(int ints, int spi)
+        private void disp_data_Update(int nsamps, int cpts)
         {
-            double delta = 1.0 / (double)np;
-            double qx = delta;
-            double dx;
-            double qym, qyc, qys, phs;
-            double phs_base;
-            int k;
-            double dt = 1.0 / (double)ints;
-            t[0] = 0.0;
-            for (int i = 1; i <= ints; i++)
-                t[i] = t[i - 1] + dt;
+            nsamps = Math.Min(nsamps, Math.Min(x.Length, Math.Min(ym.Length, Math.Min(yc.Length, ys.Length))));
+            cpts = Math.Min(cpts, Math.Min(xm_cor.Length, Math.Min(ym_cor.Length, Math.Min(xa_cor.Length, ya_cor.Length))));
+            if (nsamps <= 0 || cpts < 2) return;
+            int chartPts = Math.Min(np, cpts);
+            double qx;
+            double qym, qys, phs;
 
             if (!showgain)
             {
@@ -189,12 +180,12 @@ namespace Thetis
                 chart1.Series["Ref"].Points[1].SetValueXY(1.0, 1.0);
             }
             chart1.Series["MagCorr"].Points[0].SetValueXY(0.0, 0.0);
-            int npts = cpts_out[0];
+            int npts = cpts;
             if (npts < 2) npts = 2;
             int nLastGoodPoint = -1;
-            for (int i = 1; i <= np; i++)
+            for (int i = 1; i <= chartPts; i++)
             {
-                qx = (double)i / (double)np;
+                qx = (double)i / (double)chartPts;
                 double pos = qx * (double)(npts - 1);
                 int j = (int)pos;
                 if (j > npts - 2) j = npts - 2;
@@ -226,19 +217,16 @@ namespace Thetis
                     
                 }
             }
-            k = ints * spi - 1;
-            phs_base = 180.0 / Math.PI * Math.Atan2(yc[k], ys[k]);
-
             nLastGoodPoint = -1;
-            for (int i = 0; i < ints * spi; i++)
+            for (int i = 0; i < nsamps; i++)
             {
                 if (i % skip == 0)
                 {
                     if (!showgain)
                         chart1.Series["MagAmp"].Points[i].SetValueXY(ym[i] * x[i], x[i]);
                     else
-                        chart1.Series["MagAmp"].Points[i].SetValueXY(ym[i] * x[i], 1.0 / ym[i]);
-                    phs = 180.0 / Math.PI * Math.Atan2(yc[i], ys[i]) - phs_base;
+                        chart1.Series["MagAmp"].Points[i].SetValueXY(ym[i] * x[i], ym[i] != 0.0 ? 1.0 / ym[i] : 0.0);
+                    phs = 180.0 / Math.PI * Math.Atan2(ys[i], yc[i]) - phs_ref_deg_out[0];
                     chart1.Series["PhsAmp"].Points[i].SetValueXY(x[i], phs);
 
                     nLastGoodPoint = i;
@@ -359,7 +347,8 @@ namespace Thetis
         //    if (hcs.IsAllocated) hcs.Free();
         //}
 
-        private int _oldIntsSpi = -1;
+        private int _oldDispNsamps = -1;
+        private int _oldDispCpts = -1;
         private void timer1_Tick(object sender, EventArgs e)
         {
             timer1.Stop();
@@ -410,6 +399,8 @@ namespace Thetis
                 }
             }
             //
+            int nsamps = Math.Min(Math.Max(nsamps_out[0], 1), max_samps);
+            int cpts = Math.Min(Math.Max(cpts_out[0], 2), max_samps);
 
             lock (intslock)
             {
@@ -423,23 +414,18 @@ namespace Thetis
                 chart1.Series["MagAmp"].Points.SuspendUpdates();
                 chart1.Series["PhsAmp"].Points.SuspendUpdates();
 
-                // WDSP 2.00 PureSignal 3.0 bucket configuration from PSForm.
-                int ints = _psform.Ints;
-                int spi = _psform.Spi;
-                if (ints < 1) ints = 16;
-                if (spi < 1) spi = 256;
-                int instSpiTot = ints * spi;
-                if (_oldIntsSpi != instSpiTot)
+                if (_oldDispNsamps != nsamps || _oldDispCpts != cpts)
                 {
-                    _oldIntsSpi = instSpiTot;
+                    _oldDispNsamps = nsamps;
+                    _oldDispCpts = cpts;
                     _init = true;
                 }
                 if (_init)
                 {
-                    init_data(ints, spi);
+                    init_data(nsamps, cpts);
                     _init = false;
                 }
-                disp_data_Update(ints, spi);
+                disp_data_Update(nsamps, cpts);
 
                 chart1.Series["PhsAmp"].Points.ResumeUpdates();
                 chart1.Series["MagAmp"].Points.ResumeUpdates();
