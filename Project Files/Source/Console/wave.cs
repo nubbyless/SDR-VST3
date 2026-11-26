@@ -1103,6 +1103,7 @@ namespace Thetis
         {
             if (waveOptionsForm == null || waveOptionsForm.IsDisposed)
                 waveOptionsForm = new WaveOptions(console);
+            waveOptionsForm.TopMost = this.TopMost;
             try { waveOptionsForm.Show(this); } catch { waveOptionsForm.Show(); }
             waveOptionsForm.Focus();
         }
@@ -1110,6 +1111,8 @@ namespace Thetis
         private void chkAlwaysOnTop_CheckedChanged(object sender, EventArgs e)
         {
             this.TopMost = chkAlwaysOnTop.Checked;
+            if (waveOptionsForm != null && !waveOptionsForm.IsDisposed)
+                waveOptionsForm.TopMost = this.TopMost;
         }
 
         private void chkQuickRecMp3_CheckedChanged(object sender, EventArgs e)

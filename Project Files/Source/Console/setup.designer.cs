@@ -47842,6 +47842,7 @@
             // 
             // lblTunedPulse_info
             // 
+            this.lblTunedPulse_info.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblTunedPulse_info.Image = null;
             this.lblTunedPulse_info.Location = new System.Drawing.Point(174, 23);
             this.lblTunedPulse_info.Name = "lblTunedPulse_info";
@@ -48106,10 +48107,11 @@
             // 
             // chkTXInhibit
             // 
+            this.chkTXInhibit.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.chkTXInhibit.Image = null;
             this.chkTXInhibit.Location = new System.Drawing.Point(11, 24);
             this.chkTXInhibit.Name = "chkTXInhibit";
-            this.chkTXInhibit.Size = new System.Drawing.Size(179, 16);
+            this.chkTXInhibit.Size = new System.Drawing.Size(165, 18);
             this.chkTXInhibit.TabIndex = 68;
             this.chkTXInhibit.Text = "Update with TX Inhibit state";
             this.toolTip1.SetToolTip(this.chkTXInhibit, "SDR-VST3 will update on TX inhibit state change");
@@ -48249,8 +48251,9 @@
             // 
             // radLineIn
             // 
+            this.radLineIn.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radLineIn.Image = null;
-            this.radLineIn.Location = new System.Drawing.Point(111, 73);
+            this.radLineIn.Location = new System.Drawing.Point(111, 76);
             this.radLineIn.Name = "radLineIn";
             this.radLineIn.Size = new System.Drawing.Size(64, 16);
             this.radLineIn.TabIndex = 13;
@@ -48263,6 +48266,7 @@
             // radMicIn
             // 
             this.radMicIn.Checked = true;
+            this.radMicIn.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.radMicIn.Image = null;
             this.radMicIn.Location = new System.Drawing.Point(111, 50);
             this.radMicIn.Name = "radMicIn";
@@ -48364,7 +48368,7 @@
             0,
             65536});
             this.udLineInBoost.InterceptArrowKeys = false;
-            this.udLineInBoost.Location = new System.Drawing.Point(111, 96);
+            this.udLineInBoost.Location = new System.Drawing.Point(128, 101);
             this.udLineInBoost.Maximum = new decimal(new int[] {
             12,
             0,
@@ -48404,8 +48408,9 @@
             // 
             // lblLineInBoost
             // 
+            this.lblLineInBoost.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblLineInBoost.Image = null;
-            this.lblLineInBoost.Location = new System.Drawing.Point(6, 94);
+            this.lblLineInBoost.Location = new System.Drawing.Point(6, 104);
             this.lblLineInBoost.Name = "lblLineInBoost";
             this.lblLineInBoost.Size = new System.Drawing.Size(119, 16);
             this.lblLineInBoost.TabIndex = 11;
