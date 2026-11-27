@@ -113,7 +113,7 @@ void xiqc (IQC a)
 			I = a->in[2 * i + 0];
 			Q = a->in[2 * i + 1];
 			env = sqrt (I * I + Q * Q);
-			cset = a->cset;
+			cset = a->cset & 1;
 			ym = get_mag_correction_ema  (&a->m_calavg[cset], env, &a->m_prev_y[cset]);
 			yc = get_phase_correction_ema(&a->c_calavg[cset], env, &a->c_prev_y[cset]);
 			ys = get_phase_correction_ema(&a->s_calavg[cset], env, &a->s_prev_y[cset]);
@@ -237,8 +237,11 @@ void SetTXAiqcSwap (int channel, NS_Spline* m_spline, CurveEMA* m_calavg, double
 	                             NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y)
 {
 	IQC a = txa[channel].iqc.p;
+	if (!a) return;
 	EnterCriticalSection (&ch[channel].csDSP);
-	int altset = 1 - a->cset;
+	int cset = a->cset & 1;
+	int altset = 1 - cset;
+	a->cset = cset;
 
 	ns_free(a->m_spline[altset]);
 	a->m_spline[altset] = m_spline;
@@ -269,23 +272,25 @@ void SetTXAiqcStart (int channel, NS_Spline* m_spline, CurveEMA* m_calavg, doubl
 	                              NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y)
 {
 	IQC a = txa[channel].iqc.p;
+	if (!a) return;
 	EnterCriticalSection (&ch[channel].csDSP);
-	a->cset = 0;
+	int cset = 0;
+	a->cset = cset;
 
-	ns_free(a->m_spline[a->cset]);
-	a->m_spline[a->cset] = m_spline;
-	memcpy(&a->m_calavg[a->cset], m_calavg, sizeof(CurveEMA));
-	a->m_prev_y[a->cset] = m_prev_y;
+	ns_free(a->m_spline[cset]);
+	a->m_spline[cset] = m_spline;
+	if (m_calavg) memcpy(&a->m_calavg[cset], m_calavg, sizeof(CurveEMA));
+	a->m_prev_y[cset] = m_prev_y;
 
-	ns_free(a->c_spline[a->cset]);
-	a->c_spline[a->cset] = c_spline;
-	memcpy(&a->c_calavg[a->cset], c_calavg, sizeof(CurveEMA));
-	a->c_prev_y[a->cset] = c_prev_y;
+	ns_free(a->c_spline[cset]);
+	a->c_spline[cset] = c_spline;
+	if (c_calavg) memcpy(&a->c_calavg[cset], c_calavg, sizeof(CurveEMA));
+	a->c_prev_y[cset] = c_prev_y;
 
-	ns_free(a->s_spline[a->cset]);
-	a->s_spline[a->cset] = s_spline;
-	memcpy(&a->s_calavg[a->cset], s_calavg, sizeof(CurveEMA));
-	a->s_prev_y[a->cset] = s_prev_y;
+	ns_free(a->s_spline[cset]);
+	a->s_spline[cset] = s_spline;
+	if (s_calavg) memcpy(&a->s_calavg[cset], s_calavg, sizeof(CurveEMA));
+	a->s_prev_y[cset] = s_prev_y;
 	InterlockedBitTestAndSet (&a->busy, 0);
 	a->state = BEGIN;
 	a->count = 0;

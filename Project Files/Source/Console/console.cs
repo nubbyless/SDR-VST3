@@ -6632,7 +6632,7 @@ namespace Thetis
                         else if (c2.GetType() == typeof(CheckBoxTS))
                         {
                             CheckBoxTS chk = (CheckBoxTS)c2;
-                            if (chk.Checked && chk.BackColor != SystemColors.Control)
+                            if (chk.Checked && chk.BackColor != SystemColors.Control && c2.Name != "chk2TONE")
                             {
                                 c2.BackColor = button_selected_color;
                             }
@@ -6664,7 +6664,7 @@ namespace Thetis
                 else if (c.GetType() == typeof(CheckBoxTS))
                 {
                     CheckBoxTS chk = (CheckBoxTS)c;
-                    if (chk.Checked && chk.BackColor != SystemColors.Control)
+                    if (chk.Checked && chk.BackColor != SystemColors.Control && c.Name != "chk2TONE")
                         c.BackColor = button_selected_color;
                 }
                 else if (c.GetType() == typeof(NumericUpDownTS))
@@ -46996,6 +46996,36 @@ namespace Thetis
             get { return chk2TONE.Checked; }
             set { chk2TONE.Checked = value; }
         }
+        public void ResetTwoToneButtonAppearance()
+        {
+            if (chk2TONE == null) return;
+
+            UpdateTwoToneButtonAppearance(!IsSetupFormNull && SetupForm.TestIMD && chk2TONE.Checked);
+        }
+        private void UpdateTwoToneButtonAppearance(bool active)
+        {
+            if (chk2TONE == null) return;
+
+            bool hasSkinImage = false;
+            if (chk2TONE.ImageList != null)
+            {
+                string key = active ? "NormalDown" : "NormalUp";
+                int index = chk2TONE.ImageList.Images.IndexOfKey(key);
+                if (index >= 0)
+                {
+                    chk2TONE.BackgroundImage = chk2TONE.ImageList.Images[index];
+                    hasSkinImage = true;
+                }
+            }
+
+            if (!hasSkinImage) chk2TONE.BackgroundImage = null;
+
+            Color stateColor = hasSkinImage || !active ? Color.Transparent : button_selected_color;
+            chk2TONE.BackColor = stateColor;
+            chk2TONE.FlatAppearance.CheckedBackColor = stateColor;
+            chk2TONE.FlatAppearance.MouseOverBackColor = stateColor;
+            chk2TONE.FlatAppearance.MouseDownBackColor = stateColor;
+        }
         private async void chk2TONE_CheckedChanged(object sender, EventArgs e)
         {
             if (IsSetupFormNull || SetupForm.TestIMD == chk2TONE.Checked) return; // same state ignore
@@ -47015,16 +47045,16 @@ namespace Thetis
 
             if (SetupForm.TestIMD && chk2TONE.Checked)
             { // we are running all ok
-                chk2TONE.BackColor = button_selected_color;
+                UpdateTwoToneButtonAppearance(true);
             }
             else if (!SetupForm.TestIMD && chk2TONE.Checked)
             { // we tried to run but there was a problem
-                chk2TONE.BackColor = SystemColors.Control;
                 chk2TONE.Checked = false;
+                UpdateTwoToneButtonAppearance(false);
             }
             else
             {
-                chk2TONE.BackColor = SystemColors.Control;
+                UpdateTwoToneButtonAppearance(false);
             }
 
             setupTuneDriveSlider(); // MW0LGE_22b

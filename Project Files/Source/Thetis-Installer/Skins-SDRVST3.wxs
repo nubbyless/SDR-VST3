@@ -186,6 +186,12 @@
       <Component Id="SDRVST3_c_console_button1_1_png" Directory="SDRVST3ConsoleDir" Guid="*">
         <File Id="SDRVST3_f_console_button1_1_png" Source="Skins\SDRVST3\console\button1-1.png" KeyPath="yes" />
       </Component>
+      <Component Id="SDRVST3_c_console_chk2TONE_0_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_chk2TONE_0_png" Source="Skins\SDRVST3\console\chk2TONE-0.png" KeyPath="yes" />
+      </Component>
+      <Component Id="SDRVST3_c_console_chk2TONE_1_png" Directory="SDRVST3ConsoleDir" Guid="*">
+        <File Id="SDRVST3_f_console_chk2TONE_1_png" Source="Skins\SDRVST3\console\chk2TONE-1.png" KeyPath="yes" />
+      </Component>
       <Component Id="SDRVST3_c_console_chkANF_0_png" Directory="SDRVST3ConsoleDir" Guid="*">
         <File Id="SDRVST3_f_console_chkANF_0_png" Source="Skins\SDRVST3\console\chkANF-0.png" KeyPath="yes" />
       </Component>

@@ -2081,14 +2081,15 @@ void pscc (int channel, int size, double* tx, double* rx)
 						a->ctrl.state = LSETUP;
 					else a->ctrl.state = LWAIT;
 				}
-				// A reset must always be able to get the state machine out of LCALC.  If the
-				// calculation does not come back - the correction thread is stuck - the engine
-				// would wait for ever and the PureSignal would be dead until the program is
-				// restarted.
+				// A reset must wait for the calculation that is already in progress.  Clearing
+				// calcinprogress here lets LRESET free the NURB and spline objects while the
+				// correction thread is still building or installing them, which is a
+				// use-after-free.  The correction thread always sets calcdone when it is
+				// finished and its waits are bounded, so waiting here cannot deadlock.
 				else if (a->ctrl.reset)
 				{
-					a->ctrl.calcinprogress = 0;
-					a->ctrl.state = LRESET;
+					// Stay in LCALC until the correction thread acknowledges with calcdone.
+					// The calcdone handler above then performs the transition to LRESET.
 				}
 				break;
 			case LDELAY:
@@ -2198,10 +2199,12 @@ void SetPSCorrectionOff (int channel)
 {
 	IQC b = txa[channel].iqc.p;
 	CALCC a = txa[channel].calcc.p;
+	if (!b || !a) return;
 
 	InterlockedBitTestAndReset (&b->run, 0);
-	// nobody waits for a changeover any more
-	InterlockedBitTestAndReset (&b->busy, 0);
+	// Do not clear busy here: the SetTXAiqcStart/Swap/End handoff uses it to know
+	// when the DSP thread has finished with the correction.  Clearing it from the
+	// UI thread lets the next handoff overwrite correction data still in use.
 
 	EnterCriticalSection (&txa[channel].calcc.cs_update);
 	a->info[14] = 0;
