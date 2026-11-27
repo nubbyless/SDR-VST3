@@ -320,41 +320,6 @@ namespace Thetis
         }
         #endregion
 
-        // Yurij_eu2av: hardware-specific target Feedback Level for PureSignal auto-attenuator.
-        //
-        // The target is the feedback level the auto-attenuator drives the amplifier to.  It
-        // has to be reachable: the auto-attenuator moves the TX step attenuator and that only
-        // goes from 0 to 31 dB.  A target that asks for more attenuation than exists runs the
-        // auto-attenuator into the ceiling, it parks on the end stop with a weak feedback
-        // signal and the indicator never goes green.
-        //
-        // The number is a property of the radio's feedback path, it is not a user setting:
-        // binfo[4] = 256 * y_at_1 / peak, so it depends on the feedback coupling of the rig
-        // and on the peak reference (SetPk).  The same amplifier reads a different number on
-        // a different radio.  The operator must not be able to change it - a wrong value is
-        // how an amplifier ends up in the wrong operating point.
-        //
-        // The target is the same for every radio: 152, the value upstream Thetis (MW0LGE)
-        // uses for all radios.
-        //
-        // During development the Orion MK2 based rigs (ANAN-7000D, ANAN-8000D, Anvelina
-        // PRO3) ran with a target of 22, because their feedback coupling reads lower and
-        // 22 keeps the ADC2208 and the codec well inside their linear range while still
-        // giving enough feedback for the PureSignal correction.  That per-radio override
-        // has been removed (2026-11-16): the auto-attenuator now lands in the same
-        // operating point on every radio, exactly as it does with MW0LGE's Thetis.
-        //
-        // The property is kept as the one place the target lives, so a radio that ever needs
-        // a value of its own again only has to be added here.
-        //
-        // Verified on an ANAN-10E (peak reference 0.2899) on 2026-11-13: with the target at
-        // 152 the auto-attenuator walks the TX attenuator from 31 dB to 18 dB and the
-        // feedback lands at 149..156 - exactly where it landed with PureSignal 2 (WDSP 1.29).
-        public static int PSTargetFeedbackLevel
-        {
-            get { return 152; }
-        }
-
         #region STRING_CONVERSION
         // enums/string conversion
         public static HPSDRModel StringModelToEnum(string sModel)

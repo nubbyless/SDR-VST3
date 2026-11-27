@@ -63246,8 +63246,8 @@
             this.btnTwoToneF_stealth.Size = new System.Drawing.Size(67, 23);
             this.btnTwoToneF_stealth.TabIndex = 127;
             this.btnTwoToneF_stealth.Text = "\'Stealth\'";
-            this.toolTip1.SetToolTip(this.btnTwoToneF_stealth, "A 'stealth' 70Hz and 194Hz." + "\r\n" +
-                "The IMD products stay close to the carrier.  The 124Hz spacing is not a sub-multiple of the TX processing rate.");
+            this.toolTip1.SetToolTip(this.btnTwoToneF_stealth, "A 'stealth' 70Hz and 190Hz." + "\r\n" +
+                "The IMD products stay close to the carrier.");
             this.btnTwoToneF_stealth.UseVisualStyleBackColor = true;
             this.btnTwoToneF_stealth.Click += new System.EventHandler(this.btnTwoToneF_stealth_Click);
             // 
@@ -63260,8 +63260,8 @@
             this.btnTwoToneF_defaults.Size = new System.Drawing.Size(67, 23);
             this.btnTwoToneF_defaults.TabIndex = 126;
             this.btnTwoToneF_defaults.Text = "Defaults";
-            this.toolTip1.SetToolTip(this.btnTwoToneF_defaults, "Default 700Hz and 1950Hz." + "\r\n" +
-                "The 1250Hz spacing is not a sub-multiple of the TX sample rate, a two tone spacing that is a sub-multiple distorts the PureSignal calibration.");
+            this.toolTip1.SetToolTip(this.btnTwoToneF_defaults, "Default 700Hz and 1900Hz." + "\r\n" +
+                "The IMD products are separated by 1200Hz.");
             this.btnTwoToneF_defaults.UseVisualStyleBackColor = true;
             this.btnTwoToneF_defaults.Click += new System.EventHandler(this.btnTwoToneF_defaults_Click);
             // 
@@ -63634,12 +63634,11 @@
             this.udTestIMDFreq2.TabIndex = 87;
             this.udTestIMDFreq2.TinyStep = false;
             this.udTestIMDFreq2.Value = new decimal(new int[] {
-            19500,
+            19000,
             0,
             0,
             65536});
             this.udTestIMDFreq2.LostFocus += new System.EventHandler(this.udTestIMDFreq2_LostFocus);
-            this.udTestIMDFreq2.ValueChanged += new System.EventHandler(this.udTestIMDFreq2_ValueChanged);
             // 
             // udTestIMDPower
             // 
@@ -63722,7 +63721,6 @@
             0,
             0});
             this.udTestIMDFreq1.LostFocus += new System.EventHandler(this.udTestIMDFreq1_LostFocus);
-            this.udTestIMDFreq1.ValueChanged += new System.EventHandler(this.udTestIMDFreq1_ValueChanged);
             // 
             // grpTestAudioBalance
             // 
@@ -74057,19 +74055,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.numericUpDownTS36)).EndInit();
             this.panelTS4.ResumeLayout(false);
             this.panelTS4.PerformLayout();
-            // Yurij_eu2av: hidden persisted target Feedback Level for PureSignal auto-attenuator
-            this.udPSTargetFeedbackLevel = new System.Windows.Forms.NumericUpDownTS();
-            ((System.ComponentModel.ISupportInitialize)(this.udPSTargetFeedbackLevel)).BeginInit();
-            this.udPSTargetFeedbackLevel.Location = new System.Drawing.Point(-100, -100);
-            this.udPSTargetFeedbackLevel.Name = "udPSTargetFeedbackLevel";
-            this.udPSTargetFeedbackLevel.Size = new System.Drawing.Size(50, 20);
-            this.udPSTargetFeedbackLevel.TabIndex = 999;
-            this.udPSTargetFeedbackLevel.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            this.udPSTargetFeedbackLevel.Maximum = new decimal(new int[] { 256, 0, 0, 0 });
-            this.udPSTargetFeedbackLevel.Value = new decimal(new int[] { 152, 0, 0, 0 });
-            this.udPSTargetFeedbackLevel.Visible = false;
-            ((System.ComponentModel.ISupportInitialize)(this.udPSTargetFeedbackLevel)).EndInit();
-            this.Controls.Add(this.udPSTargetFeedbackLevel);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -78677,7 +78662,6 @@
         private NumericUpDownTS nudRecording_monoPlaybackGain;
         private CheckBoxTS chkWaterfall_smear;
         private CheckBoxTS chkN1mm_include_cw_shift;
-        private NumericUpDownTS udPSTargetFeedbackLevel;
     }
 }
 

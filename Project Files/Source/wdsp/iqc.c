@@ -88,20 +88,6 @@ enum _iqcstate
 
 #define IQC_OUT_MAX 0.999
 
-// The DSP thread clears the busy flag when the changeover of the correction is done.
-// The wait has to be bounded: the DSP thread only runs the correction while the radio
-// transmits.  An endless wait would block the correction thread for ever when the
-// radio is idle - and the engine would then wait for the result of the calculation
-// that thread has to run for ever as well.
-static void iqc_wait_busy (IQC a)
-{
-	for (int i = 0; i < 2000; i++)		// 2 seconds
-	{
-		if (!_InterlockedAnd (&a->busy, 1)) return;
-		Sleep(1);
-	}
-}
-
 void xiqc (IQC a)
 {
 	if (_InterlockedAnd(&a->run, 1))
@@ -113,7 +99,7 @@ void xiqc (IQC a)
 			I = a->in[2 * i + 0];
 			Q = a->in[2 * i + 1];
 			env = sqrt (I * I + Q * Q);
-			cset = a->cset & 1;
+			cset = a->cset;
 			ym = get_mag_correction_ema  (&a->m_calavg[cset], env, &a->m_prev_y[cset]);
 			yc = get_phase_correction_ema(&a->c_calavg[cset], env, &a->c_prev_y[cset]);
 			ys = get_phase_correction_ema(&a->s_calavg[cset], env, &a->s_prev_y[cset]);
@@ -234,14 +220,12 @@ void GetTXAiqcValues (int channel, NS_Spline** m_spline, CurveEMA* m_calavg, dou
 
 void SetTXAiqcSwap (int channel, NS_Spline* m_spline, CurveEMA* m_calavg, double m_prev_y,
 		                         NS_Spline* c_spline, CurveEMA* c_calavg, double c_prev_y,
-	                             NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y)
+	                             NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y,
+								 int wait_for_ramp)
 {
 	IQC a = txa[channel].iqc.p;
-	if (!a) return;
 	EnterCriticalSection (&ch[channel].csDSP);
-	int cset = a->cset & 1;
-	int altset = 1 - cset;
-	a->cset = cset;
+	int altset = 1 - a->cset;
 
 	ns_free(a->m_spline[altset]);
 	a->m_spline[altset] = m_spline;
@@ -263,40 +247,39 @@ void SetTXAiqcSwap (int channel, NS_Spline* m_spline, CurveEMA* m_calavg, double
 	a->count = 0;
 	LeaveCriticalSection (&ch[channel].csDSP);
 
-	iqc_wait_busy (a);
+	while (wait_for_ramp && _InterlockedAnd (&a->busy, 1)) Sleep(1);
 }
 
 
 void SetTXAiqcStart (int channel, NS_Spline* m_spline, CurveEMA* m_calavg, double m_prev_y,
 	                              NS_Spline* c_spline, CurveEMA* c_calavg, double c_prev_y,
-	                              NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y)
+	                              NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y,
+								  int wait_for_ramp)
 {
 	IQC a = txa[channel].iqc.p;
-	if (!a) return;
 	EnterCriticalSection (&ch[channel].csDSP);
-	int cset = 0;
-	a->cset = cset;
+	a->cset = 0;
 
-	ns_free(a->m_spline[cset]);
-	a->m_spline[cset] = m_spline;
-	if (m_calavg) memcpy(&a->m_calavg[cset], m_calavg, sizeof(CurveEMA));
-	a->m_prev_y[cset] = m_prev_y;
+	ns_free(a->m_spline[a->cset]);
+	a->m_spline[a->cset] = m_spline;
+	memcpy(&a->m_calavg[a->cset], m_calavg, sizeof(CurveEMA));
+	a->m_prev_y[a->cset] = m_prev_y;
 
-	ns_free(a->c_spline[cset]);
-	a->c_spline[cset] = c_spline;
-	if (c_calavg) memcpy(&a->c_calavg[cset], c_calavg, sizeof(CurveEMA));
-	a->c_prev_y[cset] = c_prev_y;
+	ns_free(a->c_spline[a->cset]);
+	a->c_spline[a->cset] = c_spline;
+	memcpy(&a->c_calavg[a->cset], c_calavg, sizeof(CurveEMA));
+	a->c_prev_y[a->cset] = c_prev_y;
 
-	ns_free(a->s_spline[cset]);
-	a->s_spline[cset] = s_spline;
-	if (s_calavg) memcpy(&a->s_calavg[cset], s_calavg, sizeof(CurveEMA));
-	a->s_prev_y[cset] = s_prev_y;
+	ns_free(a->s_spline[a->cset]);
+	a->s_spline[a->cset] = s_spline;
+	memcpy(&a->s_calavg[a->cset], s_calavg, sizeof(CurveEMA));
+	a->s_prev_y[a->cset] = s_prev_y;
 	InterlockedBitTestAndSet (&a->busy, 0);
 	a->state = BEGIN;
 	a->count = 0;
 	LeaveCriticalSection (&ch[channel].csDSP);
 	InterlockedBitTestAndSet   (&txa[channel].iqc.p->run, 0);
-	iqc_wait_busy (a);
+	while (wait_for_ramp && _InterlockedAnd (&a->busy, 1)) Sleep(1);
 }
 
 void SetTXAiqcEnd (int channel)
@@ -307,7 +290,7 @@ void SetTXAiqcEnd (int channel)
 	a->state = END;
 	a->count = 0;
 	LeaveCriticalSection (&ch[channel].csDSP);
-	iqc_wait_busy (a);
+	while (_InterlockedAnd (&a->busy, 1)) Sleep(1);
 	InterlockedBitTestAndReset (&txa[channel].iqc.p->run, 0);
 }
 

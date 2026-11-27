@@ -1,4 +1,4 @@
-/*  PSForm.cs
+﻿/*  PSForm.cs
 
 This file is part of a program that implements a Software-Defined Radio.
 
@@ -44,7 +44,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.IO;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -72,48 +71,19 @@ namespace Thetis
 
             console = c;    // MW0LGE moved above restore, so that we actaully have console when control events fire because of restore form
             
-            try
-            {
-                Common.RestoreForm(this, "PureSignal", false); // will also restore txtPSpeak //MW0LGE_21k9rc5
-            }
-            catch
-            {
-                // A bad entry in the table must not abort the constructor.  If it does, the
-                // form is left half initialised: _psFormReady stays false and the values the
-                // user changes are then never written back to the database.
-            }
+            Common.RestoreForm(this, "PureSignal", false); // will also restore txtPSpeak //MW0LGE_21k9rc5
 
-            // The target feedback level is set by the code for the radio in use, it is not a
-            // user setting: the operator must not be able to change it.  It used to be stored
-            // in the setup form's database (the "Options" table, as "udPSTargetFeedbackLevel"),
-            // that entry is dead now.
-            try
-            {
-                SetTargetFeedbackLevel(HardwareSpecific.PSTargetFeedbackLevel);
-            }
-            catch { }
+            // These controls configured the retired WDSP 1.x PureSignal fitter.
+            // WDSP 2.11 uses its adaptive NURBS calibration and fixed sample collection.
+            chkPSRelaxPtol.Visible = false;
+            chkPSPin.Visible = false;
+            chkPSMap.Visible = false;
+            chkPSStbl.Visible = false;
+            comboPSTint.Visible = false;
+            lblPSTint.Text = "Adaptive";
 
-            // Diagnostic: what the values in here ended up as.
-            // NOTE: console.SetupForm is a lazy singleton - touching it creates the setup form.
-            // That must not happen here, the setup form is initialised at the wrong point of
-            // the console startup otherwise (the display buffers are not ready yet).
-            try
-            {
-                decimal tf1 = -1;
-                decimal tf2 = -1;
-                if (console != null && !console.IsSetupFormNull)
-                {
-                    tf1 = console.SetupForm.TestToneFreq1;
-                    tf2 = console.SetupForm.TestToneFreq2;
-                }
-
-                psLog(string.Format("PS form start: fbTarget={0} hwDefault={1} tones={2}/{3}",
-                    puresignal.TargetFeedbackLevel,
-                    HardwareSpecific.PSTargetFeedbackLevel,
-                    tf1,
-                    tf2));
-            }
-            catch { }
+            _advancedON = false;
+            chkAdvancedViewHidden.Checked = false;
 
             console.PowerChangeHanders += onPowerOn;
             console.ConsoleClosingHandlersAsync += onConsoleClosingAsync;
@@ -130,6 +100,7 @@ namespace Thetis
         #region variables
 
         private int _gcolor = (0xFF << 24) | (0xFF << 8);
+        private bool _psFormReady = false;
         private static bool _autoON = false;
         private static bool _singlecalON = false;
         private static bool _restoreON = false;
@@ -151,8 +122,6 @@ namespace Thetis
         private int _deltadB = 0;
 
         private bool _power;
-        private bool _psFormReady = false;
-        private bool _lastPSIndicated = false;
 
         private enum eCMDState
         {
@@ -200,16 +169,6 @@ namespace Thetis
             get { return m_bQuckAttenuate; }
             set { m_bQuckAttenuate = value; }
         }
-
-        public int Ints
-        {
-            get { return 16; }
-        }
-        public int Spi
-        {
-            get { return 256; }
-        }
-
         public ToolTip ToolTip //[2.10.3.9]MW0LGE used by finder
         {
             get
@@ -224,7 +183,6 @@ namespace Thetis
             Debug.Print(DateTime.UtcNow.Ticks.ToString() + " PSForm: Stopping PS Thread");
             if (_ps_thread != null && _ps_thread.IsAlive) _ps_thread.Join(200);
             Debug.Print(DateTime.UtcNow.Ticks.ToString()  + " PSForm: PS Thread Stopped");
-            psLogClose();
 
             if (console != null)
             {
@@ -289,15 +247,6 @@ namespace Thetis
         //}
 
         private static bool _psenabled = false;
-        // Is the PureSignal running?  The command state machine is only in the OFF state
-        // when the PureSignal is really off.  Note that PSEnabled is *not* the same thing:
-        // it means "the radio supplies the feedback samples", and the state machine turns
-        // it off in StayON (the correction is stored, no live feedback is needed any more).
-        public bool PureSignalOn
-        {
-            get { return _cmdstate != eCMDState.OFF; }
-        }
-
         public bool PSEnabled
         {
             get { return _psenabled; }
@@ -391,11 +340,9 @@ namespace Thetis
             }
         }
 
-        // the test generator buttons show which stimulus is running
         private void updateTestGenButtons()
         {
             bool noise = false;
-            // do not touch the SetupForm singleton here, it would create the form
             if (console != null && !console.IsSetupFormNull) noise = console.SetupForm.TestIMDNoiseStimulus;
 
             if (_ttgenON)
@@ -430,6 +377,25 @@ namespace Thetis
             }
         }
 
+        private int _ints = 16;
+        public int Ints
+        {
+            get { return _ints; }
+            set
+            {
+                _ints = value;
+            }
+        }
+
+        private int _spi = 256;
+        public int Spi
+        {
+            get { return _spi; }
+            set
+            {
+                _spi = value;
+            }
+        }
 
         private void psdefpeak(double value)
         {
@@ -454,7 +420,7 @@ namespace Thetis
         public void SetupForm()//EventArgs e)  //MW0LGE_[2.9.0.7]
         {
             if (_ttgenON == true)
-                btnPSTwoToneGen.BackColor = Color.FromArgb(_gcolor);
+                updateTestGenButtons();
 
             unsafe
             {
@@ -464,29 +430,9 @@ namespace Thetis
 
             txtPSpeak.Text = _PShwpeak.ToString();
 
-            // The target feedback level comes from the code (the radio in use), it is not a
-            // user setting.  Show it and make sure the engine has it.
-            try
-            {
-                SetTargetFeedbackLevel(HardwareSpecific.PSTargetFeedbackLevel);
-            }
-            catch { }
+            setAdvancedView();  //MW0LGE_[2.9.0.7]
 
-            // The stimulus selection and the tone spacing warning belong to this window,
-            // not to the Setup > Tests tab.  Make sure they are up to date.
             try { console.SetupForm.UpdateCalStimulusUI(singleCalUseNoise); }
-            catch { }
-
-            try
-            {
-                psLog(string.Format("PS form shown: fbTarget={0} hwDefault={1} tones={2}/{3} getpk={4} fb={5}",
-                    puresignal.TargetFeedbackLevel,
-                    HardwareSpecific.PSTargetFeedbackLevel,
-                    console.SetupForm.TestToneFreq1,
-                    console.SetupForm.TestToneFreq2,
-                    GetPSpeak.Text,
-                    lblPSfb2.Text));
-            }
             catch { }
         }
 
@@ -500,6 +446,8 @@ namespace Thetis
             //    ampv.Close();
             //    ampv = null;
             //}
+            //_advancedON = true;//MW0LGE_[2.9.0.7]
+            //btnPSAdvanced_Click(this, e); //MW0LGE_[2.9.0.7]
             this.Hide();
             e.Cancel = true;
             Common.SaveForm(this, "PureSignal");
@@ -513,7 +461,7 @@ namespace Thetis
                 _ampViewDone.Reset();
                 try
                 {
-                    ampv.BeginInvoke((Action)(() => ampv.CloseDown() ));
+                    ampv.BeginInvoke((Action)(() => ampv.CloseDown()));
                 }
                 catch { }
 
@@ -530,7 +478,7 @@ namespace Thetis
         }
         public void RunAmpv()
         {
-            ampv = new AmpView(this);
+            ampv = new AmpView();
             ampv.Opacity = 0f;
             Application.Run(ampv);
             _ampViewDone.Set();
@@ -553,42 +501,26 @@ namespace Thetis
         {
             if (_singlecalON)
             {
-                // need this incase single cal is unable to complete do to bad feedback level
-                // state machine will drop out if this is the case
                 _singlecalON = false;
-                psLog("EVENT single cal stop");
                 stopSingleCalStimulus();
                 return;
             }
             console.ForcePureSignalAutoCalDisable();
-            // make sure the stimulus the user chose is the one that is driving the TX
-            psLog("EVENT single cal start: " + (singleCalUseNoise ? "noise" : "twotone"));
             startSingleCalStimulus();
             _singlecalON = true;
             console.PSState = false;
         }
 
-        // The stimulus the "Single Cal" uses.  The user chooses it in the combo box under the
-        // Single Cal button.  The two tone is the default, the noise is selectable.
-        // The noise is the better stimulus for the calibration: the calibration axis is the
-        // TX envelope (wdsp/calcc.c, putSample()/calc()), so a continuously varying envelope
-        // gives the calibration a sweep of drive levels, while the two tone has a nearly
-        // constant envelope.  See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
         private bool singleCalUseNoise
         {
             get { return comboPSCalStimulus != null && comboPSCalStimulus.Text == "Noise"; }
         }
 
-        // The stimulus the TX test runs with.  This is the single source of truth for it:
-        // the Setup > Tests tab has no stimulus selector of its own any more, the
-        // PureSignal form (the linearity window) is where the calibration is set up.
         public bool UseNoiseStimulus
         {
             get { return singleCalUseNoise; }
         }
 
-        // Select the stimulus.  The setup form is told about it so it can swap the
-        // generator over when the TX test is already running.
         public void SetCalStimulus(bool noise)
         {
             try
@@ -596,7 +528,7 @@ namespace Thetis
                 if (comboPSCalStimulus == null) return;
                 int index = noise ? 1 : 0;
                 if (comboPSCalStimulus.SelectedIndex == index) return;
-                comboPSCalStimulus.SelectedIndex = index;  // runs the change handler
+                comboPSCalStimulus.SelectedIndex = index;
             }
             catch { }
         }
@@ -611,42 +543,6 @@ namespace Thetis
             catch { }
         }
 
-        // The two tone frequencies live in the Setup > Tests tab again, together with the
-        // 'Defaults' and 'Stealth' presets.  The tone spacing decides whether the
-        // calibration sees a continuous sweep of drive levels or only a few repeated ones.
-        // A spacing that is an exact sub-multiple of the TX processing rate is the trap,
-        // see the WDSP guide 2.11, Appendix D 13.3 and 13.6.  The warning about it is
-        // still shown here, in the linearity window, where the calibration is set up.
-
-        // The "FB Target" readout.  The value is set by the code for the radio in use, this
-        // form only shows it.
-        public void SetTargetFeedbackLevel(int value)
-        {
-            try
-            {
-                if (lblPSTargetFeedback != null)
-                    lblPSTargetFeedback.Text = "FB Target: " + value;
-            }
-            catch { }
-        }
-
-        // Show the tone spacing warning.  It belongs here, in the linearity window, and
-        // not in the Setup > Tests tab: this is where the PureSignal calibration is set
-        // up and where the warning has to be seen.
-        public void SetCalStimulusWarning(string text)
-        {
-            try
-            {
-                if (lblPSSpacingWarning == null) return;
-                lblPSSpacingWarning.Text = text ?? "";
-                lblPSSpacingWarning.Visible = lblPSSpacingWarning.Text.Length > 0;
-            }
-            catch { }
-        }
-
-        // The setup form belongs to the UI thread.  The PS form is driven from the PS thread and
-        // the Single Cal can also be started by a CAT command, so the calls into the setup form
-        // have to be marshalled over to the UI thread.
         private void runOnUIThread(Action action)
         {
             try
@@ -659,36 +555,37 @@ namespace Thetis
             catch { }
         }
 
-        // Make sure the stimulus the user selected is the one that is running.
         private void startSingleCalStimulus()
         {
             if (console == null || console.IsSetupFormNull) return;
-
             bool noise = singleCalUseNoise;
-
-            runOnUIThread(() =>
-            {
-                console.SetupForm.EnsureTestStimulus(noise);
-                psLog("EVENT single cal stimulus start: " + (noise ? "noise" : "twotone"));
-            });
+            runOnUIThread(() => console.SetupForm.EnsureTestStimulus(noise));
         }
 
-        // Stop the stimulus again when the Single Cal is over.  The stimulus is stopped when it
-        // is the one the Single Cal used, no matter who started it - otherwise the transmitter
-        // would keep sending the test tone after the calibration was switched off.
         private void stopSingleCalStimulus()
         {
             if (console == null || console.IsSetupFormNull) return;
-
             bool noise = singleCalUseNoise;
-
             runOnUIThread(() =>
             {
                 if (!console.SetupForm.TTgenrun) return;
-                if (console.SetupForm.TestIMDNoiseStimulus != noise) return;  // a different one is running
+                if (console.SetupForm.TestIMDNoiseStimulus != noise) return;
                 console.SetupForm.TTgenrun = false;
-                psLog("EVENT single cal stimulus stop");
             });
+        }
+
+        private void comboPSDeadlock_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            double frac;
+            switch (comboPSDeadlock.SelectedIndex)
+            {
+                case 1: frac = 0.04; break;
+                case 2: frac = 0.02; break;
+                default: frac = 0.06; break;
+            }
+
+            if (_psFormReady)
+                puresignal.SetPSDeadlockMinFrac(_txachannel, frac);
         }
 
         //-W2PA Adds capability for CAT control via console
@@ -700,25 +597,8 @@ namespace Thetis
         private void btnPSReset_Click(object sender, EventArgs e)
         {
             console.ForcePureSignalAutoCalDisable();
-            // A single cal that is waiting to run must not switch the PureSignal back on
-            // after the OFF button was pressed.
-            _singlecalON = false;
-            _performing_single_cal = false;
             if (!_OFF) _OFF = true;
             console.PSState = false;
-            // Switch it off now.  Waiting for the engine to acknowledge the reset can take
-            // until the next transmission, and until then the "correcting" light stayed on
-            // and nothing showed that the button had been pressed.
-            _cmdstate = eCMDState.OFF;
-
-            // Stop applying the correction now.  The engine only does that when it gets the
-            // reset, and it only gets it while the radio delivers the feedback samples - in
-            // between transmissions the correction would stay in the signal.
-            try { puresignal.SetPSCorrectionOff(_txachannel); }
-            catch { }
-
-            try { psLog("EVENT puresignal OFF pressed"); }
-            catch { }
         }
 
         private void udPSMoxDelay_ValueChanged(object sender, EventArgs e)
@@ -741,15 +621,13 @@ namespace Thetis
             if (_ttgenON == false)
             {
                 _ttgenON = true;
-                console.SetupForm.StartTestStimulus(false); // two tone
-                psLog("EVENT two tone generator on");
+                console.SetupForm.StartTestStimulus(false);
                 updateTestGenButtons();
             }
             else
             {
                 _ttgenON = false;
                 console.SetupForm.TTgenrun = false;
-                psLog("EVENT two tone generator off");
                 updateTestGenButtons();
             }
         }
@@ -759,15 +637,13 @@ namespace Thetis
             if (_ttgenON == false)
             {
                 _ttgenON = true;
-                console.SetupForm.StartTestStimulus(true); // noise
-                psLog("EVENT noise generator on");
+                console.SetupForm.StartTestStimulus(true);
                 updateTestGenButtons();
             }
             else
             {
                 _ttgenON = false;
                 console.SetupForm.TTgenrun = false;
-                psLog("EVENT noise generator off");
                 updateTestGenButtons();
             }
         }
@@ -801,135 +677,6 @@ namespace Thetis
         {
             psdefpeak(HardwareSpecific.PSDefaultPeak);
         }
-
-        // PureSignal diagnostics.  The engine only writes the feedback level and the
-        // "correcting" flag after a successful calibration, so a calibration that never
-        // completes leaves no trace on the screen.  This log shows the engine state and the
-        // internal flags while it runs, so a failed calibration can be analysed afterwards.
-        // It is written to <appdata>\PureSignal\PS_debug.log
-        //
-        // The log is OFF by default.  It grows for as long as PureSignal is running and must
-        // not fill a user's disk with diagnostics.  Set the environment variable
-        // PS_DEBUG_LOG=1 to switch it on when a calibration has to be investigated.
-        private static readonly bool _ps_log_enabled = PsLogRequested();
-        private const long PS_LOG_MAX_BYTES = 4 * 1024 * 1024;
-        private string _ps_log_path = null;
-        private StreamWriter _ps_log = null;
-        private DateTime _ps_log_last = DateTime.MinValue;
-        private int _ps_log_last_state = -1;
-
-        private static bool PsLogRequested()
-        {
-            try
-            {
-                string value = Environment.GetEnvironmentVariable("PS_DEBUG_LOG");
-                return !string.IsNullOrEmpty(value) && value != "0";
-            }
-            catch { return false; }
-        }
-
-        private void psLog(string msg)
-        {
-            if (!_ps_log_enabled) return;
-
-            try
-            {
-                if (_ps_log == null)
-                {
-                    if (_ps_log_path == null)
-                    {
-                        System.IO.Directory.CreateDirectory(console.AppDataPath + "PureSignal\\");
-                        _ps_log_path = console.AppDataPath + "PureSignal\\PS_debug.log";
-                    }
-                    // keep one previous file so even a forgotten diagnostic run cannot grow
-                    // without bound
-                    try
-                    {
-                        FileInfo existing = new FileInfo(_ps_log_path);
-                        if (existing.Exists && existing.Length > PS_LOG_MAX_BYTES)
-                            File.Move(_ps_log_path, _ps_log_path + ".old", true);
-                    }
-                    catch { }
-                    _ps_log = new StreamWriter(_ps_log_path, true);
-                }
-                _ps_log.WriteLine(DateTime.Now.ToString("HH:mm:ss.fff") + " " + msg);
-                _ps_log.Flush();
-            }
-            catch { }
-        }
-
-        private void psLogState()
-        {
-            if (!_ps_log_enabled) return;
-
-            try
-            {
-                int state = puresignal.Info[15];
-                DateTime now = DateTime.Now;
-
-                // log every state change, otherwise at most once a second
-                if (state == _ps_log_last_state && (now - _ps_log_last).TotalMilliseconds < 1000) return;
-
-                _ps_log_last_state = state;
-                _ps_log_last = now;
-
-                psLog(string.Format("state={0} sln.chk={1} cor.cnt={2} dg.cnt={3} fb={4} bldr={5}/{6}/{7}/{8} peak={9:F4} att={10} stim={11} hwpk={12:F4} tgt={13} appl={14} iqc={15}/{16}/{17} run={18}",
-                    state,
-                    puresignal.Info[6],
-                    puresignal.Info[5],
-                    puresignal.Info[13],
-                    puresignal.Info[4],
-                    puresignal.Info[0],
-                    puresignal.Info[1],
-                    puresignal.Info[2],
-                    puresignal.Info[3],
-                    puresignal.CurrentPeak,
-                    console.SetupForm.ATTOnTX,
-                    psStimulusName(),
-                    psMeasuredPeak(),
-                    puresignal.TargetFeedbackLevel,
-                    puresignal.Info[14],
-                    // the state of the correction: run flag, busy flag and the state of
-                    // the IQC (0=run, 1=begin, 2=swap, 3=end, 4=done)
-                    puresignal.Info[16],
-                    puresignal.Info[17],
-                    puresignal.Info[18],
-                    puresignal.Info[19]));
-            }
-            catch { }
-        }
-
-        // The stimulus that is currently driving the TX.  The log has to name it, otherwise a
-        // log of a noise run and a log of a two tone run cannot be told apart afterwards.
-        private string psStimulusName()
-        {
-            try
-            {
-                if (console == null || console.IsSetupFormNull) return "none";
-                if (!console.SetupForm.TTgenrun) return "none";
-                return console.SetupForm.TestIMDNoiseStimulus ? "noise" : "twotone";
-            }
-            catch { return "?"; }
-        }
-
-        // The measured peak of the digital TX feedback (the "GetPk" box).  With the two tone it
-        // reads about 1.0, with the noise it reads about the peak reference.
-        private double psMeasuredPeak()
-        {
-            try
-            {
-                double peak = 0.0;
-                unsafe { puresignal.GetPSMaxTX(_txachannel, &peak); }
-                return peak;
-            }
-            catch { return 0.0; }
-        }
-
-        private void psLogClose()
-        {
-            try { if (_ps_log != null) { _ps_log.Flush(); _ps_log.Close(); _ps_log = null; } }
-            catch { }
-        }
         #region PSLoops
 
         private bool _performing_single_cal = false;
@@ -942,7 +689,6 @@ namespace Thetis
 
             if (puresignal.HasInfoChanged)
             {
-                psLogState();
                 lblPSInfo0.Text = puresignal.Info[0].ToString();
                 lblPSInfo1.Text = puresignal.Info[1].ToString();
                 lblPSInfo2.Text = puresignal.Info[2].ToString();
@@ -950,32 +696,11 @@ namespace Thetis
                 lblPSfb2.Text = puresignal.FeedbackLevel.ToString();
                 lblPSInfo5.Text = puresignal.CalibrationCount.ToString();
                 lblPSInfo6.Text = puresignal.Info[6].ToString();
-                // Yurij-eu2av - 2026-07-08: highlight severe PureSignal over-drive (info[6] == 2).
-                if (puresignal.Info[6] == 2)
-                {
-                    if (lblPSInfo6.BackColor != Color.Red)
-                    {
-                        lblPSInfo6.BackColor = Color.Red;
-                        lblPSInfo6.ForeColor = Color.White;
-                    }
-                }
-                else
-                {
-                    if (lblPSInfo6.BackColor != Color.Bisque)
-                    {
-                        lblPSInfo6.BackColor = Color.Bisque;
-                        lblPSInfo6.ForeColor = Color.Black;
-                    }
-                }
                 lblPSInfo13.Text = puresignal.Info[13].ToString();
                 lblPSInfo15.Text = puresignal.Info[15].ToString();
             }
 
-            // The "correcting" light has to go out when the PureSignal is switched off.
-            // The engine only refreshes info[14] when a calibration completes, so the
-            // light could stay green long after the OFF button was pressed.  The state of
-            // the PureSignal itself is the authority here.
-            if (puresignal.CorrectionsBeingApplied && PureSignalOn)
+            if (puresignal.CorrectionsBeingApplied)
             {
                 btnPSSave.Enabled = true;
                 if (puresignal.Correcting)
@@ -1016,17 +741,10 @@ namespace Thetis
             }
 
             // MW0LGE_21k9
-            // The info bar readout must not be tied to the auto-calibrate mode: a Single Cal
-            // switches the auto-calibrate mode off but the PureSignal stays on with its
-            // correction applied, the readout has to stay alive.  It follows the PureSignal
-            // itself, so it works in the auto-calibrate mode as well - and it goes dark
-            // when the PureSignal is switched off.
-            if (PureSignalOn)
+            if (_autocal_enabled)
             {
                 if (puresignal.HasInfoChanged)
-                {
                     console.InfoBarFeedbackLevel(puresignal.FeedbackLevel, puresignal.IsFeedbackLevelOK, puresignal.CorrectionsBeingApplied, puresignal.CalibrationAttemptsChanged, puresignal.FeedbackColourLevel);
-                }
             }
             //
             unsafe
@@ -1059,13 +777,7 @@ namespace Thetis
                     _cmdstate = eCMDState.AutoCalibrate;// 2;
                     break;
                 case eCMDState.AutoCalibrate://2:     // Auto-Calibrate Mode
-                    // A Single Cal wins over the "off" flag.  ForcePureSignalAutoCalDisable()
-                    // sets _OFF when the Single Cal button unchecks PS-A, and if the state
-                    // machine honoured that it would switch the PureSignal off and throw the
-                    // single cal away instead of running it.
-                    if (_singlecalON)
-                        _cmdstate = eCMDState.TurnOnSingleCalibrate;// 3;
-                    else if (_OFF)
+                    if (_OFF)
                         _cmdstate = eCMDState.TurnOFF;// 6;
                     else if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
@@ -1074,13 +786,6 @@ namespace Thetis
                     break;
                 case eCMDState.TurnOnSingleCalibrate://3:     // Turn-ON Single-Calibrate Mode
                     _autoON = false;
-                    // A Single Cal *replaces* the auto-calibrate mode, it is not a request
-                    // to switch the PureSignal off.  ForcePureSignalAutoCalDisable() sets
-                    // _OFF (the PS form's "switch off" flag) when it unchecks PS-A, and the
-                    // Single Cal button calls it - so the flag has to be cleared again here,
-                    // otherwise the state machine turns the PS off (and drops the freshly
-                    // calculated correction) as soon as the single cal is done.
-                    _OFF = false;
                     _performing_single_cal = true;
                     puresignal.SetPSControl(_txachannel, 1, 1, 0, 0);
                     if (!PSEnabled) PSEnabled = true;
@@ -1089,9 +794,7 @@ namespace Thetis
                     break;
                 case eCMDState.SingleCalibrate://4:     // Single-Calibrate Mode
                     _singlecalON = false;
-                    // While the single cal is running the PS stays on, the correction it
-                    // produced must not be thrown away.
-                    if (_OFF && !_performing_single_cal)
+                    if (_OFF)
                         _cmdstate = eCMDState.TurnOFF;// 6;
                     else if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
@@ -1103,10 +806,7 @@ namespace Thetis
                 case eCMDState.StayON://5:     // Stay-ON
                     if (PSEnabled) PSEnabled = false;
                     btnPSCalibrate.BackColor = SystemColors.Control;
-                    // A Single Cal wins over the "off" flag, see TurnOnSingleCalibrate.
-                    if (_singlecalON)
-                        _cmdstate = eCMDState.TurnOnSingleCalibrate;// 3;
-                    else if (_OFF)
+                    if (_OFF)
                         _cmdstate = eCMDState.TurnOFF;// 6;
                     else if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
@@ -1126,7 +826,7 @@ namespace Thetis
                         else
                         {
                             _performing_single_cal_retries = 0;
-                            stopSingleCalStimulus();    // the single cal is done
+                            stopSingleCalStimulus();
                         }
                     }
                     break;
@@ -1137,7 +837,7 @@ namespace Thetis
                     if (!PSEnabled) PSEnabled = true;
                     btnPSCalibrate.BackColor = SystemColors.Control;
                     _OFF = false;
-                    stopSingleCalStimulus();        // a single cal that was running is over
+                    stopSingleCalStimulus();
                     if (_restoreON)
                         _cmdstate = eCMDState.IntiateRestoredCorrection;// 7;
                     else if (_autoON)
@@ -1174,25 +874,6 @@ namespace Thetis
                     }
                     break;
             }
-
-            // The console's info bar shows the PureSignal state and the feedback level.
-            // It follows the PureSignal, not the auto-calibrate mode, so it stays alive in
-            // the auto-calibrate mode and after a Single Cal alike.
-            bool psOn = PureSignalOn;
-
-            // The OFF button is greyed out when the PureSignal is already off - that is the
-            // indication that there is nothing left to switch off.
-            btnPSReset.Enabled = psOn;
-
-            if (psOn != _lastPSIndicated)
-            {
-                _lastPSIndicated = psOn;
-                // The info bar has to go dark when the PureSignal is switched off, that is
-                // the indication that the OFF button worked.
-                console.InfoBarPSEnabled(psOn);
-                try { psLog("EVENT puresignal " + (psOn ? "ON" : "OFF")); }
-                catch { }
-            }
         }
         private void timer2code()
         {
@@ -1201,11 +882,7 @@ namespace Thetis
             switch (_autoAttenuateState)
             {
                 case eAAState.Monitor:// 0: // monitor
-                    bool successChanged = puresignal.CalibrationSuccessChanged;
-                    bool singlePath = _cmdstate == eCMDState.SingleCalibrate || _performing_single_cal;
-                    bool calibrationChanged = successChanged ||
-                        (singlePath && puresignal.CalibrationFailedAttemptChanged);
-                    if (_autoattenuate && calibrationChanged
+                    if (_autoattenuate && puresignal.CalibrationAttemptsChanged
                         && puresignal.NeedToRecalibrate(console.SetupForm.ATTOnTX))
                     {
                         if (!console.ATTOnTX) AutoAttenuate = true; //MW0LGE
@@ -1215,7 +892,7 @@ namespace Thetis
                         double ddB;
                         if (puresignal.IsFeedbackLevelOK)
                         {
-                            ddB = 20.0 * Math.Log10((double)puresignal.FeedbackLevel / (double)puresignal.TargetFeedbackLevel);
+                            ddB = 20.0 * Math.Log10((double)puresignal.FeedbackLevel / 152.293);
                             if (Double.IsNaN(ddB)) ddB = 31.1;
                             if (ddB < -100.0) ddB = -100.0;
                             if (ddB > +100.0) ddB = +100.0;
@@ -1227,11 +904,10 @@ namespace Thetis
                         _deltadB = (int)Math.Round(ddB, MidpointRounding.AwayFromZero); //[2.10.3.12]MW0LGE use rounding, to fix Banker's rounding issue
 
                         _save_autoON = (_cmdstate == eCMDState.AutoCalibrate) ? 1 : 0; // (2)
-                        _save_singlecalON = (_cmdstate == eCMDState.SingleCalibrate || _performing_single_cal) ? 1 : 0; // (4)
+                        _save_singlecalON = (_cmdstate == eCMDState.SingleCalibrate) ? 1 : 0; // (4)
 
                         // everything off and reset
                         puresignal.SetPSControl(_txachannel, 1, 0, 0, 0);
-                        LogAutoAttenuate($"MONITOR FB={puresignal.FeedbackLevel} ATT={console.SetupForm.ATTOnTX} ddB={ddB:F2} delta={_deltadB} OK={puresignal.IsFeedbackLevelOKRange} {PSInfoBits()}");
                     }
                     break;
                 case eAAState.SetNewValues:// 1: // set new values
@@ -1245,41 +921,16 @@ namespace Thetis
                     if (oldAtten/*console.SetupForm.ATTOnTX*/ != newAtten)
                     {
                         console.SetupForm.ATTOnTX = newAtten;
-                        LogAutoAttenuate($"SETATT  old={oldAtten} new={newAtten} delta={_deltadB} FB={puresignal.FeedbackLevel} {PSInfoBits()}");
 
                         // give some additional time for the network msg to get to the radio before switching back on MW0LGE_21k9d5
                         if (m_bQuckAttenuate) Thread.Sleep(100);
-                    }
-                    else
-                    {
-                        LogAutoAttenuate($"SETATT  no change old={oldAtten} new={newAtten} delta={_deltadB} FB={puresignal.FeedbackLevel} {PSInfoBits()}");
                     }
                     break;
                 case eAAState.RestoreOperation:// 2: // restore operation
                     _autoAttenuateState = eAAState.Monitor;//0;
                     puresignal.SetPSControl(_txachannel, 0, _save_singlecalON, _save_autoON, 0);
-                    LogAutoAttenuate($"RESUME  FB={puresignal.FeedbackLevel} ATT={console.SetupForm.ATTOnTX} {PSInfoBits()}");
                     break;
             }
-        }
-
-        private static readonly object _psAutoAttenLogLock = new object();
-        private string PSInfoBits()
-        {
-            return $"I0={puresignal.Info[0]} I1={puresignal.Info[1]} I2={puresignal.Info[2]} I3={puresignal.Info[3]} I6={puresignal.Info[6]} C={puresignal.CalibrationCount} A={puresignal.Info[7]}";
-        }
-        private void LogAutoAttenuate(string message)
-        {
-            try
-            {
-                string path = Path.Combine(Application.StartupPath, "PSAutoAttenuate.log");
-                string line = $"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff} {message}{Environment.NewLine}";
-                lock (_psAutoAttenLogLock)
-                {
-                    File.AppendAllText(path, line);
-                }
-            }
-            catch { }
         }
         #endregion
 
@@ -1299,6 +950,11 @@ namespace Thetis
         public void UpdateWarningSetPk()
         {
             pbWarningSetPk.Visible = _PShwpeak != HardwareSpecific.PSDefaultPeak; //[2.10.3.7]MW0LGE show a warning if the setpk is different to what we expect for this hardware
+        }
+
+        private void chkPSRelaxPtol_CheckedChanged(object sender, EventArgs e)
+        {
+            // WDSP 2.11 no longer exposes the WDSP 1.x ptol control.
         }
 
         private void chkPSAutoAttenuate_CheckedChanged(object sender, EventArgs e)
@@ -1321,22 +977,43 @@ namespace Thetis
             cmaster.PSLoopback = checkLoopback.Checked;
         }
 
-        private void comboPSDeadlock_SelectedIndexChanged(object sender, EventArgs e)
+        private void chkPSPin_CheckedChanged(object sender, EventArgs e)
         {
-            // DL1BZ: adjustable WDSP 2.00+ deadlock minimum useful fraction.
-            // Strict = WDSP default, Medium/Relaxed restore 1.29-style stability.
-            double frac;
-            switch (comboPSDeadlock.SelectedIndex)
-            {
-                case 1: frac = 0.04; break; // Medium
-                case 2: frac = 0.02; break; // Relaxed
-                default: frac = 0.06; break; // Strict
-            }
-
-            if (_psFormReady)
-                puresignal.SetPSDeadlockMinFrac(_txachannel, frac);
+            // WDSP 2.11's NURBS calibration owns its endpoint handling.
         }
 
+        private void chkPSMap_CheckedChanged(object sender, EventArgs e)
+        {
+            // The WDSP 1.x map mode is not part of the 2.11 calibration API.
+        }
+
+        private void chkPSStbl_CheckedChanged(object sender, EventArgs e)
+        {
+            // WDSP 2.11 handles calibration smoothing internally.
+        }
+
+        private void comboPSTint_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            _ints = 16;
+            _spi = 256;
+            btnPSSave.Enabled = btnPSRestore.Enabled = true;
+        }
+
+        private bool _advancedON = false; //MW0LGE_[2.9.0.7]
+        private void btnPSAdvanced_Click(object sender, EventArgs e)
+        {
+            _advancedON = !_advancedON;
+            setAdvancedView();
+        }
+        private void setAdvancedView()
+        {
+            if (_advancedON)
+                console.psform.ClientSize = new System.Drawing.Size(760, 100);
+            else
+                console.psform.ClientSize = new System.Drawing.Size(760, 360);
+
+            chkAdvancedViewHidden.Checked = _advancedON;
+        }
         private void chkPSOnTop_CheckedChanged(object sender, EventArgs e)
         {
             _topmost = chkPSOnTop.Checked;
@@ -1371,27 +1048,21 @@ namespace Thetis
             }
             if (!_ttgenON)
                 WDSP.SetTXAPostGenRun(_txachannel, 0);
+            else if (console != null && !console.IsSetupFormNull)
+                console.SetupForm.RestartTestStimulus();
             else
-            {
-                // Re-apply the console's own test stimulus settings.  WDSP's default two tone
-                // (900/1700Hz, wdsp/gen.c) must never be used: its 800Hz spacing is an exact
-                // 1/120 of the 96kHz TX processing rate, so the digitised envelope repeats its
-                // sample values and the PureSignal calibration then only sees a few repeated
-                // levels (WDSP guide 2.11, Appendix D 13.3).
-                if (console != null && !console.IsSetupFormNull)
-                    console.SetupForm.RestartTestStimulus();
-                else
-                    WDSP.SetTXAPostGenRun(_txachannel, 0);
-            }
+                WDSP.SetTXAPostGenRun(_txachannel, 0);
+            updateTestGenButtons();
             udPSCalWait_ValueChanged(this, e);
             udPSPhnum_ValueChanged(this, e);
             udPSMoxDelay_ValueChanged(this, e);
+            chkPSRelaxPtol_CheckedChanged(this, e);
             chkPSAutoAttenuate_CheckedChanged(this, e);
-            // The target feedback level is set by the code for the radio in use.  It may not
-            // exist yet when the database is restored - do not create the setup form here,
-            // that would run its initialisation at the wrong point of the console startup.
-            SetTargetFeedbackLevel(HardwareSpecific.PSTargetFeedbackLevel);
             comboPSDeadlock_SelectedIndexChanged(this, e);
+            chkPSPin_CheckedChanged(this, e);
+            chkPSMap_CheckedChanged(this, e);
+            chkPSStbl_CheckedChanged(this, e);
+            comboPSTint_SelectedIndexChanged(this, e);
             chkPSOnTop_CheckedChanged(this, e);
             chkQuickAttenuate_CheckedChanged(this, e);
             chkShow2ToneMeasurements_CheckedChanged(this, e);
@@ -1451,17 +1122,14 @@ namespace Thetis
         [DllImport("wdsp.dll", EntryPoint = "SetPSControl", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSControl(int channel, int reset, int mancal, int automode, int turnon);
 
-        [DllImport("wdsp.dll", EntryPoint = "SetPSCorrectionOff", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSCorrectionOff(int channel);
+        [DllImport("wdsp.dll", EntryPoint = "SetPSDeadlockMinFrac", CallingConvention = CallingConvention.Cdecl)]
+        public static extern void SetPSDeadlockMinFrac(int channel, double frac);
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSLoopDelay", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSLoopDelay(int channel, double delay);
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSMoxDelay", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSMoxDelay(int channel, double delay);
-
-        [DllImport("wdsp.dll", EntryPoint = "SetPSDeadlockMinFrac", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void SetPSDeadlockMinFrac(int channel, double frac);
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSTXDelay", CallingConvention = CallingConvention.Cdecl)]
         public static extern double SetPSTXDelay(int channel, double delay);
@@ -1482,7 +1150,9 @@ namespace Thetis
         public static extern void GetPSMaxTX(int channel, double* maxtx);
 
         [DllImport("wdsp.dll", EntryPoint = "GetPSDisp", CallingConvention = CallingConvention.Cdecl)]
-        public static extern void GetPSDisp(int channel, IntPtr x, IntPtr ym, IntPtr yc, IntPtr ys, IntPtr xm_cor, IntPtr ym_cor, IntPtr xa_cor, IntPtr ya_cor, IntPtr nsamps_out, IntPtr cpts_out, IntPtr phs_ref_deg_out);
+        public static extern void GetPSDisp(int channel, IntPtr x, IntPtr ym, IntPtr yc, IntPtr ys,
+            IntPtr xm_cor, IntPtr ym_cor, IntPtr xa_cor, IntPtr ya_cor,
+            out int nsamps_out, out int cpts_out, out double phs_ref_deg_out);
 
         [DllImport("wdsp.dll", EntryPoint = "SetPSFeedbackRate", CallingConvention = CallingConvention.Cdecl)]
         public static extern void SetPSFeedbackRate(int channel, int rate);
@@ -1490,22 +1160,12 @@ namespace Thetis
         #endregion
 
         #region public methods
-        private static int[] _info = new int[20];
-        private static int[] _oldInfo = new int[20];
+        private static int[] _info = new int[16];
+        private static int[] _oldInfo = new int[16];
         private static bool _bInvertRedBlue = false;
-        // The target feedback level is set by the code for the radio in use
-        // (HardwareSpecific.PSTargetFeedbackLevel).  It is not a user setting: the operator
-        // must not be able to change it, a wrong value drives the amplifier into the wrong
-        // operating point.
-        public static int TargetFeedbackLevel
-        {
-            get { return HardwareSpecific.PSTargetFeedbackLevel; }
-        }
-        public static int FeedbackLevelGreenLow { get { return (int)(TargetFeedbackLevel * 0.7); } }
-        public static int FeedbackLevelGreenHigh { get { return (int)(TargetFeedbackLevel * 1.3); } }
         static puresignal()
         {
-            for(int i = 0; i < 20; i++)
+            for(int i = 0; i < 16; i++)
             {
                 _info[i] = 0;
                 _oldInfo[i] = _info[i];
@@ -1520,7 +1180,7 @@ namespace Thetis
             //make copy of old, used in HasInfoChanged & CalibrationAttemptsChanged MW0LGE
             fixed (void* dest = &_oldInfo[0])
             fixed (void* src = &_info[0])
-                Win32.memcpy(dest, src, 20 * sizeof(int));
+                Win32.memcpy(dest, src, 16 * sizeof(int));
 
             fixed (int* ptr = &(_info[0]))
                 GetPSInfo(txachannel, ptr);
@@ -1528,7 +1188,7 @@ namespace Thetis
         public static bool HasInfoChanged 
         {
             get {
-                for (int n = 0; n < 20; n++)
+                for (int n = 0; n < 16; n++)
                 {
                     if (_info[n] != _oldInfo[n])
                         return true;
@@ -1537,19 +1197,10 @@ namespace Thetis
             }
         }
         public static bool CalibrationAttemptsChanged {
-            get { return _info[5] != _oldInfo[5]; }
-        }
-        public static bool CalibrationSuccessChanged {
-            get { return _info[5] != _oldInfo[5]; }
-        }
-        public static bool CalibrationAttemptedChanged {
             get { return _info[7] != _oldInfo[7]; }
         }
-        public static bool CalibrationFailedAttemptChanged {
-            get { return CalibrationAttemptedChanged && !CalibrationSuccessChanged; }
-        }
-        internal static bool CorrectionRestoreFailed => (_info[12] & 0b0010) != 0;
-        internal static bool CorrectionRestoreReady => (_info[12] & 0b0100) != 0;
+        internal static bool CorrectionRestoreFailed => (_info[12] & 2) != 0;
+        internal static bool CorrectionRestoreReady => (_info[12] & 4) != 0;
         public static bool CorrectionsBeingApplied {
             get { return _info[14] == 1; }
         }
@@ -1557,59 +1208,31 @@ namespace Thetis
             get { return _info[5]; }
         }
         public static bool Correcting {
-        // MW0LGE: the old threshold was a fixed 90.  That was 0.6 of the old target (152).
-        // PureSignal 3 measures the feedback against a different reference, so a fixed number
-        // can never be reached and the "correcting" light stayed yellow for ever.  Scale it
-        // with the target, which is 152 for every radio.
-        get { return FeedbackLevel > (int)(TargetFeedbackLevel * 0.6); }
+            get { return FeedbackLevel > 90; }
         }
         public static bool NeedToRecalibrate(int nCurrentATTonTX) {
-            // Yurij_eu2av: recalibrate if feedback is too high relative to target,
-            // or too low while we still have attenuation headroom.
-            return (FeedbackLevel > (int)(TargetFeedbackLevel * 1.5) ||
-                    (FeedbackLevel < (int)(TargetFeedbackLevel * 0.7) && nCurrentATTonTX > 0));
+            //note: for reference (puresignal.Info[4] > 181 || (puresignal.Info[4] <= 128 && console.SetupForm.ATTOnTX > 0))
+            return (FeedbackLevel > 181 || (FeedbackLevel <= 128 && nCurrentATTonTX > 0));            
         }
         public static bool IsFeedbackLevelOK {
             get { return FeedbackLevel <= 256; }
         }
         public static bool IsFeedbackLevelOKRange
         {
-            get { return FeedbackLevel >= FeedbackLevelGreenLow && FeedbackLevel <= FeedbackLevelGreenHigh; }
+            get { return FeedbackLevel > 128 && FeedbackLevel <= 181; }
         }
         public static int FeedbackLevel {
             get { return _info[4]; }
         }
-
-        // The PureSignal peak reference (the "SetPk" box in the PureSignal form).  The
-        // calibration normalises the TX envelope with it: the samples are binned into 16
-        // envelope buckets over the range 0 .. peak.  A stimulus whose TX peak is well above
-        // the reference puts all its samples into the top bucket, see
-        // setup.cs applyTestStimulusGenerator().
-        public static double CurrentPeak
-        {
-            get
-            {
-                double peak = 0.0;
-                unsafe { GetPSHWPeak(WDSP.id(1, 0), &peak); }
-                return peak;
-            }
-        }
         public static Color FeedbackColourLevel {
             get {
-                int greenLow = FeedbackLevelGreenLow;
-                int greenHigh = FeedbackLevelGreenHigh;
-                int yellowLow = (int)(TargetFeedbackLevel * 0.5);
-                int yellowHigh = (int)(TargetFeedbackLevel * 1.5);
-
-                if (FeedbackLevel >= greenLow && FeedbackLevel <= greenHigh)
-                    return Color.Lime;
-                else if (FeedbackLevel >= yellowLow && FeedbackLevel <= yellowHigh)
-                    return Color.Yellow;
-                else if (FeedbackLevel > yellowHigh)
+                if (FeedbackLevel > 181)
                 {
                     if (_bInvertRedBlue) return Color.Red;
                     return Color.DodgerBlue;
                 }
+                else if (FeedbackLevel > 128) return Color.Lime;
+                else if (FeedbackLevel > 90) return Color.Yellow;
                 else
                 {
                     if (_bInvertRedBlue) return Color.DodgerBlue;

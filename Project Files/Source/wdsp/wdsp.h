@@ -300,8 +300,7 @@ WDSP_API void GetPSMaxTX (int channel, double* maxtx);
 WDSP_API void PSRestoreCorr (int channel, char* filename);
 WDSP_API void PSSaveCorr (int channel, char* filename);
 WDSP_API void SetPSAutomode (int channel, int automode);
-   WDSP_API void SetPSControl (int channel, int reset, int mancal, int automode, int turnon);
-   WDSP_API void SetPSCorrectionOff (int channel);
+WDSP_API void SetPSControl (int channel, int reset, int mancal, int automode, int turnon);
 WDSP_API void SetPSFeedbackRate (int channel, int rate);
 WDSP_API void SetPSHWPeak (int channel, double peak);
 WDSP_API void SetPSLoopDelay (int channel, double delay);
@@ -314,16 +313,6 @@ WDSP_API void SetPSRunCal (int channel, int run);
 WDSP_API double SetPSTXDelay (int channel, double delay);
 WDSP_API void SetPSTurnon (int channel, int turnon);
 WDSP_API void pscc (int channel, int size, double* tx, double* rx);
-WDSP_API void SetPSStabilize (int channel, int stbl);
-WDSP_API void SetPSEMAAlpha (int channel, double alpha);
-WDSP_API void SetPSPinAlpha (int channel, double alpha);
-WDSP_API void SetPSPinMode (int channel, int pin);
-WDSP_API void SetPSIntsAndSpi (int channel, int ints, int spi);
-WDSP_API void SetPSDCBEnable (int channel, int enable);
-WDSP_API void SetPSDCBCap (int channel, double cap);
-WDSP_API void SetPSEQEnable (int channel, int enable);
-WDSP_API void SetPSOutlierSigma (int channel, double sigma);
-WDSP_API void ResetPSAdvancedParams (int channel);
 
 /*  ---- cblock.c ---------------------------------------------------------- */
 

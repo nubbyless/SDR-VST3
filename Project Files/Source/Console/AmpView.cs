@@ -1,4 +1,4 @@
-﻿/*  AmpView.cs
+/*  AmpView.cs
 
 This file is part of a program that implements a Software-Defined Radio.
 
@@ -57,33 +57,27 @@ namespace Thetis
 {
     public unsafe partial class AmpView : Form
     {
-        private PSForm _psform;
-        public AmpView(PSForm ps)
+        public AmpView()
         {
             InitializeComponent();
             Common.DoubleBufferAll(this, true);
-            _psform = ps;
         }
 
         //GCHandle hx, hym, hyc, hys, hcm, hcc, hcs;
-        const int max_ints = 16;
         const int max_samps = 4096;
-        const int np = 512;
         double[] x  = new double[max_samps];
         double[] ym = new double[max_samps];
         double[] yc = new double[max_samps];
         double[] ys = new double[max_samps];
-        double[] cm = new double[4 * max_ints];
-        double[] cc = new double[4 * max_ints];
-        double[] cs = new double[4 * max_ints];
-        double[] xm_cor = new double[max_samps];
-        double[] ym_cor = new double[max_samps];
-        double[] xa_cor = new double[max_samps];
-        double[] ya_cor = new double[max_samps];
-        int[] nsamps_out = new int[1];
-        int[] cpts_out = new int[1];
-        double[] phs_ref_deg_out = new double[1];
-        double[] t  = new double[max_ints + 1];
+        const int max_correction_points = 512;
+        double[] xm_cor = new double[max_correction_points];
+        double[] ym_cor = new double[max_correction_points];
+        double[] xa_cor = new double[max_correction_points];
+        double[] ya_cor = new double[max_correction_points];
+        private int _disp_nsamps;
+        private int _disp_cpts;
+        private double _disp_phs_ref_deg;
+        private int _oldDispCpts = -1;
         int skip = 1;
         bool showgain = false;
         private static Object intslock = new Object();
@@ -142,16 +136,13 @@ namespace Thetis
                 chart1.Series["Ref"].Points.AddXY(0.0, 1.0);
                 chart1.Series["Ref"].Points.AddXY(1.0, 1.0);
             }
-            int chartPts = Math.Min(np, cpts);
-            if (chartPts < 2) chartPts = 2;
-            chart1.Series["MagCorr"].Points.AddXY(0.0, 0.0);
-            for (int i = 1; i <= chartPts; i++)
+            for (int i = 0; i < cpts; i++)
             {
-                chart1.Series["MagCorr"].Points.AddXY(0.0, 0.0);                
-                chart1.Series["PhsCorr"].Points.AddXY(0.0, 0.0); // note: not always np number of entries, disp_data_Update handles this
+                chart1.Series["MagCorr"].Points.AddXY(0.0, 0.0);
+                chart1.Series["PhsCorr"].Points.AddXY(0.0, 0.0);
             }
 
-            for (int i = 0; i < nsamps; i++) // += skip)
+            for (int i = 0; i < nsamps; i++)
             {
                 chart1.Series["MagAmp"].Points.AddXY(0.0, 0.0);
                 chart1.Series["PhsAmp"].Points.AddXY(0.0, 0.0); // note: low res will skip every 4
@@ -162,10 +153,7 @@ namespace Thetis
         {
             nsamps = Math.Min(nsamps, Math.Min(x.Length, Math.Min(ym.Length, Math.Min(yc.Length, ys.Length))));
             cpts = Math.Min(cpts, Math.Min(xm_cor.Length, Math.Min(ym_cor.Length, Math.Min(xa_cor.Length, ya_cor.Length))));
-            if (nsamps <= 0 || cpts < 2) return;
-            int chartPts = Math.Min(np, cpts);
-            double qx;
-            double qym, qys, phs;
+            if (nsamps <= 0 || cpts <= 0) return;
 
             if (!showgain)
             {
@@ -179,45 +167,25 @@ namespace Thetis
                 chart1.Series["Ref"].Points[0].SetValueXY(0.0, 1.0);
                 chart1.Series["Ref"].Points[1].SetValueXY(1.0, 1.0);
             }
-            chart1.Series["MagCorr"].Points[0].SetValueXY(0.0, 0.0);
-            int npts = cpts;
-            if (npts < 2) npts = 2;
-            int nLastGoodPoint = -1;
-            for (int i = 1; i <= chartPts; i++)
+
+            for (int i = 0; i < cpts; i++)
             {
-                qx = (double)i / (double)chartPts;
-                double pos = qx * (double)(npts - 1);
-                int j = (int)pos;
-                if (j > npts - 2) j = npts - 2;
-                double frac = pos - (double)j;
-                qym = ym_cor[j] + frac * (ym_cor[j + 1] - ym_cor[j]);
-                qys = ya_cor[j] + frac * (ya_cor[j + 1] - ya_cor[j]);
-                if (!showgain)
-                    chart1.Series["MagCorr"].Points[i].SetValueXY(qx, qym * qx);
-                else
-                    chart1.Series["MagCorr"].Points[i].SetValueXY(qx, qym);
-                phs = qys;
-                if (phs > -180.0 && phs < +180.0)
+                double input = xm_cor[i];
+                double gain = ym_cor[i];
+                chart1.Series["MagCorr"].Points[i].SetValueXY(input, showgain ? gain : gain * input);
+                double phase = ya_cor[i];
+                if (phase > -180.0 && phase < 180.0)
+                    chart1.Series["PhsCorr"].Points[i].SetValueXY(xa_cor[i], phase);
+                else if (i > 0)
                 {
-                    chart1.Series["PhsCorr"].Points[i-1].SetValueXY(qx, phs);
-                    nLastGoodPoint = i-1;
+                    DataPoint previous = chart1.Series["PhsCorr"].Points[i - 1];
+                    chart1.Series["PhsCorr"].Points[i].SetValueXY(previous.XValue, previous.YValues[0]);
                 }
                 else
-                {
-                    // no data, so need to use last known x/y so that un-used point is 'invisible'
-                    if (nLastGoodPoint != -1)
-                    {
-                        DataPoint dp = chart1.Series["PhsCorr"].Points[nLastGoodPoint];
-                        chart1.Series["PhsCorr"].Points[i - 1].SetValueXY((double)dp.XValue, (double)dp.YValues[0]);
-                    }
-                    else
-                    {
-                        chart1.Series["PhsCorr"].Points[i - 1].SetValueXY(0.0, 0.0);
-                    }
-                    
-                }
+                    chart1.Series["PhsCorr"].Points[i].SetValueXY(0.0, 0.0);
             }
-            nLastGoodPoint = -1;
+
+            int lastGoodPoint = -1;
             for (int i = 0; i < nsamps; i++)
             {
                 if (i % skip == 0)
@@ -226,32 +194,25 @@ namespace Thetis
                         chart1.Series["MagAmp"].Points[i].SetValueXY(ym[i] * x[i], x[i]);
                     else
                         chart1.Series["MagAmp"].Points[i].SetValueXY(ym[i] * x[i], ym[i] != 0.0 ? 1.0 / ym[i] : 0.0);
-                    phs = 180.0 / Math.PI * Math.Atan2(ys[i], yc[i]) - phs_ref_deg_out[0];
-                    chart1.Series["PhsAmp"].Points[i].SetValueXY(x[i], phs);
 
-                    nLastGoodPoint = i;
+                    double phase = 180.0 / Math.PI * Math.Atan2(ys[i], yc[i]) - _disp_phs_ref_deg;
+                    chart1.Series["PhsAmp"].Points[i].SetValueXY(x[i], phase);
+                    lastGoodPoint = i;
+                }
+                else if (lastGoodPoint >= 0)
+                {
+                    DataPoint previous = chart1.Series["MagAmp"].Points[lastGoodPoint];
+                    chart1.Series["MagAmp"].Points[i].SetValueXY(previous.XValue, previous.YValues[0]);
+                    previous = chart1.Series["PhsAmp"].Points[lastGoodPoint];
+                    chart1.Series["PhsAmp"].Points[i].SetValueXY(previous.XValue, previous.YValues[0]);
                 }
                 else
                 {
-                    // no data, so need to use last known x/y so that un-used point is 'invisible'
-                    if (nLastGoodPoint != -1)
-                    {
-                        DataPoint dp;
-                        dp = chart1.Series["MagAmp"].Points[nLastGoodPoint];
-                        chart1.Series["MagAmp"].Points[i].SetValueXY((double)dp.XValue, (double)dp.YValues[0]);
-
-                        dp = chart1.Series["PhsAmp"].Points[nLastGoodPoint];
-                        chart1.Series["PhsAmp"].Points[i].SetValueXY((double)dp.XValue, (double)dp.YValues[0]);
-                    }
-                    else
-                    {
-                        chart1.Series["MagAmp"].Points[i].SetValueXY(0.0, 0.0);
-                        chart1.Series["PhsAmp"].Points[i].SetValueXY(0.0, 0.0);
-                    }
+                    chart1.Series["MagAmp"].Points[i].SetValueXY(0.0, 0.0);
+                    chart1.Series["PhsAmp"].Points[i].SetValueXY(0.0, 0.0);
                 }
             }
         }
-
         // MW0LGE [2.9.0.8] kept for code record
         //private void disp_data()
         //{
@@ -348,7 +309,6 @@ namespace Thetis
         //}
 
         private int _oldDispNsamps = -1;
-        private int _oldDispCpts = -1;
         private void timer1_Tick(object sender, EventArgs e)
         {
             timer1.Stop();
@@ -375,12 +335,6 @@ namespace Thetis
                 fixed (double* pym_cor = ym_cor)
                 fixed (double* pxa_cor = xa_cor)
                 fixed (double* pya_cor = ya_cor)
-                fixed (double* pcm = cm)
-                fixed (double* pcc = cc)
-                fixed (double* pcs = cs)
-                fixed (int* pnsamps_out = nsamps_out)
-                fixed (int* pcpts_out = cpts_out)
-                fixed (double* pphs_ref_deg_out = phs_ref_deg_out)
                 {
                     puresignal.GetPSDisp(
                         WDSP.id(1, 0),
@@ -392,15 +346,13 @@ namespace Thetis
                         new IntPtr(pym_cor),
                         new IntPtr(pxa_cor),
                         new IntPtr(pya_cor),
-                        new IntPtr(pnsamps_out),
-                        new IntPtr(pcpts_out),
-                        new IntPtr(pphs_ref_deg_out)
+                        out _disp_nsamps,
+                        out _disp_cpts,
+                        out _disp_phs_ref_deg
                     );
                 }
             }
             //
-            int nsamps = Math.Min(Math.Max(nsamps_out[0], 1), max_samps);
-            int cpts = Math.Min(Math.Max(cpts_out[0], 2), max_samps);
 
             lock (intslock)
             {
@@ -414,18 +366,18 @@ namespace Thetis
                 chart1.Series["MagAmp"].Points.SuspendUpdates();
                 chart1.Series["PhsAmp"].Points.SuspendUpdates();
 
-                if (_oldDispNsamps != nsamps || _oldDispCpts != cpts)
+                if (_oldDispNsamps != _disp_nsamps || _oldDispCpts != _disp_cpts)
                 {
-                    _oldDispNsamps = nsamps;
-                    _oldDispCpts = cpts;
+                    _oldDispNsamps = _disp_nsamps;
+                    _oldDispCpts = _disp_cpts;
                     _init = true;
                 }
                 if (_init)
                 {
-                    init_data(nsamps, cpts);
+                    init_data(_disp_nsamps, _disp_cpts);
                     _init = false;
                 }
-                disp_data_Update(nsamps, cpts);
+                disp_data_Update(_disp_nsamps, _disp_cpts);
 
                 chart1.Series["PhsAmp"].Points.ResumeUpdates();
                 chart1.Series["MagAmp"].Points.ResumeUpdates();

@@ -72,12 +72,12 @@ extern void GetTXAiqcValues(int channel,
 extern void SetTXAiqcSwap(int channel, 
 	NS_Spline* m_spline, CurveEMA* m_calavg, double m_prev_y,
 	NS_Spline* c_spline, CurveEMA* c_calavg, double c_prev_y,
-	NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y);
+	NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y, int wait_for_ramp);
 
 extern void SetTXAiqcStart(int channel, 
 	NS_Spline* m_spline, CurveEMA* m_calavg, double m_prev_y,
 	NS_Spline* c_spline, CurveEMA* c_calavg, double c_prev_y,
-	NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y);
+	NS_Spline* s_spline, CurveEMA* s_calavg, double s_prev_y, int wait_for_ramp);
 
 extern void SetTXAiqcEnd (int channel);
 

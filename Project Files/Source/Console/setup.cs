@@ -567,19 +567,9 @@ namespace Thetis
 
             initStreamOutTab(); //prior to getOptions setup streaming output options
 
-            // Yurij_eu2av: hardware-specific default for PureSignal target feedback.
-            // It is not a user setting any more, the hidden control only holds the record of
-            // the value in use.
-            if (udPSTargetFeedbackLevel != null)
-                udPSTargetFeedbackLevel.Value = HardwareSpecific.PSTargetFeedbackLevel;
-
             LogTool.AddLogEntry("        Setup getting options...", "GETOPTIONS");
             getOptions();
             LogTool.Completed("GETOPTIONS");
-
-            // The PureSignal form (the linearity window) shows the target feedback level, it
-            // is owned by the code.  It may not exist yet, it pulls the value when it is.
-            pushTargetFeedbackToPSForm();
 
             selectSkin();
 
@@ -1808,9 +1798,6 @@ namespace Thetis
             // add this manually because the usbbcd combo box will need this to recover previously selected
             a.Add("UsbBCDSerialNumber", m_sUsbBCDSerialNumber);
 
-            // the marker for the one time two tone frequency migration, see handleOutdatedOptions()
-            a.Add("udTestToneFreq1250Hz", "1");
-
             // add this manually because soundfile string not stored in any control in setup
             a.Add("QSOTimerFilenameWav", console.QSOTimerAudioPlayer.SoundFile);
 
@@ -1923,28 +1910,17 @@ namespace Thetis
             if (getDict.ContainsKey("chkTestIMDNoise"))
                 _oldSettings.Add("chkTestIMDNoise");
 
-            // The two tone frequencies.  The console used to ship with 700/1900Hz, a 1200Hz
-            // spacing, and 96000/1200 is exactly 80 - an exact sub-multiple of the TX
-            // processing rate.  The digitised envelope then repeats its sample values and the
-            // PureSignal calibration only sees a few repeated levels instead of a continuous
-            // sweep.  Bring every database up to the 1250Hz spacing of the 'Defaults' preset.
-            // The migration runs once - the marker is written with the next save, after that
-            // the operator's own choice (the 'Stealth' preset for example) is left alone.
-            // See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
-            if (!getDict.ContainsKey("udTestToneFreq1250Hz"))
+            if (getDict.ContainsKey("udTestToneFreq1250Hz"))
             {
-                getDict["udTestIMDFreq1"] = "700";
-                getDict["udTestIMDFreq2"] = "1950";
-                getDict["udTestToneFreq1250Hz"] = "1";
+                string f1 = getDict.ContainsKey("udTestIMDFreq1") ? getDict["udTestIMDFreq1"] : "";
+                string f2 = getDict.ContainsKey("udTestIMDFreq2") ? getDict["udTestIMDFreq2"] : "";
+                if (f1 == "700" && f2 == "1950") getDict["udTestIMDFreq2"] = "1900";
+                else if (f1 == "70" && f2 == "194") getDict["udTestIMDFreq2"] = "190";
+                _oldSettings.Add("udTestToneFreq1250Hz");
             }
 
-            // The PureSignal target feedback level is set by the code for the radio in use,
-            // it is not a user setting any more.  A stale value in the database is a dead
-            // setpoint for the auto-attenuator - it chases a target the rig cannot reach,
-            // parks on the end stop of the TX step attenuator and the feedback light never
-            // goes green.  Replace it with the value in use.
             if (getDict.ContainsKey("udPSTargetFeedbackLevel"))
-                getDict["udPSTargetFeedbackLevel"] = HardwareSpecific.PSTargetFeedbackLevel.ToString();
+                _oldSettings.Add("udPSTargetFeedbackLevel");
 
             handleOldPAGainSettings(ref getDict);
         }
@@ -4438,14 +4414,6 @@ namespace Thetis
                         udATTOnTX.Value = value;
                 }
             }
-        }
-
-        // The PureSignal target feedback level is set by the code for the radio in use
-        // (HardwareSpecific.PSTargetFeedbackLevel).  It is not a user setting, so the
-        // database entry it used to live in is only a record now.
-        public int PSTargetFeedbackLevel
-        {
-            get { return HardwareSpecific.PSTargetFeedbackLevel; }
         }
 
         public string SerialNumber
@@ -11780,25 +11748,6 @@ namespace Thetis
             }
         }
 
-        // Set the TX generator up for the test stimulus.
-        //  - the two tone comes from the TXA *post* generator.  It sits behind the TX bandpass
-        //    filters, so it is not band limited - that is fine for two tones, it is what the
-        //    classic IMD test wants.
-        //  - the noise comes from the TXA *pre* generator.  It is in front of the TX bandpass
-        //    filter, so the filter limits it to the transmit passband and it goes through the
-        //    TX audio chain like a microphone signal does.
-        // This is used by the start of the test, by the PureSignal form's "Single Cal" (which
-        // can swap the running stimulus over) and when the DSP is re-initialised while the
-        // test is running.
-        //
-        // The PureSignal calibration normalises the TX envelope with the peak reference (the
-        // "SetPk" box) and bins the samples into 16 envelope buckets over the range 0 .. peak.
-        // A two tone at 0.5 per tone has a TX peak of 1.0, which is 2.5 to 4.3 times the
-        // reference peak (0.233 for the HL2, 0.2899 for the ANAN, 0.4072 for ANAN protocol 1),
-        // so most of its samples are "overrange".  WDSP 2.11 used to put those samples into the
-        // top envelope bucket, where they corrupt the top of the correction curve; it now drops
-        // them like WDSP 1.29 did (see wdsp/calcc.c SAMPLE_ACCEPT_OVERRANGE).
-        // The tone itself keeps its level: the drive and the ALC have to stay where they are.
         private void applyTestStimulusGenerator(bool noise)
         {
             double ttfreq1 = (double)udTestIMDFreq1.Value;
@@ -12475,23 +12424,11 @@ namespace Thetis
         private void udTestIMDFreq1_LostFocus(object sender, EventArgs e)
         {
             udTestIMDFreq1.Value = udTestIMDFreq1.Value;
-            updateTestIMDSpacingWarning();
-        }
-
-        private void udTestIMDFreq1_ValueChanged(object sender, EventArgs e)
-        {
-            updateTestIMDSpacingWarning();
         }
 
         private void udTestIMDFreq2_LostFocus(object sender, EventArgs e)
         {
             udTestIMDFreq2.Value = udTestIMDFreq2.Value;
-            updateTestIMDSpacingWarning();
-        }
-
-        private void udTestIMDFreq2_ValueChanged(object sender, EventArgs e)
-        {
-            updateTestIMDSpacingWarning();
         }
 
         private void udTestIMDPower_LostFocus(object sender, EventArgs e)
@@ -36818,36 +36755,6 @@ namespace Thetis
             RadioDSP.CacheImpulseSaveRestore = chkWDSP_save_restore_cache_impulse.Checked;
         }
 
-        // The tone frequencies and the Defaults / 'Stealth' presets live in the PureSignal
-        // form (the linearity window) now, together with the spacing warning.
-
-        // The TXA runs at 96kHz (ChannelMaster cmaster.c), the radio rate is 12.288kHz.
-        private const double TX_PROCESSING_RATE = 96000.0;
-        private const double RADIO_TX_RATE = 12288.0;
-
-        // Is the spacing of the two tones an exact sub-multiple of one of the sample rates?
-        // See the WDSP guide 2.11, Appendix D 13.3 and 13.6.
-        private bool testIMDSpacingIsSubMultiple(out double rate, out double division)
-        {
-            rate = 0.0;
-            division = 0.0;
-
-            double spacing = Math.Abs((double)udTestIMDFreq2.Value - (double)udTestIMDFreq1.Value);
-            if (spacing < 1.0) return false;
-
-            double[] rates = new double[] { TX_PROCESSING_RATE, RADIO_TX_RATE };
-            for (int n = 0; n < rates.Length; n++)
-            {
-                double d = rates[n] / spacing;
-                if (d > 1.0 && Math.Abs(d - Math.Floor(d + 0.5)) < 0.000001)
-                {
-                    rate = rates[n];
-                    division = d;
-                    return true;
-                }
-            }
-            return false;
-        }
 
         // The two tone frequencies.  They live in the Setup > Tests tab, the controls are part
         // of this form and the generic database save/restore handles them.  The PureSignal
@@ -36864,61 +36771,16 @@ namespace Thetis
 
         private void btnTwoToneF_defaults_Click(object sender, EventArgs e)
         {
-            // the spacing is 1250Hz, that is not a sub-multiple of the 96kHz TX processing rate
-            // and not of the 12.288kHz radio rate.  A two tone spacing that IS a sub-multiple
-            // makes the digitised envelope repeat its sample values, the PureSignal calibration
-            // then only sees a few repeated levels instead of a continuous sweep.
             udTestIMDFreq1.Value = 700;
-            udTestIMDFreq2.Value = 1950;
-            updateTestIMDSpacingWarning();
+            udTestIMDFreq2.Value = 1900;
         }
 
         private void btnTwoToneF_stealth_Click(object sender, EventArgs e)
         {
-            // 'stealth', the IMD products stay close to the carrier.  The 124Hz spacing is not a
-            // sub-multiple of the TX processing rate.
             udTestIMDFreq1.Value = 70;
-            udTestIMDFreq2.Value = 194;
-            updateTestIMDSpacingWarning();
+            udTestIMDFreq2.Value = 190;
         }
 
-        // The PureSignal form (the linearity window) shows the target feedback level in its
-        // "FB Target" readout.  It may not exist yet when the database is restored, it pulls
-        // the value when it is created.  Push it over when it does exist.
-        private void pushTargetFeedbackToPSForm()
-        {
-            try
-            {
-                if (console == null || console.IsSetupFormNull) return;
-                if (console.psform == null) return;
-                console.psform.SetTargetFeedbackLevel(PSTargetFeedbackLevel);
-            }
-            catch { }
-        }
-
-        // The warning about the tone spacing belongs in the PureSignal form (the linearity
-        // window).  That is where the calibration is set up and where the warning has to be
-        // seen - in the Setup > Tests tab it was easy to miss it.
-        private void updateTestIMDSpacingWarning()
-        {
-            if (console == null || console.IsSetupFormNull) return;
-
-            string msg = "";
-
-            double rate, division;
-            if (testIMDSpacingIsSubMultiple(out rate, out division))
-            {
-                msg = "The tone spacing is exactly 1/" + division.ToString("F0") + " of the " +
-                (rate / 1000.0).ToString("F0") + "kHz TX rate." + Environment.NewLine +
-                "The PureSignal calibration then only sees a few repeated levels, use a spacing like 1250Hz." + Environment.NewLine +
-                "Change the frequencies in Setup > Tests.";
-            }
-
-            // The PureSignal form may not exist yet - the frequencies live in this form now.
-            if (console.psform == null) return;
-
-            console.psform.SetCalStimulusWarning(msg);
-        }
 
         // The noise stimulus needs the TX level detectors out of the way.
         //  - the panel gain is the MIC gain.  The generator replaces the microphone, so the
@@ -36961,9 +36823,8 @@ namespace Thetis
                     // The test is running, swap the generator over.  The test itself
                     // (MOX, power, drive) keeps running, only the excitation changes.
                     applyTestStimulusGenerator(noise);
-                    console.psform.TTgenON = true;                    // refresh the button highlight
-                    // the IMD peak readout is meaningless for a noise stimulus, there are no discrete peaks
-                    Display.TestIMDNoise = true;
+                    console.psform.TTgenON = true;
+                    Display.TestIMDNoise = noise;
                 }
 
                 UpdateCalStimulusUI(noise);
@@ -36971,13 +36832,11 @@ namespace Thetis
             catch { }
         }
 
-        // Refresh the controls and the tone spacing warning for the given stimulus.
         public void UpdateCalStimulusUI(bool noise)
         {
             try
             {
                 updateTestToneControls(noise);
-                updateTestIMDSpacingWarning();
             }
             catch { }
         }

@@ -211,18 +211,7 @@ void print_OriginalAndFitSamples(CALCC a);
 void print_EQ_Samples(CALCC a);
 
 #define SAMPLE_NBUCKS			  16           
-#define SAMPLE_NBUCKS			  16
-// 0 = drop the samples whose normalised TX envelope is above the peak reference,
-// 1 = put them into the top envelope bucket.
-// WDSP 1.29 dropped them (the envelope had to be <= 1.0 to be collected at all).
-// WDSP 2.11 put them into the top bucket, where they mix the samples of completely
-// different drive levels and corrupt the top of the correction curve - the solution
-// check then fails and the calibration never completes.  A two tone at 0.5 per tone
-// has a TX peak of 1.0 and the peak reference is 0.233 (HL2) / 0.2899 (ANAN) /
-// 0.4072 (ANAN protocol 1), so 75 to 80 % of its samples are overrange.
-// The PureSignal calibration is keyed to the TX envelope, so the samples above the
-// reference cannot be characterised anyway - drop them, like WDSP 1.29 did.
-#define SAMPLE_ACCEPT_OVERRANGE	  0             
+#define SAMPLE_ACCEPT_OVERRANGE	  1             
 #define SAMPLE_MIN_X              0.0050         
 #define VAR_FORCED_SLOPE          0.001         
 
@@ -311,7 +300,7 @@ void print_EQ_Samples(CALCC a);
 #define SCHECK_PTS                40             
 #define SCHECK_TOL                0.10        
 #define TOP_BUCKET_PTS            100          
-#define DEFAULT_DEADLOCK_MIN_FRAC 0.06           
+#define DEFAULT_DEADLOCK_MIN_FRAC         0.06
 #define SC_IDENTITY_PTS           20           
 #define SC_IDENTITY_TOL		      0.05        
 
@@ -1048,7 +1037,7 @@ CALCC create_calcc (int channel, int runcal, int size, int rate, double hw_scale
 
 	a->ps_colct = build_collection();
 
-	a->info  = (int *) malloc0 (20 * sizeof (int));
+	a->info  = (int *) malloc0 (16 * sizeof (int));
 	a->binfo = (int *) malloc0 (16 * sizeof (int));
 
 	a->ctrl.state = 0;
@@ -1473,11 +1462,6 @@ static void calc (CALCC a)
 
 	{
 		const double alpha = 0.10;
-		if (!a->m_nurb)
-		{
-			a->binfo[1] |= 0b0001;
-			goto cleanup;
-		}
 		int nc = a->m_nurb->n_ctrl;
 		if (!a->m_ctrl_ema_valid)
 		{
@@ -1516,11 +1500,6 @@ static void calc (CALCC a)
 
 	{
 		const double alpha = 0.10;
-		if (!a->c_nurb)
-		{
-			a->binfo[2] |= 0b0001;
-			goto cleanup;
-		}
 		int nc = a->c_nurb->n_ctrl;
 		if (!a->c_ctrl_ema_valid)
 		{
@@ -1559,11 +1538,6 @@ static void calc (CALCC a)
 
 	{
 		const double alpha = 0.10;
-		if (!a->s_nurb)
-		{
-			a->binfo[3] |= 0b0001;
-			goto cleanup;
-		}
 		int nc = a->s_nurb->n_ctrl;
 		if (!a->s_ctrl_ema_valid)
 		{
@@ -1803,9 +1777,9 @@ void __cdecl doPSCorrChange(void* arg)
 				ns_free(a->util.s_spline_save); a->util.s_spline_save = NULL;
 				if (error)
 				{
-					a->binfo[12] |= 0b0001;
+					a->binfo[12] = 0b0001;
 					EnterCriticalSection(&txa[a->channel].calcc.cs_update);
-					a->info[12]  |= 0b0001;
+					a->info[12] |= 0b0001;
 					LeaveCriticalSection(&txa[a->channel].calcc.cs_update);
 				}
 				break;
@@ -1820,21 +1794,19 @@ void __cdecl doPSCorrChange(void* arg)
 					&a->util.s_calavg_restore);
 				if (!error)
 				{
-					// the swap needs a running IQC, see case 3
-					int was_running = InterlockedBitTestAndSet(&a->ctrl.running, 0);
-					if (!was_running || !InterlockedAnd (&txa[a->channel].iqc.p->run, 1))
+					if (!InterlockedBitTestAndSet(&a->ctrl.running, 0))
 					{
 						SetTXAiqcStart(a->channel,
 							a->util.m_spline_restore, &a->util.m_calavg_restore, a->util.m_prev_y_restore,
 							a->util.c_spline_restore, &a->util.c_calavg_restore, a->util.c_prev_y_restore,
-							a->util.s_spline_restore, &a->util.s_calavg_restore, a->util.s_prev_y_restore);
+							a->util.s_spline_restore, &a->util.s_calavg_restore, a->util.s_prev_y_restore, 0);
 					}
 					else
 					{
 						SetTXAiqcSwap(a->channel,
 							a->util.m_spline_restore, &a->util.m_calavg_restore, a->util.m_prev_y_restore,
 							a->util.c_spline_restore, &a->util.c_calavg_restore, a->util.c_prev_y_restore,
-							a->util.s_spline_restore, &a->util.s_calavg_restore, a->util.s_prev_y_restore);
+							a->util.s_spline_restore, &a->util.s_calavg_restore, a->util.s_prev_y_restore, 0);
 					}
 					a->util.m_spline_restore = NULL;
 					a->util.c_spline_restore = NULL;
@@ -1846,9 +1818,9 @@ void __cdecl doPSCorrChange(void* arg)
 				}
 				else
 				{
-					a->binfo[12] |= 0b0010;
+					a->binfo[12] = 0b0010;
 					EnterCriticalSection(&txa[a->channel].calcc.cs_update);
-					a->info[12]  |= 0b0010;
+					a->info[12] |= 0b0010;
 					LeaveCriticalSection(&txa[a->channel].calcc.cs_update);
 				}
 				break;
@@ -1857,23 +1829,17 @@ void __cdecl doPSCorrChange(void* arg)
 				calc(a);
 				if (a->scOK)
 				{
-					// The swap can only be done when the IQC is running: it waits for the
-					// DSP thread to ramp the new correction in.  When the IQC is stopped -
-					// the correction was switched off - the start has to be used, otherwise
-					// the correction thread waits for the DSP thread for ever and the
-					// calculation never comes back to the engine.
-					int was_running = InterlockedBitTestAndSet(&a->ctrl.running, 0);
-					if (!was_running || !InterlockedAnd (&txa[a->channel].iqc.p->run, 1))
+					if (!InterlockedBitTestAndSet(&a->ctrl.running, 0))
 					{
 						SetTXAiqcStart(a->channel, a->m_spline, &a->m_calavg, a->m_prev_y,
 							a->c_spline, &a->c_calavg, a->c_prev_y,
-							a->s_spline, &a->s_calavg, a->s_prev_y);
+							a->s_spline, &a->s_calavg, a->s_prev_y, 1);
 					}
 					else
 					{
 						SetTXAiqcSwap(a->channel, a->m_spline, &a->m_calavg, a->m_prev_y,
 							a->c_spline, &a->c_calavg, a->c_prev_y,
-							a->s_spline, &a->s_calavg, a->s_prev_y);
+							a->s_spline, &a->s_calavg, a->s_prev_y, 1);
 					}
 					a->m_spline = NULL;
 					a->c_spline = NULL;
@@ -2081,16 +2047,6 @@ void pscc (int channel, int size, double* tx, double* rx)
 						a->ctrl.state = LSETUP;
 					else a->ctrl.state = LWAIT;
 				}
-				// A reset must wait for the calculation that is already in progress.  Clearing
-				// calcinprogress here lets LRESET free the NURB and spline objects while the
-				// correction thread is still building or installing them, which is a
-				// use-after-free.  The correction thread always sets calcdone when it is
-				// finished and its waits are bounded, so waiting here cannot deadlock.
-				else if (a->ctrl.reset)
-				{
-					// Stay in LCALC until the correction thread acknowledges with calcdone.
-					// The calcdone handler above then performs the transition to LRESET.
-				}
 				break;
 			case LDELAY:
 				InterlockedExchange (&a->ctrl.current_state, LDELAY);
@@ -2179,43 +2135,6 @@ void SetPSRunCal (int channel, int run)
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
 }
 
-// Stop applying the PureSignal correction right now.  The state machine of the engine
-// does this in its LRESET case, but the state machine only runs while the radio
-// delivers the feedback samples - it does not run in between transmissions.
-// The OFF button has to switch the correction off there and then, not at the next
-// transmission.
-//
-// The changeover of the correction (SetTXAiqcEnd) must not be used here: it waits for
-// the DSP thread to ramp the correction out, and the DSP thread only runs the
-// correction while the radio transmits.  The wait would block the correction thread
-// for ever - and the engine would wait for the calculation that thread has to run for
-// ever as well, so the PureSignal would be dead until the program is restarted.
-//
-// Clearing the run flag of the IQC switches the correction off at once: xiqc does
-// nothing while the flag is clear, so the samples of the transmit chain are not
-// corrected any more.
-PORT
-void SetPSCorrectionOff (int channel)
-{
-	IQC b = txa[channel].iqc.p;
-	CALCC a = txa[channel].calcc.p;
-	if (!b || !a) return;
-
-	InterlockedBitTestAndReset (&b->run, 0);
-	// Do not clear busy here: the SetTXAiqcStart/Swap/End handoff uses it to know
-	// when the DSP thread has finished with the correction.  Clearing it from the
-	// UI thread lets the next handoff overwrite correction data still in use.
-
-	EnterCriticalSection (&txa[channel].calcc.cs_update);
-	a->info[14] = 0;
-	// The running flag says that a correction is installed.  The state machine of the
-	// engine clears it in its LRESET case, but the state machine only runs while the
-	// radio transmits.  With the flag set the next calibration would swap the
-	// correction instead of starting it - and the swap needs a running IQC.
-	InterlockedBitTestAndReset (&a->ctrl.running, 0);
-	LeaveCriticalSection (&txa[channel].calcc.cs_update);
-}
-
 PORT
 void SetPSMox (int channel, int mox)
 {
@@ -2230,19 +2149,10 @@ PORT
 void GetPSInfo (int channel, int *info)
 {
 	CALCC a;
-	IQC b;
 	EnterCriticalSection (&txa[channel].calcc.cs_update);
 	a = txa[channel].calcc.p;
-	b = txa[channel].iqc.p;
-	memcpy (info, a->info, 20 * sizeof(int));
+	memcpy (info, a->info, 16 * sizeof(int));
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
-	// the state of the correction: the run flag says whether the correction is applied
-	// at all, the busy flag is set while the DSP thread changes the correction over
-	// and the state of the IQC says which changeover that is
-	info[16] = _InterlockedAnd (&b->run, 1);
-	info[17] = _InterlockedAnd (&b->busy, 1);
-	info[18] = (int)b->state;
-	info[19] = _InterlockedAnd (&a->ctrl.running, 1);
 }
 
 PORT
@@ -2375,25 +2285,23 @@ void GetPSMaxTX (int channel, double* maxtx)
 }
 
 PORT
-// Yurij_eu2av: The new AmpView passes a 12-argument GetPSDisp. Return the
-// corrected display curves from the WDSP 2.00 display buffers.
-void GetPSDisp (int channel,
-	double* x, double* ym, double* yc, double* ys,
-	double* xm_cor, double* ym_cor, double* xa_cor, double* ya_cor,
-	int* nsamps_out, int* cpts_out, double* phs_ref_deg_out)
+void GetPSDisp (int channel, double* x, double* ym, double* yc, double* ys,
+		double* xm_cor, double* ym_cor, double* xa_cor, double* ya_cor,
+		int* nsamps_out, int* cpts_out, double* phs_ref_deg_out)
 {
 	CALCC a = txa[channel].calcc.p;
 	EnterCriticalSection (&a->disp.cs_disp);
-	memcpy (x,  a->disp.x,  a->nsamps * sizeof (double));
-	memcpy (ym, a->disp.ym, a->nsamps * sizeof (double));
-	memcpy (yc, a->disp.yc, a->nsamps * sizeof (double));
-	memcpy (ys, a->disp.ys, a->nsamps * sizeof (double));
-	memcpy (xm_cor, a->disp.xm_cor, DISP_PTS * sizeof (double));
-	memcpy (ym_cor, a->disp.ym_cor, DISP_PTS * sizeof (double));
-	memcpy (xa_cor, a->disp.xa_cor, DISP_PTS * sizeof (double));
-	memcpy (ya_cor, a->disp.ya_cor, DISP_PTS * sizeof (double));
-	*nsamps_out = a->nsamps;
-	*cpts_out = DISP_PTS;
+	int disp_nsamps = a->disp.nsamps;
+	memcpy (x,  a->disp.x,  disp_nsamps * sizeof (double));
+	memcpy (ym, a->disp.ym, disp_nsamps * sizeof (double));
+	memcpy (yc, a->disp.yc, disp_nsamps * sizeof (double));
+	memcpy (ys, a->disp.ys, disp_nsamps * sizeof (double));
+	memcpy(xm_cor, a->disp.xm_cor, DISP_PTS * sizeof(double));
+	memcpy(ym_cor, a->disp.ym_cor, DISP_PTS * sizeof(double));
+	memcpy(xa_cor, a->disp.xa_cor, DISP_PTS * sizeof(double));
+	memcpy(ya_cor, a->disp.ya_cor, DISP_PTS * sizeof(double));
+	*nsamps_out      = disp_nsamps;
+	*cpts_out        = DISP_PTS;
 	*phs_ref_deg_out = a->disp.phs_ref_deg;
 	LeaveCriticalSection (&a->disp.cs_disp);
 }
@@ -2425,87 +2333,6 @@ void SetPSFeedbackRate (int channel, int rate)
 		20.0e-09,
 		a->txdel);
 	LeaveCriticalSection (&txa[channel].calcc.cs_update);
-}
-
-/********************************************************************************************************
-*                                                                                                       *
-*                     WDSP 2.00 compatibility stubs for the Thetis PS3.0 UI                             *
-*                                                                                                       *
-********************************************************************************************************/
-
-// These advanced PureSignal controls are exposed by the Thetis UI but are
-// fixed constants in the WDSP 2.11 engine.  Keep the exports present so the
-// UI does not fail on EntryPointNotFoundException; they are intentionally
-// no-ops because WDSP 2.11 manages these parameters internally.
-
-PORT
-void SetPSStabilize (int channel, int stbl)
-{
-	(void)channel;
-	(void)stbl;
-}
-
-PORT
-void SetPSEMAAlpha (int channel, double alpha)
-{
-	(void)channel;
-	(void)alpha;
-}
-
-PORT
-void SetPSPinAlpha (int channel, double alpha)
-{
-	(void)channel;
-	(void)alpha;
-}
-
-PORT
-void SetPSPinMode (int channel, int pin)
-{
-	(void)channel;
-	(void)pin;
-}
-
-PORT
-void SetPSIntsAndSpi (int channel, int ints, int spi)
-{
-	(void)channel;
-	(void)ints;
-	(void)spi;
-}
-
-PORT
-void SetPSDCBEnable (int channel, int enable)
-{
-	(void)channel;
-	(void)enable;
-}
-
-PORT
-void SetPSDCBCap (int channel, double cap)
-{
-	(void)channel;
-	(void)cap;
-}
-
-PORT
-void SetPSEQEnable (int channel, int enable)
-{
-	(void)channel;
-	(void)enable;
-}
-
-PORT
-void SetPSOutlierSigma (int channel, double sigma)
-{
-	(void)channel;
-	(void)sigma;
-}
-
-PORT
-void ResetPSAdvancedParams (int channel)
-{
-	(void)channel;
 }
 
 void print_FitResult_and_Data(CALCC a, char* type, int printWhat)
