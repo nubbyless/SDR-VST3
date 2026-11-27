@@ -80,7 +80,7 @@ namespace Thetis
             chkPSMap.Visible = false;
             chkPSStbl.Visible = false;
             comboPSTint.Visible = false;
-            lblPSTint.Text = "Adaptive";
+            lblPSTint.Visible = false;
 
             _advancedON = false;
             chkAdvancedViewHidden.Checked = false;
